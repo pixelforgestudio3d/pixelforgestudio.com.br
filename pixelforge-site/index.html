@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelForge Studio — CGI & Direção Criativa 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#000;--dark:#070707;--card:#0f0f0f;
+  --white:#fff;--muted:rgba(255,255,255,.42);--muted2:rgba(255,255,255,.68);
+  --border:rgba(255,255,255,.06);--borderh:rgba(255,255,255,.15);
+  --navy:#00194e;--pd:#3D17e1;--pm:#8017e2;--pink:#f433bb;--mag:#da2c80;--pkl:#e96d80;
+  --grad:linear-gradient(135deg,#3D17e1 0%,#8017e2 40%,#da2c80 70%,#f433bb 100%);
+  --gt:linear-gradient(90deg,#3D17e1,#f433bb);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;cursor:none}
+body{background:var(--black);color:var(--white);font-family:'Space Grotesk',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden}
+/* CURSOR */
+#cur{position:fixed;width:8px;height:8px;background:var(--pink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s}
+#curR{position:fixed;width:32px;height:32px;border:1px solid rgba(244,51,187,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .1s,height .1s,border-color .1s}
+.cb #cur{width:16px;height:16px}
+.cb #curR{width:52px;height:52px;border-color:rgba(244,51,187,.8)}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s}
+nav.s{background:rgba(0,0,0,.92);backdrop-filter:blur(20px);border-bottom:.5px solid var(--border)}
+.nl{display:flex;align-items:center;gap:10px;text-decoration:none}
+.ni{width:26px;height:26px;background:var(--grad);-webkit-mask:url('assets/logo isotipo.png') center/contain no-repeat;mask:url('assets/logo isotipo.png') center/contain no-repeat}
+.nt{font-size:15px;font-weight:500;letter-spacing:.06em}
+.nt span{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nls{display:flex;align-items:center;gap:2rem}
+.nls a{font-size:11px;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s;text-transform:uppercase}
+.nls a:hover{color:var(--white)}
+.nc{padding:9px 22px;background:var(--grad);color:var(--white)!important;font-size:11px;letter-spacing:.12em;text-transform:uppercase;transition:opacity .2s}
+.nc:hover{opacity:.85}
+/* HERO */
+.hero{position:relative;height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 2.5rem 5rem;overflow:hidden}
+.hv{position:absolute;inset:0}
+.hv video{width:100%;height:100%;object-fit:cover;opacity:.28}
+.ho{position:absolute;inset:0;background:linear-gradient(to top,#000 0%,rgba(0,0,0,.5) 50%,rgba(0,0,0,.1) 100%)}
+.ha{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(61,23,225,.15) 0%,transparent 100%)}
+.hc{position:relative;z-index:2}
+.he{display:flex;align-items:center;gap:12px;font-size:10px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:fu .7s .4s forwards}
+.hl{width:32px;height:1px;background:var(--grad)}
+h1{font-size:clamp(4rem,10.5vw,9.5rem);font-weight:500;line-height:.9;letter-spacing:-.01em;margin-bottom:1.75rem;opacity:0;animation:fu .7s .55s forwards}
+h1 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hs{font-size:14px;color:var(--muted2);max-width:380px;line-height:1.85;opacity:0;animation:fu .7s .7s forwards}
+.hb{position:absolute;bottom:2.5rem;left:2.5rem;right:2.5rem;display:flex;justify-content:space-between;align-items:flex-end;z-index:2}
+.hst{display:flex;gap:3rem;opacity:0;animation:fu .7s .9s forwards}
+.sn{font-size:1.8rem;font-weight:500;background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.sl{font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+.hscr{display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;animation:fu .7s 1.1s forwards}
+.sb{width:1px;height:52px;background:linear-gradient(to bottom,var(--pink),transparent);animation:p 2s 1.5s infinite}
+.st{font-size:8px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;writing-mode:vertical-lr}
+@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+/* MARQUEE */
+.mw{background:var(--dark);border-top:.5px solid var(--border);border-bottom:.5px solid var(--border);padding:2rem 0;overflow:hidden}
+.ml{text-align:center;font-size:8px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:1.5rem}
+.mt{display:flex;width:max-content;animation:mq 36s linear infinite}
+.mt:hover{animation-play-state:paused}
+.mi{padding:0 2rem;border-right:.5px solid var(--border);display:flex;align-items:center;min-width:110px;justify-content:center}
+.mi img{height:18px;filter:brightness(0) invert(1);opacity:.3;transition:opacity .3s;max-width:90px;object-fit:contain}
+.mi:hover img{opacity:.7}
+@keyframes mq{to{transform:translateX(-50%)}}
+/* GRAD LINE */
+.gl{height:1px;background:var(--grad)}
+/* SECTION */
+.sec{padding:6rem 2.5rem;border-bottom:.5px solid var(--border)}
+.st2{font-size:9px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.st2::before{content:'';width:20px;height:1px;background:var(--grad)}
+h2{font-size:clamp(2.8rem,5vw,5rem);font-weight:500;line-height:.92;letter-spacing:-.01em;margin-bottom:2rem}
+h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ss{font-size:13px;color:var(--muted2);max-width:460px;line-height:1.9}
+/* PROJ GRID */
+.pg{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:rgba(255,255,255,.04)}
+.pi{position:relative;overflow:hidden;background:var(--black);cursor:none}
+.pi.w7{grid-column:span 7}.pi.w5{grid-column:span 5}
+.pi.w6{grid-column:span 6}.pi.w4{grid-column:span 4}
+.pi video.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
+.pi:hover video.bg{opacity:1}
+.pt{width:100%;display:block;object-fit:cover;transition:transform .6s,filter .4s}
+.pi.w7 .pt,.pi.w6 .pt,.pi.w4 .pt{aspect-ratio:16/9}
+.pi.w5 .pt{aspect-ratio:3/4}
+.pi:hover .pt{transform:scale(1.05);filter:brightness(.15)}
+.pov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,transparent 55%);opacity:0;transition:opacity .35s}
+.pi:hover .pov{opacity:1}
+.pc{font-size:9px;letter-spacing:.2em;color:var(--pink);text-transform:uppercase;margin-bottom:.25rem}
+.pn{font-size:1.05rem;font-weight:500;transform:translateY(6px);transition:transform .35s}
+.pi:hover .pn{transform:none}
+.pa{position:absolute;top:1.25rem;right:1.25rem;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:.5px solid rgba(255,255,255,.25);opacity:0;transition:opacity .3s,background .2s;text-decoration:none}
+.pi:hover .pa{opacity:1}.pa:hover{background:var(--pink)}
+
+/* ============================================================
+   FOOH CARROSSEL — 3 CARDS EM PERSPECTIVA (DECK INFINITO)
+   ============================================================ */
+.fooh-wrap{margin-top:3rem;position:relative;height:520px;display:flex;align-items:center;justify-content:center;perspective:1200px;overflow:hidden}
+.fooh-stage{position:relative;width:280px;height:480px;transform-style:preserve-3d}
+.fc{position:absolute;inset:0;border-radius:4px;overflow:hidden;cursor:none;transition:transform .55s cubic-bezier(.23,1,.32,1),opacity .55s,box-shadow .55s}
+.fc video{width:100%;height:100%;object-fit:cover;display:block}
+.fc-tag{position:absolute;bottom:1rem;left:1rem;font-size:8px;letter-spacing:.15em;text-transform:uppercase;padding:3px 10px;border:.5px solid rgba(244,51,187,.6);color:var(--pink);background:rgba(0,0,0,.65)}
+/* posições dos 3 cards */
+.fc.pos-center{transform:translateX(0) rotateY(0) scale(1);z-index:3;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 .5px rgba(244,51,187,.3);opacity:1}
+.fc.pos-left{transform:translateX(-220px) rotateY(18deg) scale(.85);z-index:2;box-shadow:0 16px 48px rgba(0,0,0,.5);opacity:.7}
+.fc.pos-right{transform:translateX(220px) rotateY(-18deg) scale(.85);z-index:2;box-shadow:0 16px 48px rgba(0,0,0,.5);opacity:.7}
+.fc.pos-hidden-left{transform:translateX(-420px) rotateY(30deg) scale(.7);z-index:1;opacity:0;pointer-events:none}
+.fc.pos-hidden-right{transform:translateX(420px) rotateY(-30deg) scale(.7);z-index:1;opacity:0;pointer-events:none}
+/* botões nav */
+.fooh-nav{display:flex;justify-content:center;gap:1rem;margin-top:2rem}
+.fn{width:44px;height:44px;border:.5px solid var(--borderh);background:transparent;cursor:none;display:flex;align-items:center;justify-content:center;transition:all .2s;color:var(--white)}
+.fn:hover{border-color:var(--pink);background:rgba(244,51,187,.1)}
+.fn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* dots */
+.fooh-dots{display:flex;justify-content:center;gap:6px;margin-top:1.25rem}
+.fd{width:4px;height:4px;border-radius:50%;background:var(--muted);transition:all .3s;cursor:none}
+.fd.a{background:var(--pink);width:20px;border-radius:2px}
+
+/* ABOUT */
+.aw{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.ai{position:relative;height:540px}
+.aim{position:absolute;right:0;top:0;width:78%;height:88%;object-fit:cover}
+.ais{position:absolute;left:0;bottom:0;width:46%;height:52%;object-fit:cover;outline:3px solid var(--black)}
+.aac{position:absolute;top:1.5rem;right:-1rem;width:52px;height:52px;background:var(--grad);-webkit-mask:url('assets/logo isotipo.png') center/contain no-repeat;mask:url('assets/logo isotipo.png') center/contain no-repeat}
+.al{width:36px;height:2px;background:var(--grad);margin-bottom:1.5rem}
+.sk{display:flex;flex-wrap:wrap;gap:6px;margin-top:2rem}
+.ski{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:.5px solid var(--borderh);padding:5px 12px;transition:all .2s;cursor:default}
+.ski:hover{border-color:var(--pink);color:var(--pink)}
+
+/* CTA */
+.cs{padding:9rem 2.5rem;text-align:center;position:relative;overflow:hidden}
+.cs::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(61,23,225,.12) 0%,transparent 65%)}
+.ch{font-size:clamp(3rem,7vw,7rem);font-weight:500;line-height:.92;letter-spacing:-.01em;margin-bottom:1.5rem}
+.ch .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.csub{font-size:13px;color:var(--muted2);margin-bottom:3rem;line-height:1.85;max-width:400px;margin-left:auto;margin-right:auto}
+.cb2{display:inline-flex;align-items:center;gap:10px;padding:16px 36px;background:var(--grad);color:var(--white);text-decoration:none;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;transition:opacity .2s,gap .25s;cursor:none}
+.cb2:hover{opacity:.88;gap:16px}
+.cb2 svg{width:14px;height:14px}
+
+/* FOOTER */
+footer{padding:3rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem;border-top:.5px solid var(--border)}
+.fl{font-size:1rem;font-weight:500;letter-spacing:.06em}
+.fl span{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.flk{display:flex;flex-direction:column;gap:.4rem;text-align:center}
+.flk a{font-size:10px;letter-spacing:.08em;color:var(--muted);text-decoration:none;transition:color .2s;text-transform:uppercase}
+.flk a:hover{color:var(--white)}
+.fr{text-align:right}
+.fso{display:flex;justify-content:flex-end;gap:.75rem;margin-bottom:.75rem}
+.fso a{width:30px;height:30px;border:.5px solid var(--borderh);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fso a:hover{border-color:var(--pink);background:rgba(244,51,187,.1)}
+.fso img{width:12px;height:12px;opacity:.5}
+.fc2{font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(28px);transition:opacity .65s,transform .65s}
+.rv.on{opacity:1;transform:none}
+.rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}.rv.d3{transition-delay:.3s}
+
+::-webkit-scrollbar{width:2px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--pd)}
+
+@media(max-width:768px){
+  nav{padding:0 1.25rem}.nls{display:none}
+  .hero,.sec,.cs{padding-left:1.25rem;padding-right:1.25rem}
+  .pg{grid-template-columns:1fr}
+  .pi.w7,.pi.w5,.pi.w6,.pi.w4{grid-column:span 1}
+  .aw{grid-template-columns:1fr}.ai{height:280px}
+  footer{grid-template-columns:1fr}.fr{text-align:left}.fso{justify-content:flex-start}
+  .fooh-wrap{height:420px}.fooh-stage{width:220px;height:380px}
+  .fc.pos-left{transform:translateX(-160px) rotateY(18deg) scale(.82)}
+  .fc.pos-right{transform:translateX(160px) rotateY(-18deg) scale(.82)}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="curR"></div>
+
+<!-- ==================== NAV ==================== -->
+<nav id="nav">
+  <a href="#" class="nl">
+    <img src="assets/logo isotipo.png" alt="PixelForge" style="height:28px">
+    <span class="nt">Pixel<span>Forge</span></span>
+  </a>
+  <div class="nls">
+    <a href="#projetos">Projetos</a>
+    <a href="#fooh">FOOH</a>
+    <a href="#forja">A Forja</a>
+    <a href="mailto:borba@pixelforgestudio.com.br" class="nc">Iniciar Projeto</a>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="hv"><video autoplay muted loop playsinline><source src="assets/HERO SITE V3.mp4" type="video/mp4"></video></div>
+  <div class="ho"></div><div class="ha"></div>
+  <div class="hc">
+    <div class="he"><div class="hl"></div>CGI · Direção Criativa · FOOH</div>
+    <h1>Imagens que<br>não são <span class="g">reais</span><br>— mas poderiam.</h1>
+    <p class="hs">Direção criativa & CGI para campanhas de alto impacto. Cosméticos, luxo e Fake Out of Home.</p>
+  </div>
+  <div class="hb">
+    <div class="hst">
+      <div>
+        <div class="sn">30+</div>
+        <div class="sl">Marcas atendidas</div>
+      </div>
+      <div>
+        <div class="sn">+2M</div>
+        <div class="sl">Views em projetos</div>
+      </div>
+      <div>
+        <div class="sn">10+</div>
+        <div class="sl">Anos de experiência</div>
+      </div>
+    </div>
+    <div class="hscr"><div class="sb"></div><span class="st">Scroll</span></div>
+  </div>
+</section>
+
+<!-- ==================== MARQUEE ==================== -->
+<div class="mw">
+  <div class="ml">Parcerias Criativas</div>
+  <div style="overflow:hidden">
+    <div class="mt" id="mt">
+      <!-- LOGOS — pasta: assets/logos/ -->
+      <div class="mi"><img src="assets/logos/HEINEKEN LOGO.png" alt="Heineken"></div>
+      <div class="mi"><img src="assets/logos/NATURA LOGO.png" alt="Natura"></div>
+      <div class="mi"><img src="assets/logos/SMIRNOFF LOGO.png" alt="Smirnoff"></div>
+      <div class="mi"><img src="assets/logos/VIVO LOGO.png" alt="Vivo"></div>
+      <div class="mi"><img src="assets/logos/EVERLAST LOGO.png" alt="Everlast"></div>
+      <div class="mi"><img src="assets/logos/FILA LOGO.png" alt="Fila"></div>
+      <div class="mi"><img src="assets/logos/PICCADILLY LOGO.png" alt="Piccadilly"></div>
+      <div class="mi"><img src="assets/logos/BIO EXTRATUS LOGO.png" alt="Bio Extratus"></div>
+      <div class="mi"><img src="assets/logos/BRUNA TAVARES LOGO.png" alt="Bruna Tavares"></div>
+      <div class="mi"><img src="assets/logos/SCANIA LOGO.png" alt="Scania"></div>
+      <div class="mi"><img src="assets/logos/CAIXA LOGO.png" alt="Caixa"></div>
+      <div class="mi"><img src="assets/logos/OSKLEN LOGO.png" alt="Osklen"></div>
+      <div class="mi"><img src="assets/logos/DECATHLON LOGO.png" alt="Decathlon"></div>
+      <div class="mi"><img src="assets/logos/GLOBO LOGO.png" alt="TV Globo"></div>
+      <div class="mi"><img src="assets/logos/SESC LOGO.png" alt="SESC"></div>
+      <div class="mi"><img src="assets/logos/LOGO MARINE.png" alt="Marine Fishing"></div>
+      <div class="mi"><img src="assets/logos/LUPO LOGO.png" alt="Lupo"></div>
+      <div class="mi"><img src="assets/logos/MERRACHI LOGO.png" alt="Merrachi"></div>
+      <div class="mi"><img src="assets/logos/HELLO KITTY LOGO.png" alt="Hello Kitty"></div>
+      <div class="mi"><img src="assets/logos/ANASOL LOGO.png" alt="Anasol"></div>
+      <div class="mi"><img src="assets/logos/HAPVIDA LOGO.png" alt="Hapvida"></div>
+      <div class="mi"><img src="assets/logos/ELLUS LOGO.png" alt="Ellus"></div>
+      <!-- CLONE para loop -->
+      <div class="mi"><img src="assets/logos/HEINEKEN LOGO.png" alt="Heineken"></div>
+      <div class="mi"><img src="assets/logos/NATURA LOGO.png" alt="Natura"></div>
+      <div class="mi"><img src="assets/logos/SMIRNOFF LOGO.png" alt="Smirnoff"></div>
+      <div class="mi"><img src="assets/logos/VIVO LOGO.png" alt="Vivo"></div>
+      <div class="mi"><img src="assets/logos/EVERLAST LOGO.png" alt="Everlast"></div>
+      <div class="mi"><img src="assets/logos/FILA LOGO.png" alt="Fila"></div>
+      <div class="mi"><img src="assets/logos/PICCADILLY LOGO.png" alt="Piccadilly"></div>
+      <div class="mi"><img src="assets/logos/BIO EXTRATUS LOGO.png" alt="Bio Extratus"></div>
+      <div class="mi"><img src="assets/logos/BRUNA TAVARES LOGO.png" alt="Bruna Tavares"></div>
+      <div class="mi"><img src="assets/logos/SCANIA LOGO.png" alt="Scania"></div>
+      <div class="mi"><img src="assets/logos/CAIXA LOGO.png" alt="Caixa"></div>
+      <div class="mi"><img src="assets/logos/OSKLEN LOGO.png" alt="Osklen"></div>
+      <div class="mi"><img src="assets/logos/DECATHLON LOGO.png" alt="Decathlon"></div>
+      <div class="mi"><img src="assets/logos/GLOBO LOGO.png" alt="TV Globo"></div>
+      <div class="mi"><img src="assets/logos/SESC LOGO.png" alt="SESC"></div>
+      <div class="mi"><img src="assets/logos/LOGO MARINE.png" alt="Marine Fishing"></div>
+      <div class="mi"><img src="assets/logos/LUPO LOGO.png" alt="Lupo"></div>
+      <div class="mi"><img src="assets/logos/MERRACHI LOGO.png" alt="Merrachi"></div>
+      <div class="mi"><img src="assets/logos/HELLO KITTY LOGO.png" alt="Hello Kitty"></div>
+      <div class="mi"><img src="assets/logos/ANASOL LOGO.png" alt="Anasol"></div>
+      <div class="mi"><img src="assets/logos/HAPVIDA LOGO.png" alt="Hapvida"></div>
+      <div class="mi"><img src="assets/logos/ELLUS LOGO.png" alt="Ellus"></div>
+    </div>
+  </div>
+</div>
+
+<div class="gl"></div>
+
+<!-- ==================== PROJETOS ==================== -->
+<section class="sec" id="projetos">
+  <div class="st2 rv">01 — Trabalho Selecionado</div>
+  <h2 class="rv d1">Projetos que<br>definem <span class="g">padrão.</span></h2>
+  <div class="pg rv d2">
+    <!-- PROJETO 1: Marine Legacy — WIDE -->
+    <div class="pi w7">
+      <video class="bg" autoplay muted loop playsinline><source src="assets/portfolio/THUMB AVENGER PORT TOP VF.mp4" type="video/mp4"></video>
+      <img class="pt" src="assets/portfolio/THUMB LEGACY PORT TOP VF.mp4" alt="Marine Legacy" style="object-fit:contain;padding:4rem;background:#080808;aspect-ratio:16/9">
+      <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Vara Legacy — Launch Film</div></div>
+      <a href="https://www.behance.net/gallery/242526731" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+    </div>
+    <!-- PROJETO 2: Kopenhagen — NARROW -->
+    <div class="pi w5">
+      <video class="bg" autoplay muted loop playsinline><source src="assets/grid/THUMB VERTICAL KOPENHAGEN V2.mp4" type="video/mp4"></video>
+      <img class="pt" src="assets/grid/THUMB QUAD STILL VF.png" alt="Kopenhagen" style="aspect-ratio:3/4">
+      <div class="pov"><div class="pc">Kopenhagen · CGI</div><div class="pn">Chocolate ASMR</div></div>
+    </div>
+    <!-- PROJETO 3: Everlast -->
+    <div class="pi w6">
+      <video class="bg" autoplay muted loop playsinline><source src="assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video>
+      <img class="pt" src="assets/grid/THUMB QUAD EVERLAST.png" alt="Everlast" style="object-fit:contain;padding:4rem;background:#080808">
+      <div class="pov"><div class="pc">Everlast · 2025</div><div class="pn">Powerlock OG</div></div>
+      <a href="https://vimeo.com/1167500388" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+    </div>
+    <!-- PROJETO 4: Smirnoff -->
+    <div class="pi w6">
+      <video class="bg" autoplay muted loop playsinline><source src="assets/grid/THUMB SMIRNOFF ICE V2.mp4" type="video/mp4"></video>
+      <img class="pt" src="assets/grid/THUMB QUAD STILL.png" alt="Smirnoff" style="object-fit:contain;padding:4rem;background:#080808">
+      <div class="pov"><div class="pc">Smirnoff · 2025</div><div class="pn">Gashapon Ice Reveal</div></div>
+    </div>
+    <!-- PROJETO 5: Heineken -->
+    <div class="pi w4">
+      <video class="bg" autoplay muted loop playsinline><source src="assets/portfolio/THUMB HEINEKEN PORT SEC VF.mp4" type="video/mp4"></video>
+      <img class="pt" src="assets/grid/THUMB QUAD HEINEKEN VF.png" alt="Heineken" style="object-fit:contain;padding:3rem;background:#080808">
+      <div class="pov"><div class="pc">Heineken · DOOH 2025</div><div class="pn">Sam's Club 0.0</div></div>
+      <a href="https://vimeo.com/1167505221" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+    </div>
+    <!-- PROJETO 6: Piccadilly -->
+    <div class="pi w4">
+      <video class="bg" autoplay muted loop playsinline><source src="assets/portfolio/THUMB PICCADILLY PORT SEC VF.mp4" type="video/mp4"></video>
+      <img class="pt" src="assets/grid/THUMB QUAD FILA VF.png" alt="Piccadilly" style="object-fit:contain;padding:3rem;background:#080808">
+      <div class="pov"><div class="pc">Piccadilly · 2025</div><div class="pn">Soft Step Launch</div></div>
+      <a href="https://vimeo.com/1167495888" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+    </div>
+    <!-- PROJETO 7: Marine Avenger -->
+    <div class="pi w4">
+      <video class="bg" autoplay muted loop playsinline><source src="assets/grid/THUMB CARRETILHA AVENGER V2.mp4" type="video/mp4"></video>
+      <img class="pt" src="assets/grid/THUMB QUAD HEINEKEN.png" alt="Avenger" style="object-fit:contain;padding:3rem;background:#080808">
+      <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Carretilha Avenger</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="gl"></div>
+
+<!-- ==================== FOOH CARROSSEL ==================== -->
+<section class="sec" id="fooh">
+  <div class="st2 rv">02 — Fake Out of Home</div>
+  <h2 class="rv d1">O impossível<br>na <span class="g">rua.</span></h2>
+  <p class="ss rv d2">CGI integrado ao mundo real com precisão de câmera, tracking e iluminação cinematográfica. Instalações que param o scroll — e o trânsito.</p>
+
+  <div class="fooh-wrap rv d3">
+    <div class="fooh-stage" id="foohStage">
+      <!-- cards gerados por JS -->
+    </div>
+  </div>
+  <div class="fooh-nav">
+    <button class="fn" id="fnPrev" aria-label="Anterior">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="fn" id="fnNext" aria-label="Próximo">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+  <div class="fooh-dots" id="foohDots"></div>
+</section>
+
+<div class="gl"></div>
+
+<!-- ==================== ABOUT ==================== -->
+<section class="sec" id="forja">
+  <div class="aw">
+    <div class="ai rv">
+      <img class="aim" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
+      <img class="ais" src="assets/perfil/RENDER 5 VF.png" alt="Render">
+      <div class="aac"></div>
+    </div>
+    <div>
+      <div class="st2 rv">03 — A Forja</div>
+      <div class="al rv"></div>
+      <p style="font-size:10px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.5rem" class="rv">CEO & Diretor Criativo</p>
+      <h2 class="rv d1" style="margin-bottom:1.5rem">Ericson<br>Borba</h2>
+      <p style="font-size:13px;color:var(--muted2);line-height:1.95;margin-bottom:1rem" class="rv d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lidero um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
+      <p style="font-size:13px;color:var(--muted2);line-height:1.95" class="rv d3">Meu arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini — RBD, FLIP fluids — para entregar o que nenhuma IA consegue replicar: controle absoluto sobre cada detalhe.</p>
+      <div class="sk rv d3">
+        <span class="ski">Cinema 4D</span><span class="ski">Octane</span><span class="ski">RedShift</span>
+        <span class="ski">Houdini</span><span class="ski">Z-Brush</span><span class="ski">Substance</span>
+        <span class="ski">Unreal Engine</span><span class="ski">After Effects</span><span class="ski">AI + CGI</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gl"></div>
+
+<!-- ==================== CTA ==================== -->
+<section class="cs">
+  <div class="st2 rv" style="justify-content:center">04 — Contato</div>
+  <h2 class="ch rv d1">Pronto para forjar<br>o <span class="g">impossível?</span></h2>
+  <p class="csub rv d2">Vamos criar campanhas visuais que nenhuma IA consegue replicar. Craft real. Resultado impossível de ignorar.</p>
+  <a href="https://wa.me/5551994689649" class="cb2 rv d3" target="_blank">
+    Iniciar Projeto
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+  </a>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div>
+    <img src="assets/Logo Principal.png" alt="PixelForge" style="height:24px;filter:brightness(0) invert(1)">
+    <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:.5rem">Novo Hamburgo, Brasil</div>
+  </div>
+  <div class="flk">
+    <a href="#projetos">Projetos</a>
+    <a href="#fooh">FOOH</a>
+    <a href="#forja">A Forja</a>
+    <a href="https://www.behance.net/pixelforge3d" target="_blank">Behance</a>
+  </div>
+  <div class="fr">
+    <div class="fso">
+      <a href="https://www.instagram.com/pixelforge.studio/" target="_blank"><img src="assets/instagram.png" alt="Instagram"></a>
+      <a href="https://www.linkedin.com/company/pixelforgestudio/" target="_blank"><img src="assets/linkedin.png" alt="LinkedIn"></a>
+      <a href="https://www.behance.net/pixelforge3d" target="_blank"><img src="assets/behance.png" alt="Behance"></a>
+    </div>
+    <div class="fc2">© 2026 PixelForge Studio.<br>Todos os direitos reservados.</div>
+  </div>
+</footer>
+
+<script>
+// ========== CURSOR ==========
+const cur=document.getElementById('cur'),curR=document.getElementById('curR');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function a(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;curR.style.left=rx+'px';curR.style.top=ry+'px';requestAnimationFrame(a)})();
+document.querySelectorAll('a,button,.pi,.fn,.ski').forEach(el=>{
+  el.addEventListener('mouseenter',()=>document.body.classList.add('cb'));
+  el.addEventListener('mouseleave',()=>document.body.classList.remove('cb'));
+});
+
+// ========== NAV ==========
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('s',scrollY>80));
+
+// ========== REVEAL ==========
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');obs.unobserve(x.target)}})},{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+
+// ========== FOOH CARROSSEL ==========
+const foohVideos = [
+  'assets/fooh/FOOH 1 VF.mp4','assets/fooh/FOOH 2 VF.mp4','assets/fooh/FOOH 3 VF.mp4',
+  'assets/fooh/FOOH 4 VF.mp4','assets/fooh/FOOH 5 VF.mp4','assets/fooh/FOOH 6 VF.mp4',
+  'assets/fooh/FOOH 7 VF.mp4','assets/fooh/FOOH 8 VF.mp4','assets/fooh/FOOH 9 VF.mp4',
+  'assets/fooh/FOOH 10 VF.mp4','assets/fooh/FOOH 11 VF.mp4','assets/fooh/FOOH 12 VF.mp4'
+];
+
+const stage = document.getElementById('foohStage');
+const dotsWrap = document.getElementById('foohDots');
+let cur2 = 0;
+const total = foohVideos.length;
+
+// cria cards
+const cards = foohVideos.map((src,i)=>{
+  const div = document.createElement('div');
+  div.className = 'fc';
+  div.innerHTML = `<video autoplay muted loop playsinline><source src="${src}" type="video/mp4"></video><div class="fc-tag">FOOH</div>`;
+  stage.appendChild(div);
+  return div;
+});
+
+// cria dots
+foohVideos.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='fd'+(i===0?' a':'');
+  d.addEventListener('click',()=>goTo(i));
+  dotsWrap.appendChild(d);
+});
+
+function getPos(i){
+  const diff=((i-cur2)+total)%total;
+  if(diff===0) return 'pos-center';
+  if(diff===1) return 'pos-right';
+  if(diff===total-1) return 'pos-left';
+  if(diff===2) return 'pos-hidden-right';
+  return 'pos-hidden-left';
+}
+
+function render(){
+  cards.forEach((c,i)=>{
+    c.className='fc '+getPos(i);
+  });
+  document.querySelectorAll('.fd').forEach((d,i)=>{
+    d.classList.toggle('a',i===cur2);
+  });
+}
+
+function goTo(idx){
+  cur2=((idx%total)+total)%total;
+  render();
+}
+
+function next(){goTo(cur2+1)}
+function prev(){goTo(cur2-1)}
+
+document.getElementById('fnNext').addEventListener('click',next);
+document.getElementById('fnPrev').addEventListener('click',prev);
+
+// swipe no mobile
+let tx=0;
+stage.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+stage.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>40){dx<0?next():prev()}
+});
+
+// auto-play
+let auto=setInterval(next,4000);
+stage.addEventListener('mouseenter',()=>clearInterval(auto));
+stage.addEventListener('mouseleave',()=>{auto=setInterval(next,4000)});
+
+render();
+</script>
+</body>
+</html>
