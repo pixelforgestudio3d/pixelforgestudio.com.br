@@ -391,6 +391,8 @@ Ericson revisou a primeira leva construída pelo Claude Code (rodando em modo au
 
 **Correto:** a seção do Hero fica PINADA na tela (scroll-locked) por um trecho do scroll. Durante esse trecho, o texto (eyebrow + headline + subtítulo) é revelado progressivamente SOBREPOSTO ao vídeo, que continua visível e rodando atrás o tempo todo — nunca desaparece. Só quando o texto termina de revelar 100% é que o pin libera e o scroll segue normalmente pra próxima seção (peça 3D interativa, seção 3.1). Padrão técnico: GSAP ScrollTrigger com `pin: true` na seção do hero, reveal do texto (SplitText, por linha ou palavra) amarrado ao progresso do scroll dentro desse pin (`scrub: true`), não um reveal "on enter" solto.
 
+**Correção adicional 31/07/2026 (erro visto em nova build, print do Ericson):** o Hero está carregando já com um fade/overlay escuro por cima (gradiente no topo, imagem toda escurecida) desde o primeiro frame, antes de qualquer scroll. **Isso está errado.** O Hero tem que carregar 100% limpo — vídeo/imagem em brilho e contraste total, sem nenhum escurecimento, sem overlay nenhum. É assim que a pessoa vê o hero pela primeira vez ao entrar no site, antes de decidir rolar. O fade escuro (se necessário pra dar legibilidade ao texto) só começa a aparecer progressivamente conforme o usuário rola — amarrado ao mesmo `scrub` do pin, crescendo em conjunto com o reveal do texto, nunca antes disso. Opacidade do overlay no frame inicial = 0.
+
 ### 11.2 Peça 3D interativa (seção 3.1) — física errada, refazer — CONFIRMADO 31/07/2026
 
 Ericson confirmou explicitamente: **física real mesmo**, do mesmo jeito que existe no hero do Lusion (seção 9.1.1) — e reforçou que lá isso é leve (baixo custo de performance), então não é desculpa pra simplificar por peso. Confirmado também: as peças (ele chama de "ícones", referindo-se ao isotipo fragmentado) devem ser **maiores** do que ficaram na V1, e **cada uma com física individual própria** (não um sistema único tratando tudo como uma massa/blob).
@@ -416,7 +418,7 @@ Ericson confirmou explicitamente: **física real mesmo**, do mesmo jeito que exi
 
 **Comparação direta com a implementação atual do PixelForge — análise de vídeo 31/07/2026 (gravação do Ericson, mesma técnica de frame-a-frame a cada 0.2s):**
 
-1. **Formato das peças parece explosão bruta de mesh, não peças desenhadas.** Cada fragmento tem forma irregular diferente (tamanhos/formas aleatórias), lembra um modelo que sofreu um "explode" cru, não um conjunto de módulos repetidos e limpos como as cruzes do Lusion. **Pergunta em aberto pro Ericson, não presumir:** o isotipo é conceitualmente fragmentado/quebrado de propósito (linguagem "forjar/quebrar pixel" da marca), ou o asset `Isotipo_PixelForge_otm.glb` deveria estar segmentado em peças mais uniformes e não está? Confirmar antes de mexer no asset.
+1. **Formato das peças — CONFIRMADO 31/07/2026, não é o problema.** Ericson confirmou: o isotipo fragmentado está correto, é proposital. O problema real é só a INTERAÇÃO/física (itens 2-7 abaixo), não a geometria do asset. **Plano B, se a física não ficar boa com as peças do isotipo:** Ericson está aberto a trocar por uma geometria mais simples (ele sugeriu esferas/"bolinhas") só pra essa peça interativa, caso o isotipo fragmentado se prove difícil de fazer funcionar bem com a física de atrator+colisão+repulsão. Não é decisão fechada ainda — só uma alternativa de fallback caso a primeira tentativa com o isotipo não convença depois de corrigidos os itens 2-7.
 2. **Material único, cinza/branco fosco em todas as peças** — zero variação metal/vidro, zero reflexo visível em qualquer frame analisado. Não bate com a spec.
 3. **Elementos magenta/rosa não especificados:** bordas de algumas peças brilhando em magenta, e partículas rosa soltas flutuando entre as peças — não faz parte de nenhuma spec, remover (parece resíduo de outro efeito/debug).
 4. **Peças se sobrepõem/atravessam visivelmente** no aglomerado — falta a colisão entre peças especificada acima.
@@ -504,3 +506,128 @@ A base da página de projeto (seção 1, template Tendril) já está num caminho
 ### 11.13 Scroll pra cima não reverte as animações
 
 Problema transversal: ao rolar de volta pra cima, as animações de reveal não voltam ao estado anterior — a página "pula" o efeito, desconfortável quando o usuário quer rever algo que já passou. Correção técnica: qualquer animação de scroll-reveal do site deve usar GSAP ScrollTrigger com `scrub: true` (ou lógica de enter/leave simétrica), não triggers de "tocar uma vez ao entrar em viewport". Vale globalmente — revisar todas as animações do site com esse critério, não só uma seção.
+
+---
+
+## 12. Revisão de implementação V2 — segunda rodada, gravação narrada de ~18min (31/07/2026)
+
+Ericson gravou a tela navegando o site inteiro com narração em áudio, logo após a primeira leva de correções da seção 11. Veredito dele: ainda "muito linear", "seco", falta dinamismo geral — mesmo problema-chave da seção 11.11, ainda não resolvido de forma consistente pelo site inteiro. Vários itens da seção 11 (11.6 distorção de texto, 11.7 A Forja, 11.9 animação do voltar-ao-topo, 11.13 scroll reversível) **ainda NÃO foram aplicados** — não são pedidos novos, são os mesmos de antes confirmados como pendentes. Itens abaixo, na ordem em que ele navegou.
+
+### 12.0 BUG CRÍTICO — reload da página abre no meio do scroll
+
+Confirmado por frame do vídeo (t=0s): ao dar F5/reload, a página carrega já mostrando o meio do grid de projetos (um card do Everlast), não o topo/Hero. Prioridade alta de correção — indício de scroll restoration do navegador não sendo resetado, ou de um hash/anchor na URL, ou de cálculo incorreto de posição inicial do ScrollTrigger. Toda visita/reload precisa abrir no topo (Hero).
+
+### 12.1 Nav — dropdown "Home" não é clicável
+
+O dropdown do nav consolidado (seção 11.10, já implementado visualmente) abre ao passar o mouse, mas ao mover o cursor pra baixo em direção às opções, o menu fecha antes de dar tempo de clicar — provavelmente uma lacuna/gap entre o botão e o dropdown que perde o hover. Corrigir a área de hover (sem gap real entre trigger e menu, ou usar um pequeno delay antes de fechar).
+
+### 12.2 Peça 3D interativa (seção 3.1/11.2) — material ainda não está bom
+
+Ericson reconfirma: o material ainda não ficou legal, mesmo já tendo corrigido a física. Sugestões dele pra explorar (escolher uma, não presumir qual): (a) deixar todas as peças em metal só, sem mistura; (b) alternar as peças entre as cores da marca PixelForge; (c) um material tipo plástico fosco, no estilo do que o Lusion usa. Precisa iterar visualmente com ele antes de fechar.
+
+### 12.3 Marquee "Parcerias Criativas" — pausa estranha, interação desnecessária
+
+Tem uma pausa/momento estranho antes da seção que ele não tem certeza se ficou bom, ligado a uma interação que não deveria existir porque o elemento nem é clicável — remover essa interação/pausa, deixar o movimento contínuo. Tamanho de logo/nome: por ora não mexer mais nisso (não é prioridade nessa rodada).
+
+### 12.4 Seção "Serviços" — falta dinamismo, ajustes de layout
+
+- Segue sem o efeito de distorção de texto (já pedido na seção 11.6) — ainda não implementado.
+- Os 6 nomes soltos devem ficar CENTRALIZADOS na seção, dentro de uma caixa/painel mais ao meio da tela (hoje estão distribuídos de forma solta).
+- **Tirar a numeração dos setores** (ex: "01", "02" antes do nome de cada serviço) — não fica interessante, e reforça a ideia de ordem/hierarquia que ele não quer (quer algo mais distribuído, sem sensação de lista numerada).
+- Efeito vidro/glassmorphism (já pedido na 11.6) segue sem aplicar — visual ainda "bem padrão, bem simples".
+
+### 12.5 Grid de projetos ("Featured Work" / "Projetos que definem padrão")
+
+- Tirar a numeração da seção também (mesmo padrão do item 12.4).
+- **Título atual não agrada** ("Trabalho selecionado" ou similar) — trocar por algo "mais elaborado, mais bonito". Não especificou o texto novo, mas deixou claro que o atual não serve.
+- A lateral da seção (não especificou qual elemento exatamente, mas mencionou reduzir) pode ficar um pouco menor.
+
+### 12.6 Seção "Clientes/Escopo" — BUG CRÍTICO + vários ajustes
+
+- **BUG CRÍTICO:** durante o scroll, a seção "A Forja" aparece por cima/na frente da seção "Clientes", sobrepondo — torna a seção Clientes inacessível/impossível de usar nesse trecho. Provável conflito de z-index ou de pin entre as duas seções (A Forja provavelmente começando seu próprio pin antes de Clientes liberar o dele). **Prioridade alta.**
+- O texto "Clientes" e "Escopo" (cabeçalhos das duas colunas) estão colados demais um no outro — aumentar o espaçamento entre eles.
+- **Falta animação de entrada nos nomes dos clientes** — hoje eles simplesmente aparecem "do nada", sem transição. Precisa de uma entrada suave (ele mencionou ter visto uma tentativa de "baixo pra cima" mas achou "muito fraca").
+- **A interação de hover não está funcionando de verdade** — os nomes aparecem na posição certa (mecânica da seção 11.4/valkiria), mas passar o mouse não causa nenhuma animação perceptível no próprio nome. Ele quer: ao pairar o mouse sobre um nome, o nome cresce/anima levemente (não só o logo/escopo aparecendo do lado) — reforça a sensação de "roleta" interativa.
+- Logo que aparece no hover (à esquerda): está muito pequeno/tímido — aumentar.
+- Tags de escopo (à direita, no hover): também muito tímidas — aumentar o tamanho.
+
+### 12.7 Scroll reversível — reconfirmado, ainda não corrigido
+
+Ericson reconfirma o problema já registrado na seção 11.13: ao rolar pra cima, os elementos que já apareceram ficam "pré-carregados" (não voltam ao estado anterior). Ele notou que "uma coisa ou outra" já reverte, mas o padrão geral ainda é só animar na descida. Reforçar a correção da 11.13 — ainda pendente.
+
+### 12.8 "A Forja" — layout ainda errado, spec detalhada de novo
+
+Reconfirmado como a seção mais problemática (crítica já feita na 11.7, correção aplicada não bateu com o esperado):
+- Botão "Ver galeria completa": reposicionar pra mais perto de onde as imagens aparecem (hoje está longe/solto). Trocar o texto por algo mais curto, tipo "Ver mais".
+- Layout: 50/50 entre texto e imagem — texto mais compacto e alinhado à direita; do lado esquerdo, a foto do Ericson perto do nome dele, e um quadro MAIOR com as imagens de demonstração (galeria), bem mais visível do que está hoje.
+- **Nenhum elemento pode ficar colado na borda da tela** — nem a foto dele, nem o quadro da galeria. Dar respiro/margem em volta de tudo.
+- A foto dele não pode ficar coberta pela galeria — reposicionar: a foto dele um pouco mais pra cima, o quadro da galeria um pouco mais pra baixo, mesmo tamanho de hoje está ok.
+- **Animação de troca de imagem da galeria:** hoje é só uma imagem cobrindo a outra sem transição. Ele quer um efeito tipo "cartas sendo jogadas uma por cima da outra" (ou folhas empilhando) — cada imagem nova entra com uma animação visível por cima da anterior conforme o usuário rola, não um corte seco.
+
+### 12.9 Seções em geral — remover numeração e títulos genéricos
+
+Padrão que se repete em várias seções (Serviços, Grid de projetos, e possivelmente outras): tirar qualquer numeração de setor ("01 —", "03 —" etc.) — não combina com a ideia de site dinâmico/não-linear que ele quer. Títulos de seção genéricos como "Trabalho selecionado" precisam ser reescritos pra algo mais elaborado — revisar título por título depois que o layout estiver mais avançado.
+
+### 12.10 FOOH — scroll horizontal atual não ficou bom, spec de coverflow
+
+O carrossel horizontal implementado (resposta à sugestão da seção 11.11) ficou "seco", "muito simples" — "trava em cima e rola pro lado, não tá legal". **Nova spec, mais detalhada:**
+- Manter texto à esquerda, vídeos à direita (como já era).
+- Mostrar **3 vídeos por vez, estilo coverflow**: o do meio em destaque (tamanho normal, brilho/opacidade total), os das duas pontas menores, um pouco atrás (profundidade) e mais apagados/opacos.
+- Ao rolar, avança um vídeo por vez — como se a pessoa "parasse pra assistir cada um" antes de ir pro próximo.
+- A seção fica PINADA (fixa) durante esse trecho de rolagem horizontal, e só libera o scroll vertical normal depois que os vídeos terminam de passar.
+
+### 12.11 Seção "IA + CGI" — formato aprovado, falta animação + variar imagens
+
+Ericson gostou do formato atual (compacto, "tímido" no bom sentido) — só falta animação de entrada nele. Ideia nova: em vez de um quadro fixo com 4 imagens estáticas, ter um banco maior (~20 imagens de trabalhos reais de CGI+IA) alternando dentro das mesmas 4 posições do quadro, trocando periodicamente.
+
+### 12.12 CTA final — aprovado, sem mudanças
+
+Funcionando bem, sem crítica.
+
+### 12.13 Botão "Voltar ao topo" — sem efeito, reforça pedido da 11.9
+
+Clicou e não tem nenhum efeito de transição — só pula direto pro topo. Reforça o pedido já registrado na seção 11.9: quer um efeito de "desfazer/desintegrar em pixels" na tela durante essa transição, não um pulo seco.
+
+### 12.14 Logo no rodapé — trocar pela versão com a tarja colorida
+
+O logo atual no rodapé está ok, mas ele quer especificamente a versão do logo **com a tira/tarja colorida** (ele vai localizar o arquivo certo na pasta dele e enviar pra substituição — não presumir qual arquivo é, aguardar ele confirmar).
+
+### 12.15 Links sociais do rodapé/nav — destinos corrigidos
+
+- **Instagram:** trocar de `@pixelforgestudio` (perfil da marca, inativo no momento) para o Instagram PESSOAL dele, `@borbasmith`. Isso é temporário — quando ele reativar o perfil da marca no futuro, pode reverter.
+- **LinkedIn:** manter como está, direcionando pra página da PixelForge — sem mudança.
+- **Behance:** trocar de página da marca PixelForge para a página PESSOAL dele no Behance (ele confirma que já tem o link em contexto de conversas anteriores; se não tiver, pedir a ele reenviar). É a mesma página pra onde os cliques dos projetos do grid já apontavam no site antigo.
+
+### 12.16 CTA duplo — botão de baixo não funciona
+
+Existem dois pontos de CTA pra contato: o botão "Contato" no nav (topo) e um botão equivalente mais abaixo na página (provavelmente o CTA final da seção 5.5 ou o "Iniciar projeto"). Só o de cima está funcionando — o de baixo não responde ao clique. Os dois precisam ter exatamente o mesmo destino/funcionalidade.
+
+### 12.17 Formulário de contato (Formspree) — pendência, não mexer agora
+
+Configuração de pra qual e-mail o formulário envia ainda não está confirmada/testada. Ericson sinalizou que isso fica pra depois, não é prioridade dessa rodada — só registrar como pendência aberta, não implementar mudança agora.
+
+### 12.18 Páginas de Serviços (hub + individuais) — estrutura aprovada, conteúdo com erros pontuais
+
+**A proposta de página isolada por serviço está exatamente como ele queria** — elogio direto, manter a estrutura. Problemas específicos de conteúdo, não de estrutura:
+- **"3D Film":** o vídeo de exemplo usado está completamente errado (não representa 3D Film de verdade) — trocar por exemplo correto.
+- O card/preview de cada serviço (provavelmente no cross-link do rodapé de cada página de serviço, seção 5.6) não está visualmente legal — melhorar.
+- **FOOH:** normalmente é veiculado em formato vertical (retrato), mas a página está tratando/exibindo em formato horizontal — ajustar orientação da mídia pra bater com o formato real de uso.
+
+### 12.19 Navegação "voltar pra Home" recarrega tudo do zero
+
+Ao voltar da página de um serviço (ou de projeto) pra Home, a página inteira recarrega do zero (perde tempo de load) — incomoda. Considerar navegação sem reload completo (cache, ou transição que evite recarregar assets pesados de novo) — sinalizado como incômodo, não necessariamente bloqueador.
+
+### 12.20 Transição entre páginas de projeto — fluida mas genérica
+
+A transição ao navegar entre projetos individuais é fluida (sem travar), mas "não tem nada de original, é bem simples" — mesma crítica de falta de dinamismo das outras seções, só que aqui é menor prioridade porque pelo menos funciona bem. Melhorar quando der, não é bloqueador.
+
+### 12.21 Página de projeto individual — estrutura APROVADA
+
+Ericson confirmou que gostou do formato base da página de projeto — "bem simples, mas é isso mesmo que eu queria". Ações concretas:
+- **Manter o botão que já existe na página** (o de ação/link principal do projeto) — ele quer esse mesmo botão em todos os projetos futuros, tanto na Home quanto nas páginas internas.
+- Para o texto de cada projeto: reaproveitar o conteúdo que já existe no CV dele (`cv-ericson-borba.html`, já presente no repo) como base de texto pronta — copiar/adaptar de lá pra cá em vez de escrever do zero, "porque funciona perfeitamente". Pode precisar de um texto extra aqui e ali, mas a base já está pronta e aprovada.
+- Vai ter mais imagens e mais texto por projeto no futuro — isso é esperado, não é problema da estrutura atual.
+
+### 12.22 Contexto de prazo (31/07/2026)
+
+Ericson entra essa semana com força em duas frentes: prospecção de clientes novos, e busca de parceiros/estúdios — incluindo possivelmente estúdios de Portugal, destino pra onde ele planeja se mudar no próximo ano. Motivo pelo qual quer o site bem polido o quanto antes — não é só preferência estética, é ferramenta ativa de prospecção a partir de agora.

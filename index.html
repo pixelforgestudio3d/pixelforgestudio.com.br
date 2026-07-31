@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PixelForge Studio — CGI & Direção Criativa 3D</title>
+<script>
+/* 12.0 — reload/revisita sempre abre no topo, nunca no meio do scroll */
+if('scrollRestoration' in history){history.scrollRestoration='manual';}
+window.scrollTo(0,0);
+</script>
 
 <link rel="icon" href="assets/logo isotipo.png" type="image/png">
 
@@ -224,7 +229,7 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 
 /* CTA */
 .cs{padding:10rem 2.5rem;text-align:center;position:relative;overflow:hidden}
-.cs::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(61,23,225,.15) 0%,transparent 65%)}
+.cs::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(61,23,225,.15) 0%,transparent 65%);pointer-events:none}
 .ch{font-size:clamp(3.5rem,7vw,7.5rem);font-weight:500;line-height:.92;letter-spacing:-.01em;margin-bottom:1.5rem}
 .ch .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .csub{font-size:16px;color:var(--muted2);margin-bottom:3.5rem;line-height:1.85;max-width:480px;margin-left:auto;margin-right:auto}
@@ -893,6 +898,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
           loader.style.display='none';
           // Libera scroll e inicia cursor
           document.body.style.overflow='';
+          window.scrollTo(0,0);
           initCursor();
           return;
         }
@@ -903,6 +909,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   }
 
   // Bloqueia scroll durante loading
+  window.scrollTo(0,0);
   document.body.style.overflow='hidden';
   window.addEventListener('load',()=>setTimeout(startLoader,200));
 })();
@@ -1103,8 +1110,15 @@ window.addEventListener('scroll',()=>document.getElementById('nav').classList.to
   const trigger=nd.querySelector('.nd-trigger');
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   if(hoverCapable){
-    nd.addEventListener('mouseenter',()=>nd.classList.add('open'));
-    nd.addEventListener('mouseleave',()=>nd.classList.remove('open'));
+    // 12.1 — delay antes de fechar, pra dar tempo de atravessar o gap até o menu
+    let closeTimer=null;
+    nd.addEventListener('mouseenter',()=>{
+      if(closeTimer){clearTimeout(closeTimer);closeTimer=null;}
+      nd.classList.add('open');
+    });
+    nd.addEventListener('mouseleave',()=>{
+      closeTimer=setTimeout(()=>{nd.classList.remove('open');closeTimer=null;},300);
+    });
   }else{
     trigger.addEventListener('click',e=>{e.stopPropagation();nd.classList.toggle('open');});
     document.addEventListener('click',()=>nd.classList.remove('open'));
@@ -1143,7 +1157,7 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
   if(!window.gsap||!window.ScrollTrigger||!window.SplitText)return;
   gsap.registerPlugin(ScrollTrigger,SplitText);
 
-  function setup(){
+  window.setupHeroPin=function(){
     const split=new SplitText('#heroH1',{type:'chars,words',wordsClass:'split-word',charsClass:'split-char'});
     gsap.set(split.chars,{yPercent:120,opacity:0});
     gsap.set('.hero .he',{opacity:0,y:24});
@@ -1163,10 +1177,7 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
     .to('.hero .he',{opacity:1,y:0,duration:.6,ease:'power2.out'},0)
     .to(split.chars,{yPercent:0,opacity:1,duration:.9,stagger:.02,ease:'power4.out'},.15)
     .to('.hero .hs',{opacity:1,y:0,duration:.7,ease:'power2.out'},.75);
-  }
-
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(setup);
-  else setup();
+  };
 })();
 
 // ============================================================
@@ -1177,22 +1188,24 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 (function(){
   if(!window.gsap||!window.ScrollTrigger)return;
   gsap.registerPlugin(ScrollTrigger);
-  const section=document.getElementById('forja');
-  const imgs=document.querySelectorAll('#forjaGallery .fg-img');
-  if(!section||!imgs.length)return;
-  const n=imgs.length;
-  ScrollTrigger.create({
-    trigger:section,
-    start:'top top',
-    end:'+=150%',
-    pin:true,
-    scrub:.6,
-    anticipatePin:1,
-    onUpdate(self){
-      const idx=Math.min(n-1,Math.floor(self.progress*n));
-      imgs.forEach((img,i)=>img.classList.toggle('on',i===idx));
-    }
-  });
+  window.setupForjaPin=function(){
+    const section=document.getElementById('forja');
+    const imgs=document.querySelectorAll('#forjaGallery .fg-img');
+    if(!section||!imgs.length)return;
+    const n=imgs.length;
+    ScrollTrigger.create({
+      trigger:section,
+      start:'top top',
+      end:'+=150%',
+      pin:true,
+      scrub:.6,
+      anticipatePin:1,
+      onUpdate(self){
+        const idx=Math.min(n-1,Math.floor(self.progress*n));
+        imgs.forEach((img,i)=>img.classList.toggle('on',i===idx));
+      }
+    });
+  };
 })();
 
 // ============================================================
@@ -1223,8 +1236,8 @@ const foohDots=document.querySelectorAll('.fd');
 (function(){
   if(!window.gsap||!window.ScrollTrigger)return;
   gsap.registerPlugin(ScrollTrigger);
-  const wrap=document.getElementById('foohWrap');
-  function setup(){
+  window.setupFoohPin=function(){
+    const wrap=document.getElementById('foohWrap');
     const maxX=Math.max(0,foohTrack.scrollWidth-wrap.clientWidth);
     if(!maxX)return;
     ScrollTrigger.create({
@@ -1240,8 +1253,7 @@ const foohDots=document.querySelectorAll('.fd');
         foohDots.forEach((d,i)=>d.classList.toggle('a',i===idx));
       }
     });
-  }
-  window.addEventListener('load',()=>setTimeout(()=>{setup();ScrollTrigger.refresh();},300));
+  };
 })();
 
 // ============================================================
@@ -1318,6 +1330,29 @@ if(!cleHoverCapable){
     });
   });
 }
+
+// ============================================================
+// 12.6 — ORQUESTRADOR DOS PINS (Hero → A Forja → FOOH), EM ORDEM
+// Criar cada ScrollTrigger pinado só depois que o anterior já existe
+// no DOM (com seu spacer) evita que a posição de início do próximo
+// seja calculada "cedo demais" — era isso que fazia o pin da Forja
+// ativar antes da hora e cobrir a seção Clientes. Só roda depois que
+// fontes e todos os recursos da página carregaram de verdade.
+// ============================================================
+(function(){
+  if(!window.ScrollTrigger)return;
+  const fontsReady=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+  const pageLoaded=document.readyState==='complete'?Promise.resolve():new Promise(r=>window.addEventListener('load',r));
+  Promise.all([fontsReady,pageLoaded]).then(()=>{
+    setTimeout(()=>{
+      if(window.setupHeroPin)setupHeroPin();
+      if(window.setupForjaPin)setupForjaPin();
+      if(window.setupFoohPin)setupFoohPin();
+      ScrollTrigger.refresh();
+    },150);
+  });
+  window.addEventListener('resize',()=>ScrollTrigger.refresh());
+})();
 </script>
 </body>
 </html>
