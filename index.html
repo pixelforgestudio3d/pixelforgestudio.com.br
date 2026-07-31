@@ -164,12 +164,21 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .pn{font-size:1.35rem;font-weight:500;transform:translateY(6px);transition:transform .35s}
 .pi:hover .pn{transform:none}
 
-/* IA + CGI GRID */
-.iag{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:rgba(255,255,255,.04)}
-.iai{position:relative;overflow:hidden;background:var(--black);aspect-ratio:16/9}
-.iai.w7{grid-column:span 7}.iai.w5{grid-column:span 5}.iai.w6{grid-column:span 6}
-.iai img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
-.iai:hover img{transform:scale(1.04)}
+/* IA + CGI — layout split, compacto (11.8) */
+.iacgi-sec{padding:5rem 2.5rem}
+.iacgi-split{display:grid;grid-template-columns:1fr 1fr;gap:4.5rem;align-items:center;max-width:1100px;margin:0 auto}
+.iacgi-media{display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:440px}
+.iai{position:relative;overflow:hidden;background:var(--black);aspect-ratio:1/1}
+.iai img,.iai video{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.iai:hover img,.iai:hover video{transform:scale(1.04)}
+.iacgi-text{max-width:420px}
+.iacgi-text .st2{margin-bottom:1rem}
+.iacgi-text h2{font-size:clamp(1.8rem,3vw,2.6rem);margin-bottom:1rem}
+.iacgi-text .ss{font-size:14px;line-height:1.8;max-width:none}
+@media(max-width:900px){
+  .iacgi-split{grid-template-columns:1fr;gap:2.5rem}
+  .iacgi-media{max-width:100%;margin:0 auto}
+}
 
 /* FOOH CARROSSEL */
 .fooh-wrap{margin-top:4rem;position:relative;height:clamp(450px,45vw,680px);display:flex;align-items:center;justify-content:center;perspective:1400px;overflow:hidden}
@@ -254,7 +263,6 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
   .svl-item{padding:1.3rem 1.5rem;}
   .pg{grid-template-columns:1fr;gap:4px;}
   .pi.w7,.pi.w5,.pi.w6,.pi.w4{grid-column:span 1;}
-  .iai.w7,.iai.w5,.iai.w6{grid-column:span 1;}
   .pi video.pt{filter:brightness(.4);}
   .pov{opacity:1;padding:1.5rem;background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,transparent 80%);}
   .pn{transform:none;font-size:1.15rem;}
@@ -531,17 +539,19 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 
 <div class="gl"></div>
 
-<section class="sec" id="iacgi">
-  <div class="sec-header">
-    <div class="st2 rv">05 — IA + CGI</div>
-    <h2 class="rv d1">Controle e velocidade,<br>numa <span class="g">imagem só.</span></h2>
-    <p class="ss rv d2">CGI e IA não competem, se compõem. Cada tecnologia entra numa camada diferente do processo (modelagem, textura, luz, ambientação) até a composição final fundir tudo numa peça só, pronta pra publicar.</p>
-  </div>
-  <div class="iag rv d3">
-    <div class="iai w7"><img src="assets/NOVAS IMAGENS/FRESH SKIN HUMANIZADA 01.png" alt="Composição CGI e IA"></div>
-    <div class="iai w5"><img src="assets/NOVAS IMAGENS/LUXY 01 HUMANIZADA v2.png" alt="Composição CGI e IA"></div>
-    <div class="iai w6"><img src="assets/NOVAS IMAGENS/PROVOKE 01 HUMANIZADA.png" alt="Composição CGI e IA"></div>
-    <div class="iai w6"><img src="assets/NOVAS IMAGENS/SWEET CRUSH 01 v2.png" alt="Composição CGI e IA"></div>
+<section class="sec iacgi-sec" id="iacgi">
+  <div class="iacgi-split">
+    <div class="iacgi-media rv">
+      <div class="iai"><img src="assets/NOVAS IMAGENS/FRESH SKIN HUMANIZADA 01.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/NOVAS IMAGENS/LUXY 01 HUMANIZADA v2.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/NOVAS IMAGENS/PROVOKE 01 HUMANIZADA.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/NOVAS IMAGENS/SWEET CRUSH 01 v2.png" alt="Composição CGI e IA"></div>
+    </div>
+    <div class="iacgi-text">
+      <div class="st2 rv d1">05 — IA + CGI</div>
+      <h2 class="rv d2">Controle e velocidade,<br>numa <span class="g">imagem só.</span></h2>
+      <p class="ss rv d3">CGI e IA não competem, se compõem. Cada tecnologia entra numa camada diferente do processo (modelagem, textura, luz, ambientação) até a composição final fundir tudo numa peça só, pronta pra publicar.</p>
+    </div>
   </div>
 </section>
 
