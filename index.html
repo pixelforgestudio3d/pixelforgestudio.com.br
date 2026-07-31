@@ -209,23 +209,35 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .fd{width:5px;height:5px;border-radius:50%;background:var(--muted);transition:all .3s;}
 .fd.a{background:var(--pink);width:24px;border-radius:3px}
 
-/* A FORJA — seção inteira pinada, galeria pequena no canto (11.7) */
-.forja-banner{position:relative;height:clamp(320px,38vw,520px);overflow:hidden}
+/* A FORJA — spec detalhada 12.8: 50/50, galeria maior, nada colado na borda */
+.forja-banner{position:relative;height:clamp(180px,20vw,280px);overflow:hidden}
 .forja-banner img{width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block}
 .forja-banner-fade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,rgba(0,0,0,.12) 55%,rgba(0,0,0,.22) 100%)}
-.forja-banner-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(3rem,8vw,7rem);font-weight:500;letter-spacing:.02em;margin:0}
-.aw{display:grid;grid-template-columns:minmax(240px,300px) 1fr;gap:5rem;align-items:center;padding-top:5rem}
-.forja-photo-wrap{position:relative;width:100%;aspect-ratio:3/4;margin:0 auto}
+.forja-banner-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(2.4rem,6vw,4.5rem);font-weight:500;letter-spacing:.02em;margin:0}
+.aw{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:start;padding:2.5rem 1.5rem 2rem}
+.forja-media-col{display:flex;flex-direction:column;gap:1.25rem;padding-left:clamp(0px,2vw,2rem)}
+.forja-photo-wrap{position:relative;width:min(160px,42%);aspect-ratio:3/4}
 .forja-photo{width:100%;height:100%;object-fit:cover;display:block;border:.5px solid var(--borderh)}
-.forja-corner-gallery{position:absolute;left:-14%;bottom:-10%;width:58%;aspect-ratio:1/1;overflow:hidden;border:.5px solid var(--borderh);background:var(--card);box-shadow:0 24px 50px rgba(0,0,0,.65)}
-.fg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease}
-.fg-img.on{opacity:1}
-.al{width:40px;height:2px;background:var(--grad);margin-bottom:1.5rem}
-.sk{display:flex;flex-wrap:wrap;gap:8px;margin-top:2.5rem}
+.forja-gallery-frame{position:relative;width:100%;max-width:380px;aspect-ratio:4/3;border:.5px solid var(--borderh);background:var(--card);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.65)}
+.fg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateY(36px) rotate(6deg) scale(.94);transition:opacity .55s ease,transform .55s cubic-bezier(.22,1,.36,1);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.fg-img.prev{opacity:.35;transform:translateY(14px) rotate(-3deg) scale(.97);z-index:1}
+.fg-img.on{opacity:1;transform:translateY(0) rotate(0deg) scale(1);z-index:2}
+.forja-gallery-btn-wrap{text-align:center;opacity:0;transition:opacity .4s ease}
+.forja-gallery-btn-wrap.on{opacity:1}
+.forja-gallery-btn{padding:12px 28px;background:transparent;border:.5px solid var(--borderh);color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:not-allowed;opacity:.7}
+.forja-text-col{text-align:right;padding-right:clamp(0px,2vw,1rem)}
+.forja-text-col .st2{justify-content:flex-end}
+.al{width:40px;height:2px;background:var(--grad);margin-bottom:1.5rem;margin-left:auto}
+.sk{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:2rem}
 .ski{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:.5px solid var(--borderh);padding:6px 14px;transition:all .2s;}
 .ski:hover{border-color:var(--pink);color:var(--pink)}
-.forja-btn-wrap{padding:4rem 2.5rem;text-align:center;border-bottom:.5px solid var(--border)}
-.forja-gallery-btn{padding:14px 32px;background:transparent;border:.5px solid var(--borderh);color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:not-allowed;opacity:.5}
+@media(max-width:900px){
+  .aw{grid-template-columns:1fr;padding:3rem 1.5rem}
+  .forja-text-col{text-align:left;padding-right:0}
+  .forja-text-col .st2{justify-content:flex-start}
+  .al{margin-left:0}
+  .sk{justify-content:flex-start}
+}
 
 /* CTA */
 .cs{padding:10rem 2.5rem;text-align:center;position:relative;overflow:hidden}
@@ -281,8 +293,6 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
   .pi video.pt{filter:brightness(.4);}
   .pov{opacity:1;padding:1.5rem;background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,transparent 80%);}
   .pn{transform:none;font-size:1.15rem;}
-  .aw{grid-template-columns:1fr;gap:3rem;padding-top:2.5rem;}
-  .forja-photo-wrap{max-width:220px;}
   footer{grid-template-columns:1fr;gap:3rem;text-align:center;padding:4rem 1.5rem;}
   .fl{justify-content:center;}
   .fr{text-align:center;}
@@ -521,24 +531,32 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
     <h2 class="forja-banner-title">A FORJA</h2>
   </div>
   <div class="aw" id="forjaPinArea">
-    <div class="forja-photo-wrap">
-      <img class="forja-photo" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
-      <div class="forja-corner-gallery" id="forjaGallery">
-        <img class="fg-img on" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
-        <img class="fg-img" src="assets/NOVAS IMAGENS/HERO 1 MANSCAPED.jpg" alt="Estudo — Manscaped">
-        <img class="fg-img" src="assets/NOVAS IMAGENS/HERO 2 MANSCAPED.jpg" alt="Estudo — Manscaped">
-        <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 1 V1 AFPM.png" alt="Estudo — AFPM">
-        <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 2 V2 AFPM.png" alt="Estudo — AFPM">
+    <div class="forja-media-col">
+      <div class="forja-photo-wrap">
+        <img class="forja-photo" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
+      </div>
+      <div class="forja-gallery-frame">
+        <div id="forjaGallery">
+          <img class="fg-img on" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/HERO 1 MANSCAPED.jpg" alt="Estudo — Manscaped">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/HERO 2 MANSCAPED.jpg" alt="Estudo — Manscaped">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 1 V1 AFPM.png" alt="Estudo — AFPM">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 2 V2 AFPM.png" alt="Estudo — AFPM">
+        </div>
+      </div>
+      <div class="forja-gallery-btn-wrap" id="forjaBtnWrap">
+        <!-- TODO: destino/ação do botão ainda em aberto (ver seção 5.4 do doc) -->
+        <button class="forja-gallery-btn" type="button" disabled>Ver mais</button>
       </div>
     </div>
-    <div>
+    <div class="forja-text-col">
       <div class="st2 rv">03 — A Forja</div>
       <div class="al rv"></div>
       <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.6rem" class="rv">CEO & Diretor Criativo</p>
-      <h2 class="rv d1" style="margin-bottom:1.5rem">Ericson<br>Borba</h2>
-      <p style="font-size:16px;color:rgba(255,255,255,.82);line-height:2;margin-bottom:1.2rem" class="rv d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lideramos um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
-      <p style="font-size:16px;color:rgba(255,255,255,.82);line-height:2;margin-bottom:1.2rem" class="rv d3">Nosso arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini. Controle absoluto sobre cada detalhe, do primeiro frame ao render final. A IA entra quando acelera esse processo, nunca no lugar dele.</p>
-      <p style="font-size:16px;color:rgba(255,255,255,.82);line-height:2" class="rv d3">Nossa expertise na publicidade global garante que a complexidade técnica esteja sempre a serviço de uma narrativa visual impecável e estratégica.</p>
+      <h2 class="rv d1" style="margin-bottom:1.2rem">Ericson<br>Borba</h2>
+      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lideramos um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
+      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv d3">Nosso arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini. Controle absoluto sobre cada detalhe, do primeiro frame ao render final. A IA entra quando acelera esse processo, nunca no lugar dele.</p>
+      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85" class="rv d3">Nossa expertise na publicidade global garante que a complexidade técnica esteja sempre a serviço de uma narrativa visual impecável e estratégica.</p>
       <div class="sk rv d3">
         <span class="ski">Cinema 4D</span><span class="ski">Octane</span><span class="ski">RedShift</span>
         <span class="ski">Houdini</span><span class="ski">Z-Brush</span><span class="ski">Substance</span>
@@ -547,11 +565,6 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
     </div>
   </div>
 </section>
-
-<div class="forja-btn-wrap">
-  <!-- TODO: destino/ação do botão ainda em aberto (ver seção 5.4 do doc) -->
-  <button class="forja-gallery-btn rv" type="button" disabled>Ver galeria completa</button>
-</div>
 
 <div class="gl"></div>
 
@@ -1198,9 +1211,10 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 })();
 
 // ============================================================
-// A FORJA — SEÇÃO INTEIRA PINADA, GALERIA DE CANTO TROCA (11.7)
-// banner + bio + foto ficam fixos; só a galeria pequena no canto
-// cicla as imagens conforme o scroll; libera ao terminar.
+// A FORJA — SEÇÃO INTEIRA PINADA, GALERIA "CARTAS EMPILHANDO" (11.7/12.8)
+// banner + bio + foto ficam fixos; a galeria maior troca de imagem como
+// cartas sendo jogadas uma por cima da outra; botão aparece perto do
+// fim da sequência, já posicionado junto da galeria.
 // ============================================================
 (function(){
   if(!window.gsap||!window.ScrollTrigger)return;
@@ -1208,6 +1222,7 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
   window.setupForjaPin=function(){
     const section=document.getElementById('forja');
     const imgs=document.querySelectorAll('#forjaGallery .fg-img');
+    const btnWrap=document.getElementById('forjaBtnWrap');
     if(!section||!imgs.length)return;
     const n=imgs.length;
     ScrollTrigger.create({
@@ -1219,7 +1234,11 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
       anticipatePin:1,
       onUpdate(self){
         const idx=Math.min(n-1,Math.floor(self.progress*n));
-        imgs.forEach((img,i)=>img.classList.toggle('on',i===idx));
+        imgs.forEach((img,i)=>{
+          img.classList.toggle('on',i===idx);
+          img.classList.toggle('prev',i===idx-1);
+        });
+        if(btnWrap)btnWrap.classList.toggle('on',self.progress>0.8);
       }
     });
   };
