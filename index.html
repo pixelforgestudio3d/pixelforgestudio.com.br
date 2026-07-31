@@ -191,22 +191,13 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
   .iacgi-media{max-width:100%;margin:0 auto}
 }
 
-/* FOOH CARROSSEL */
-.fooh-wrap{margin-top:4rem;position:relative;height:clamp(450px,45vw,680px);display:flex;align-items:center;justify-content:center;perspective:1400px;overflow:hidden}
-.fooh-stage{position:relative;width:clamp(240px,25vw,360px);height:clamp(420px,40vw,600px);transform-style:preserve-3d}
-.fc{position:absolute;inset:0;border-radius:6px;overflow:hidden;transition:transform .55s cubic-bezier(.23,1,.32,1),opacity .55s,box-shadow .55s}
+/* FOOH — carrossel de scroll horizontal, sem clique (11.11) */
+.fooh-wrap{margin-top:4rem;position:relative;overflow:hidden}
+.fooh-track{display:flex;gap:1.5rem;width:max-content;will-change:transform}
+.fc{position:relative;width:min(300px,68vw);aspect-ratio:9/16;border-radius:6px;overflow:hidden;flex-shrink:0;box-shadow:0 24px 60px rgba(0,0,0,.5)}
 .fc video{width:100%;height:100%;object-fit:cover;display:block}
 .fc-tag{position:absolute;bottom:1.5rem;left:1.5rem;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:4px 12px;border:.5px solid rgba(244,51,187,.6);color:var(--pink);background:rgba(0,0,0,.65)}
-.fc.pos-center{transform:translateX(0) rotateY(0) scale(1);z-index:3;box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 .5px rgba(244,51,187,.3);opacity:1}
-.fc.pos-left{transform:translateX(-85%) rotateY(18deg) scale(.85);z-index:2;box-shadow:0 16px 48px rgba(0,0,0,.5);opacity:.6}
-.fc.pos-right{transform:translateX(85%) rotateY(-18deg) scale(.85);z-index:2;box-shadow:0 16px 48px rgba(0,0,0,.5);opacity:.6}
-.fc.pos-hidden-left{transform:translateX(-160%) rotateY(30deg) scale(.7);z-index:1;opacity:0;pointer-events:none}
-.fc.pos-hidden-right{transform:translateX(160%) rotateY(-30deg) scale(.7);z-index:1;opacity:0;pointer-events:none}
-.fooh-nav{display:flex;justify-content:center;gap:1.5rem;margin-top:2.5rem}
-.fn{width:48px;height:48px;border:.5px solid var(--borderh);background:transparent;display:flex;align-items:center;justify-content:center;transition:all .2s;color:var(--white);border-radius:50%;}
-.fn:hover{border-color:var(--pink);background:rgba(244,51,187,.1)}
-.fn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fooh-dots{display:flex;justify-content:center;gap:8px;margin-top:1.5rem}
+.fooh-dots{display:flex;justify-content:center;gap:8px;margin-top:2rem}
 .fd{width:5px;height:5px;border-radius:50%;background:var(--muted);transition:all .3s;}
 .fd.a{background:var(--pink);width:24px;border-radius:3px}
 
@@ -547,16 +538,8 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
   <div class="st2 rv">04 — Fake Out of Home</div>
   <h2 class="rv d1">O impossível<br>na <span class="g">rua.</span></h2>
   <p class="ss rv d2">CGI integrado ao mundo real com precisão de câmera, tracking e iluminação cinematográfica. Instalações que param o scroll e o trânsito.</p>
-  <div class="fooh-wrap rv d3">
-    <div class="fooh-stage" id="foohStage"></div>
-  </div>
-  <div class="fooh-nav">
-    <button class="fn" id="fnPrev" aria-label="Anterior">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <button class="fn" id="fnNext" aria-label="Próximo">
-      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
+  <div class="fooh-wrap rv d3" id="foohWrap">
+    <div class="fooh-track" id="foohTrack"></div>
   </div>
   <div class="fooh-dots" id="foohDots"></div>
 </section>
@@ -1210,7 +1193,9 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 })();
 
 // ============================================================
-// FOOH CARROSSEL
+// FOOH — SCROLL HORIZONTAL, SEM CLIQUE (11.11)
+// a faixa de vídeos anda conforme o usuário rola a página pra
+// baixo; a seção fica pinada enquanto isso acontece.
 // ============================================================
 const foohVideos=[
   'assets/fooh/FOOH 1 VF.mp4','assets/fooh/FOOH 2 VF.mp4','assets/fooh/FOOH 3 VF.mp4',
@@ -1218,31 +1203,43 @@ const foohVideos=[
   'assets/fooh/FOOH 7 VF.mp4','assets/fooh/FOOH 8 VF.mp4','assets/fooh/FOOH 9 VF.mp4',
   'assets/fooh/FOOH 10 VF.mp4','assets/fooh/FOOH 11 VF.mp4','assets/fooh/FOOH 12 VF.mp4'
 ];
-const stage=document.getElementById('foohStage');
-const dotsWrap=document.getElementById('foohDots');
-let cur2=0;const total=foohVideos.length;
-const cards=foohVideos.map((src,i)=>{
+const foohTrack=document.getElementById('foohTrack');
+const foohDotsWrap=document.getElementById('foohDots');
+const total=foohVideos.length;
+foohVideos.forEach(src=>{
   const div=document.createElement('div');div.className='fc';
   div.innerHTML=`<video autoplay muted loop playsinline><source src="${src}" type="video/mp4"></video><div class="fc-tag">FOOH</div>`;
-  stage.appendChild(div);return div;
+  foohTrack.appendChild(div);
 });
 foohVideos.forEach((_,i)=>{
   const d=document.createElement('div');d.className='fd'+(i===0?' a':'');
-  d.addEventListener('click',()=>goTo(i));dotsWrap.appendChild(d);
+  foohDotsWrap.appendChild(d);
 });
-function getPos(i){const diff=((i-cur2)+total)%total;if(diff===0)return'pos-center';if(diff===1)return'pos-right';if(diff===total-1)return'pos-left';if(diff===2)return'pos-hidden-right';return'pos-hidden-left';}
-function render(){cards.forEach((c,i)=>{c.className='fc '+getPos(i);});document.querySelectorAll('.fd').forEach((d,i)=>{d.classList.toggle('a',i===cur2);});}
-function goTo(idx){cur2=((idx%total)+total)%total;render();}
-function next(){goTo(cur2+1)}function prev(){goTo(cur2-1)}
-document.getElementById('fnNext').addEventListener('click',next);
-document.getElementById('fnPrev').addEventListener('click',prev);
-let tx2=0;
-stage.addEventListener('touchstart',e=>{tx2=e.touches[0].clientX},{passive:true});
-stage.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx2;if(Math.abs(dx)>40){dx<0?next():prev()}});
-let auto=setInterval(next,4000);
-stage.addEventListener('mouseenter',()=>clearInterval(auto));
-stage.addEventListener('mouseleave',()=>{auto=setInterval(next,4000)});
-render();
+const foohDots=document.querySelectorAll('.fd');
+
+(function(){
+  if(!window.gsap||!window.ScrollTrigger)return;
+  gsap.registerPlugin(ScrollTrigger);
+  const wrap=document.getElementById('foohWrap');
+  function setup(){
+    const maxX=Math.max(0,foohTrack.scrollWidth-wrap.clientWidth);
+    if(!maxX)return;
+    ScrollTrigger.create({
+      trigger:'#fooh',
+      start:'top top',
+      end:()=>'+='+(maxX+300),
+      pin:true,
+      scrub:.6,
+      anticipatePin:1,
+      onUpdate(self){
+        gsap.set(foohTrack,{x:-maxX*self.progress});
+        const idx=Math.min(total-1,Math.floor(self.progress*total));
+        foohDots.forEach((d,i)=>d.classList.toggle('a',i===idx));
+      }
+    });
+  }
+  window.addEventListener('load',()=>setTimeout(()=>{setup();ScrollTrigger.refresh();},300));
+})();
 
 // ============================================================
 // CLIENTES / ESCOPO
