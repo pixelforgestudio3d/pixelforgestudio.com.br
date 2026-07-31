@@ -68,19 +68,17 @@ nav.s{background:rgba(0,0,0,.92);backdrop-filter:blur(20px);border-bottom:.5px s
 .nc{padding:10px 24px;background:var(--grad);color:var(--white)!important;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:opacity .2s}
 .nc:hover{opacity:.85}
 
-/* HERO */
-.hero{position:relative;height:100vh;overflow:hidden}
+/* HERO — seção pinada, texto revela por cima do vídeo (11.1) */
+.hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;padding:0 2.5rem}
 .hv{position:absolute;inset:0}
-.hv video{width:100%;height:100%;object-fit:cover;opacity:.85}
-.ho{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6) 0%,transparent 30%)}
-.ha{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(61,23,225,.12) 0%,transparent 100%)}
+.hv video{width:100%;height:100%;object-fit:cover;opacity:.5}
+.ho{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.35) 45%,rgba(0,0,0,.6) 100%)}
+.ha{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(61,23,225,.15) 0%,transparent 100%)}
 .hb{position:absolute;bottom:2.5rem;left:0;right:0;display:flex;justify-content:center;z-index:2}
-.hscr{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fu .7s 1s forwards}
+.hscr{display:flex;flex-direction:column;align-items:center;gap:8px}
 .sb{width:1px;height:52px;background:linear-gradient(to bottom,var(--pink),transparent);animation:p 2s 1.5s infinite}
 .st{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;writing-mode:vertical-lr}
 
-/* HERO TEXT (revelado ao rolar, logo abaixo do vídeo) */
-.hero-text{position:relative;padding:7rem 2.5rem 8rem;overflow:hidden}
 .hc{position:relative;z-index:2;max-width:900px}
 .he{display:flex;align-items:center;gap:12px;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:1.5rem;opacity:0}
 .hl{width:32px;height:1px;background:var(--grad)}
@@ -90,7 +88,6 @@ h1 .g .split-char{background:var(--gt);-webkit-background-clip:text;-webkit-text
 h1 .split-char{will-change:transform,opacity}
 .hs{font-size:16px;color:var(--muted2);max-width:480px;line-height:1.85;opacity:0}
 
-@keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
 
 /* PEÇA 3D INTERATIVA */
@@ -249,9 +246,8 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 @media(max-width:768px){
   nav{padding:0 1.5rem;}
   .nls{display:none;}
-  .hero-text,.sec,.cs{padding-left:1.5rem;padding-right:1.5rem;}
+  .hero,.sec,.cs{padding-left:1.5rem;padding-right:1.5rem;}
   .hero{height:100svh;}
-  .hero-text{padding-top:5rem;padding-bottom:5rem;}
   .hscr{display:none;}
   .pf3d{height:70vh;}
   .svg{grid-template-columns:1fr;}
@@ -331,19 +327,16 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
   </div>
 </nav>
 
-<section class="hero">
+<section class="hero" id="hero">
   <div class="hv"><video autoplay muted loop playsinline><source src="assets/HERO SITE V4.mp4" type="video/mp4"></video></div>
   <div class="ho"></div><div class="ha"></div>
-  <div class="hb">
-    <div class="hscr"><div class="sb"></div><span class="st">Scroll</span></div>
-  </div>
-</section>
-
-<section class="hero-text" id="heroText">
   <div class="hc">
     <div class="he"><div class="hl"></div>CGI · Direção Criativa · FOOH</div>
     <h1 id="heroH1">Imagens que<br>não são <span class="g">reais</span><br>— mas poderiam.</h1>
     <p class="hs">Direção de arte, CGI e composição com IA para lançamentos de alto nível. Product reveals, campanhas e Fake Out of Home.</p>
+  </div>
+  <div class="hb">
+    <div class="hscr" id="heroScr"><div class="sb"></div><span class="st">Scroll</span></div>
   </div>
 </section>
 
@@ -1094,7 +1087,9 @@ const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.targ
 document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 
 // ============================================================
-// HERO — REVEAL DE TEXTO AO SCROLL (GSAP + SplitText)
+// HERO — PIN DA SEÇÃO + REVEAL DE TEXTO SOBRE O VÍDEO (11.1)
+// vídeo nunca some; texto revela com scrub enquanto a seção
+// fica presa na tela; libera o scroll só quando termina.
 // ============================================================
 (function(){
   if(!window.gsap||!window.ScrollTrigger||!window.SplitText)return;
@@ -1103,15 +1098,23 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
   function setup(){
     const split=new SplitText('#heroH1',{type:'chars,words',wordsClass:'split-word',charsClass:'split-char'});
     gsap.set(split.chars,{yPercent:120,opacity:0});
-    gsap.set('.hero-text .he',{opacity:0,y:24});
-    gsap.set('.hero-text .hs',{opacity:0,y:24});
+    gsap.set('.hero .he',{opacity:0,y:24});
+    gsap.set('.hero .hs',{opacity:0,y:24});
 
     gsap.timeline({
-      scrollTrigger:{trigger:'#heroText',start:'top 85%',toggleActions:'play none none reverse'}
+      scrollTrigger:{
+        trigger:'#hero',
+        start:'top top',
+        end:'+=100%',
+        pin:true,
+        scrub:.6,
+        anticipatePin:1
+      }
     })
-    .to('.hero-text .he',{opacity:1,y:0,duration:.6,ease:'power2.out'})
-    .to(split.chars,{yPercent:0,opacity:1,duration:.9,stagger:.02,ease:'power4.out'},'-=0.3')
-    .to('.hero-text .hs',{opacity:1,y:0,duration:.7,ease:'power2.out'},'-=0.55');
+    .to('#heroScr',{opacity:0,duration:.15},0)
+    .to('.hero .he',{opacity:1,y:0,duration:.6,ease:'power2.out'},0)
+    .to(split.chars,{yPercent:0,opacity:1,duration:.9,stagger:.02,ease:'power4.out'},.15)
+    .to('.hero .hs',{opacity:1,y:0,duration:.7,ease:'power2.out'},.75);
   }
 
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(setup);
