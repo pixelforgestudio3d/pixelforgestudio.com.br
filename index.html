@@ -105,24 +105,25 @@ h1 .split-char{will-change:transform,opacity}
 .mi:hover img,.mi:hover .mn{opacity:1}
 @keyframes mq{to{transform:translateX(-50%)}}
 
-/* CLIENTES / ESCOPO */
-.cle{padding:6rem 2.5rem}
-.cle-row{position:relative;display:flex;justify-content:flex-end}
-.cle-float{position:absolute;left:0;top:50%;width:clamp(140px,16vw,220px);transform:translateY(-50%);opacity:0;transition:opacity .35s;pointer-events:none}
-.cle-float.on{opacity:1}
-.cle-float img{width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 12px 30px rgba(0,0,0,.5))}
-.cle-cols{display:flex;gap:clamp(3rem,6vw,6rem)}
-.cle-clients{column-count:2;column-gap:2.5rem;max-width:560px}
-.cle-scope{display:flex;flex-direction:column;gap:.7rem;padding-top:.2rem}
-.cli{font-size:1.05rem;line-height:2.1;color:var(--muted);cursor:pointer;transition:color .25s;white-space:nowrap;break-inside:avoid}
-.cli:hover,.cli.on{color:var(--white);font-weight:500}
-.clt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.4;transition:opacity .25s,color .25s;white-space:nowrap}
-.clt.on{color:var(--pink);opacity:1}
+/* CLIENTES / ESCOPO — mecânica Valkiria exata (11.4) */
+.cle{padding:7rem 2.5rem 8rem}
+.cle-head{text-align:center;margin-bottom:4.5rem}
+.cle-head .st2{justify-content:center}
+.cle-head h2{margin-bottom:0}
+.cle-list{max-width:640px;margin:0 auto;position:relative}
+.cli-row{position:relative;display:flex;align-items:baseline;justify-content:space-between;gap:1.5rem;padding:.7rem 0;cursor:pointer}
+.cli-name{font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;color:var(--white);transition:opacity .2s;white-space:nowrap}
+.cli-row:hover .cli-name,.cli-row.on .cli-name{opacity:1!important}
+.cli-logo{position:absolute;left:-150px;top:50%;transform:translateY(-50%);width:100px;max-height:60px;object-fit:contain;opacity:0;transition:opacity .3s;pointer-events:none;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
+.cli-row:hover .cli-logo,.cli-row.on .cli-logo{opacity:1}
+.cli-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;opacity:0;transition:opacity .3s}
+.cli-row:hover .cli-tags,.cli-row.on .cli-tags{opacity:1}
+.clt{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);border:.5px solid var(--borderh);padding:5px 12px;white-space:nowrap}
 @media(max-width:768px){
-  .cle{padding:4rem 1.5rem}
-  .cle-float{display:none}
-  .cle-cols{flex-direction:column;gap:2.5rem}
-  .cle-clients{column-count:1;max-width:none}
+  .cle{padding:4rem 1.5rem 5rem}
+  .cli-logo{display:none}
+  .cli-name{font-size:1.2rem}
+  .cli-row{flex-wrap:wrap}
 }
 
 /* GRAD LINE */
@@ -504,13 +505,11 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 <div class="gl"></div>
 
 <section class="cle" id="clientes">
-  <div class="cle-row">
-    <div class="cle-float" id="cleFloat"><img id="cleFloatImg" src="" alt=""></div>
-    <div class="cle-cols">
-      <div class="cle-col cle-clients" id="cleClients"></div>
-      <div class="cle-col cle-scope" id="cleScope"></div>
-    </div>
+  <div class="cle-head">
+    <div class="st2 rv">— Clientes &amp; Escopo</div>
+    <h2 class="rv d1">Marcas que já confiaram <span class="g">na Forja.</span></h2>
   </div>
+  <div class="cle-list" id="cleList"></div>
 </section>
 
 <div class="gl"></div>
@@ -1269,48 +1268,50 @@ const CLIENTS=[
   {name:'Positivo',logo:'assets/logos/POSITIVO LOGO.png',scope:['CGI']},
   {name:'Rodonaves',logo:'assets/logos/RODONAVES LOGO.png',scope:['Visualizador 3D (VR Unreal)']}
 ];
-const SCOPE_TAGS=[...new Set(CLIENTS.flatMap(c=>c.scope))];
+const cleListEl=document.getElementById('cleList');
 
-const cleClientsEl=document.getElementById('cleClients');
-const cleScopeEl=document.getElementById('cleScope');
-const cleFloat=document.getElementById('cleFloat');
-const cleFloatImg=document.getElementById('cleFloatImg');
-
-const cliEls=CLIENTS.map(c=>{
-  const d=document.createElement('div');d.className='cli';d.textContent=c.name;
-  cleClientsEl.appendChild(d);return d;
-});
-const tagEls={};
-SCOPE_TAGS.forEach(tag=>{
-  const d=document.createElement('div');d.className='clt';d.textContent=tag;
-  cleScopeEl.appendChild(d);tagEls[tag]=d;
+const cliRows=CLIENTS.map(c=>{
+  const row=document.createElement('div');row.className='cli-row';
+  const tagsHtml=c.scope.map(t=>`<span class="clt">${t}</span>`).join('');
+  row.innerHTML=`<img class="cli-logo" src="${c.logo}" alt="${c.name}"><span class="cli-name">${c.name}</span><span class="cli-tags">${tagsHtml}</span>`;
+  cleListEl.appendChild(row);
+  return row;
 });
 
-function cleActivate(i){
-  cliEls.forEach((el,idx)=>el.classList.toggle('on',idx===i));
-  Object.values(tagEls).forEach(el=>el.classList.remove('on'));
-  CLIENTS[i].scope.forEach(tag=>{if(tagEls[tag])tagEls[tag].classList.add('on');});
-  cleFloatImg.src=CLIENTS[i].logo;
-  cleFloatImg.alt=CLIENTS[i].name;
-  cleFloat.classList.add('on');
+// opacidade por posição na tela — efeito "roleta" (11.4)
+let cleTicking=false;
+function updateClienteOpacity(){
+  const vh=window.innerHeight;
+  const center=vh/2;
+  const band=vh*0.15;
+  const fadeRange=vh*0.55;
+  cliRows.forEach(row=>{
+    const nameEl=row.querySelector('.cli-name');
+    const r=row.getBoundingClientRect();
+    const mid=r.top+r.height/2;
+    const dist=Math.abs(mid-center);
+    let t;
+    if(dist<=band)t=1;else t=Math.max(0,1-(dist-band)/(fadeRange-band));
+    nameEl.style.opacity=(0.2+t*0.8).toFixed(2);
+  });
 }
-function cleReset(){
-  cliEls.forEach(el=>el.classList.remove('on'));
-  Object.values(tagEls).forEach(el=>el.classList.remove('on'));
-  cleFloat.classList.remove('on');
-}
+window.addEventListener('scroll',()=>{
+  if(!cleTicking){cleTicking=true;requestAnimationFrame(()=>{updateClienteOpacity();cleTicking=false;});}
+},{passive:true});
+window.addEventListener('resize',updateClienteOpacity);
+updateClienteOpacity();
 
+// hover (ou tap no mobile) — logo aparece à esquerda, tags à direita, na mesma linha
 const cleHoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-cliEls.forEach((el,i)=>{
-  if(cleHoverCapable){
-    el.addEventListener('mouseenter',()=>cleActivate(i));
-  }else{
-    el.addEventListener('click',()=>{
-      if(el.classList.contains('on'))cleReset();else cleActivate(i);
+if(!cleHoverCapable){
+  cliRows.forEach(row=>{
+    row.addEventListener('click',()=>{
+      const wasOn=row.classList.contains('on');
+      cliRows.forEach(r=>r.classList.remove('on'));
+      if(!wasOn)row.classList.add('on');
     });
-  }
-});
-if(cleHoverCapable)document.getElementById('clientes').addEventListener('mouseleave',cleReset);
+  });
+}
 </script>
 </body>
 </html>
