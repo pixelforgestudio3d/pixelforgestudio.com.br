@@ -157,14 +157,18 @@ h2{font-size:clamp(2.8rem,5vw,5rem);font-weight:500;line-height:.92;letter-spaci
 h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .ss{font-size:16px;color:var(--muted2);max-width:520px;line-height:1.9}
 
-/* SERVIÇOS — lista curta em painel de vidro (11.6) */
-.svl{max-width:760px;background:rgba(255,255,255,.03);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid var(--borderh);border-radius:6px;overflow:hidden}
+/* SERVIÇOS — painel centralizado sobre watermark líquido (13.1, substitui 11.6) */
+.svc-sec{position:relative;overflow:hidden}
+.svc-watermark-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
+.svc-watermark-canvas{width:100%;height:100%;max-width:1400px}
+.svc-inner{position:relative;z-index:1;max-width:760px;margin:0 auto;text-align:center}
+.svc-inner .st2{justify-content:center}
+.svl{max-width:760px;margin:0 auto;background:rgba(255,255,255,.03);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid var(--borderh);border-radius:6px;overflow:hidden;text-align:left}
 .svl-item{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1.7rem 2.2rem;color:var(--white);text-decoration:none;border-bottom:.5px solid var(--border);transition:padding-left .35s ease,background .3s}
 .svl-item:last-child{border-bottom:none}
 .svl-item:hover{padding-left:2.8rem;background:rgba(255,255,255,.03)}
 .svl-name{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:500;letter-spacing:-.01em;display:inline-block}
 .svl-item:hover .svl-name{color:var(--pink)}
-.svl-ch{display:inline-block;transition:transform .35s cubic-bezier(.2,1,.3,1)}
 .svl-arrow{opacity:0;transform:translateX(-10px);transition:opacity .3s,transform .3s;color:var(--pink);flex-shrink:0}
 .svl-item:hover .svl-arrow{opacity:1;transform:translateX(0)}
 .svl-arrow svg{width:22px;height:22px}
@@ -210,34 +214,35 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .fd{width:5px;height:5px;border-radius:50%;background:var(--muted);transition:all .3s;}
 .fd.a{background:var(--pink);width:24px;border-radius:3px}
 
-/* A FORJA — spec detalhada 12.8: 50/50, galeria maior, nada colado na borda */
+/* A FORJA — layout definitivo 13.6 (substitui 12.8): galeria dominante
+   colada na borda esquerda, texto começa no meio alinhado à esquerda,
+   foto ao lado do nome, última imagem com fade + botão sobreposto */
 .forja-banner{position:relative;height:clamp(180px,20vw,280px);overflow:hidden}
 .forja-banner img{width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block}
 .forja-banner-fade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,rgba(0,0,0,.12) 55%,rgba(0,0,0,.22) 100%)}
 .forja-banner-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(2.4rem,6vw,4.5rem);font-weight:500;letter-spacing:.02em;margin:0}
-.aw{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:start;padding:2.5rem 1.5rem 2rem}
-.forja-media-col{display:flex;flex-direction:column;gap:1.25rem;padding-left:clamp(0px,2vw,2rem)}
-.forja-photo-wrap{position:relative;width:min(160px,42%);aspect-ratio:3/4}
-.forja-photo{width:100%;height:100%;object-fit:cover;display:block;border:.5px solid var(--borderh)}
-.forja-gallery-frame{position:relative;width:100%;max-width:380px;aspect-ratio:4/3;border:.5px solid var(--borderh);background:var(--card);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.65)}
+.aw{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;padding:2.5rem 1.5rem 2rem}
+.forja-media-col{display:flex;flex-direction:column}
+.forja-gallery-frame{position:relative;width:100%;max-width:640px;aspect-ratio:4/3;border:.5px solid var(--borderh);background:var(--card);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.65)}
 .fg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateY(36px) rotate(6deg) scale(.94);transition:opacity .55s ease,transform .55s cubic-bezier(.22,1,.36,1);box-shadow:0 20px 40px rgba(0,0,0,.5)}
 .fg-img.prev{opacity:.35;transform:translateY(14px) rotate(-3deg) scale(.97);z-index:1}
 .fg-img.on{opacity:1;transform:translateY(0) rotate(0deg) scale(1);z-index:2}
-.forja-gallery-btn-wrap{text-align:center;opacity:0;transition:opacity .4s ease}
-.forja-gallery-btn-wrap.on{opacity:1}
-.forja-gallery-btn{padding:12px 28px;background:transparent;border:.5px solid var(--borderh);color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:not-allowed;opacity:.7}
-.forja-text-col{text-align:right;padding-right:clamp(0px,2vw,1rem)}
-.forja-text-col .st2{justify-content:flex-end}
-.al{width:40px;height:2px;background:var(--grad);margin-bottom:1.5rem;margin-left:auto}
-.sk{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:2rem}
+.forja-gallery-fade{position:absolute;inset:0;z-index:3;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.35) 55%,rgba(0,0,0,.1) 100%);opacity:0;transition:opacity .5s ease;pointer-events:none}
+.forja-gallery-fade.on{opacity:1;pointer-events:auto}
+.forja-gallery-btn{position:absolute;left:50%;bottom:9%;transform:translate(-50%,12px);z-index:4;padding:14px 32px;background:transparent;border:.5px solid rgba(255,255,255,.5);color:var(--white);text-decoration:none;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:0;transition:opacity .5s ease,transform .5s ease,border-color .2s,background .2s}
+.forja-gallery-btn.on{opacity:1;transform:translate(-50%,0)}
+.forja-gallery-btn:hover{border-color:var(--pink);background:rgba(244,51,187,.12)}
+.forja-text-col{text-align:left}
+.forja-name-row{display:flex;align-items:center;gap:1.25rem;margin-bottom:1.2rem}
+.forja-photo{width:72px;height:72px;object-fit:cover;border-radius:50%;border:.5px solid var(--borderh);flex-shrink:0}
+.forja-name-row h2{margin-bottom:0}
+.al{width:40px;height:2px;background:var(--grad);margin-bottom:1.5rem}
+.sk{display:flex;flex-wrap:wrap;gap:8px;margin-top:2rem}
 .ski{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:.5px solid var(--borderh);padding:6px 14px;transition:all .2s;}
 .ski:hover{border-color:var(--pink);color:var(--pink)}
 @media(max-width:900px){
   .aw{grid-template-columns:1fr;padding:3rem 1.5rem}
-  .forja-text-col{text-align:left;padding-right:0}
-  .forja-text-col .st2{justify-content:flex-start}
-  .al{margin-left:0}
-  .sk{justify-content:flex-start}
+  .forja-gallery-frame{max-width:100%}
 }
 
 /* CTA */
@@ -460,17 +465,22 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 
 <div class="gl"></div>
 
-<section class="sec" id="servicos">
-  <div class="sec-header">
-    <div class="st2 rv">01 — Serviços</div>
+<section class="sec svc-sec" id="servicos">
+  <div class="svc-watermark-wrap">
+    <canvas class="svc-watermark-canvas" id="svcWatermarkCanvas"></canvas>
   </div>
-  <div class="svl rv d1">
-    <a class="svl-item" href="servicos/launch-film.html"><span class="svl-name">Launch Film</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
-    <a class="svl-item" href="servicos/3d-film.html"><span class="svl-name">3D Film</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
-    <a class="svl-item" href="servicos/packshot.html"><span class="svl-name">Packshot</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
-    <a class="svl-item" href="servicos/fooh.html"><span class="svl-name">FOOH</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
-    <a class="svl-item" href="servicos/cgi-ai.html"><span class="svl-name">CGI + AI</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
-    <a class="svl-item" href="servicos/pos-producao.html"><span class="svl-name">Pós-produção</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
+  <div class="svc-inner">
+    <div class="sec-header">
+      <div class="st2 rv">01 — Serviços</div>
+    </div>
+    <div class="svl rv d1">
+      <a class="svl-item" href="servicos/launch-film.html"><span class="svl-name">Launch Film</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
+      <a class="svl-item" href="servicos/3d-film.html"><span class="svl-name">3D Film</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
+      <a class="svl-item" href="servicos/packshot.html"><span class="svl-name">Packshot</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
+      <a class="svl-item" href="servicos/fooh.html"><span class="svl-name">FOOH</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
+      <a class="svl-item" href="servicos/cgi-ai.html"><span class="svl-name">CGI + AI</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
+      <a class="svl-item" href="servicos/pos-producao.html"><span class="svl-name">Pós-produção</span><span class="svl-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span></a>
+    </div>
   </div>
 </section>
 
@@ -533,9 +543,6 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
   </div>
   <div class="aw" id="forjaPinArea">
     <div class="forja-media-col">
-      <div class="forja-photo-wrap">
-        <img class="forja-photo" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
-      </div>
       <div class="forja-gallery-frame">
         <div id="forjaGallery">
           <img class="fg-img on" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
@@ -544,17 +551,20 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
           <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 1 V1 AFPM.png" alt="Estudo — AFPM">
           <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 2 V2 AFPM.png" alt="Estudo — AFPM">
         </div>
-      </div>
-      <div class="forja-gallery-btn-wrap" id="forjaBtnWrap">
-        <!-- TODO: destino/ação do botão ainda em aberto (ver seção 5.4 do doc) -->
-        <button class="forja-gallery-btn" type="button" disabled>Ver mais</button>
+        <div class="forja-gallery-fade" id="forjaGalleryFade"></div>
+        <a class="forja-gallery-btn" id="forjaGalleryBtn" href="galeria.html">Visitar galeria</a>
       </div>
     </div>
     <div class="forja-text-col">
       <div class="st2 rv">03 — A Forja</div>
       <div class="al rv"></div>
-      <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.6rem" class="rv">CEO & Diretor Criativo</p>
-      <h2 class="rv d1" style="margin-bottom:1.2rem">Ericson<br>Borba</h2>
+      <div class="forja-name-row rv d1">
+        <img class="forja-photo" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
+        <div>
+          <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem">CEO & Diretor Criativo</p>
+          <h2 style="margin-bottom:0">Ericson<br>Borba</h2>
+        </div>
+      </div>
       <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lideramos um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
       <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv d3">Nosso arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini. Controle absoluto sobre cada detalhe, do primeiro frame ao render final. A IA entra quando acelera esse processo, nunca no lugar dele.</p>
       <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85" class="rv d3">Nossa expertise na publicidade global garante que a complexidade técnica esteja sempre a serviço de uma narrativa visual impecável e estratégica.</p>
@@ -1134,36 +1144,96 @@ document.querySelectorAll('.nd').forEach(nd=>{
 });
 
 // ============================================================
-// SERVIÇOS — DISTORÇÃO DE TEXTO POR CARACTERE (11.6, ref. Lusion)
-// cada letra reage à posição do mouse, dobrando/deslocando de
-// acordo com a distância — não é só um skew no nome inteiro.
+// SERVIÇOS — WATERMARK COM DISTORÇÃO LÍQUIDA + RGB-SPLIT (13.1)
+// texto grande de fundo, nítido fora da área do cursor; perto do
+// cursor, tiras horizontais do texto se separam em canais de cor
+// com leve ondulação, como um "vazamento" líquido cromático.
 // ============================================================
 (function(){
+  const section=document.getElementById('servicos');
+  const wrap=document.querySelector('.svc-watermark-wrap');
+  const canvas=document.getElementById('svcWatermarkCanvas');
+  if(!section||!wrap||!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const TEXT='Serviços';
+  const CHANNELS=[
+    {color:'rgba(244,51,187,.8)',baseDx:-11},
+    {color:'rgba(128,23,226,.55)',baseDx:0},
+    {color:'rgba(41,49,161,.8)',baseDx:11},
+  ];
+  const offWhite=document.createElement('canvas');
+  const offChannels=CHANNELS.map(()=>document.createElement('canvas'));
+  let cw=0,ch=0,dpr=Math.min(window.devicePixelRatio||1,2);
+  let mx=-9999,my=-9999,active=false;
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-  document.querySelectorAll('.svl-name').forEach(el=>{
-    const text=el.textContent;
-    el.innerHTML=text.split('').map(c=>`<span class="svl-ch">${c===' '?'&nbsp;':c}</span>`).join('');
-    if(!hoverCapable)return;
-    const chars=el.querySelectorAll('.svl-ch');
-    el.addEventListener('mousemove',e=>{
-      const rect=el.getBoundingClientRect();
-      const mx=e.clientX-rect.left;
-      chars.forEach(ch=>{
-        const chRect=ch.getBoundingClientRect();
-        const chX=chRect.left-rect.left+chRect.width/2;
-        const dist=Math.abs(mx-chX);
-        const influence=Math.max(0,1-dist/90);
-        const dir=mx>chX?1:-1;
-        const skew=dir*influence*16;
-        const ty=-influence*12;
-        const scale=1+influence*.12;
-        ch.style.transform=`translateY(${ty}px) skewX(${skew}deg) scale(${scale})`;
+
+  function buildLayers(){
+    const r=wrap.getBoundingClientRect();
+    cw=Math.max(1,Math.round(r.width));
+    ch=Math.max(1,Math.round(r.height));
+    [canvas,offWhite,...offChannels].forEach(c=>{
+      c.width=cw*dpr;c.height=ch*dpr;
+      c.style.width=cw+'px';c.style.height=ch+'px';
+    });
+    const fontSize=Math.min(cw*0.16,ch*0.6);
+    const font=`700 ${fontSize}px 'Space Grotesk',sans-serif`;
+    const wctx=offWhite.getContext('2d');
+    wctx.setTransform(dpr,0,0,dpr,0,0);
+    wctx.font=font;wctx.textAlign='center';wctx.textBaseline='middle';
+    wctx.fillStyle='#fff';
+    wctx.fillText(TEXT,cw/2,ch/2);
+    offChannels.forEach((oc,i)=>{
+      const octx=oc.getContext('2d');
+      octx.setTransform(dpr,0,0,dpr,0,0);
+      octx.font=font;octx.textAlign='center';octx.textBaseline='middle';
+      octx.fillStyle=CHANNELS[i].color;
+      octx.fillText(TEXT,cw/2,ch/2);
+    });
+  }
+  buildLayers();
+  window.addEventListener('resize',buildLayers);
+
+  if(hoverCapable){
+    section.addEventListener('mousemove',e=>{
+      const r=canvas.getBoundingClientRect();
+      mx=e.clientX-r.left;my=e.clientY-r.top;active=true;
+    });
+    section.addEventListener('mouseleave',()=>{active=false;});
+  }
+
+  let t=0;
+  function draw(){
+    t+=0.02;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,cw,ch);
+    ctx.globalAlpha=.07;
+    ctx.drawImage(offWhite,0,0,offWhite.width,offWhite.height,0,0,cw,ch);
+    ctx.globalAlpha=1;
+
+    if(active){
+      const radius=Math.min(cw,ch)*0.32;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(mx,my,radius,0,Math.PI*2);
+      ctx.clip();
+      ctx.globalCompositeOperation='lighter';
+      const strip=6;
+      CHANNELS.forEach((chan,i)=>{
+        const off=offChannels[i];
+        for(let y=0;y<ch;y+=strip){
+          const distY=Math.abs((y+strip/2)-my);
+          const falloff=Math.max(0,1-distY/radius);
+          if(falloff<=0)continue;
+          const dx=chan.baseDx*falloff+Math.sin(t*3+y*0.06)*10*falloff;
+          ctx.drawImage(off,0,y*dpr,cw*dpr,strip*dpr,dx,y,cw,strip);
+        }
       });
-    });
-    el.addEventListener('mouseleave',()=>{
-      chars.forEach(ch=>{ch.style.transform='';});
-    });
-  });
+      ctx.globalCompositeOperation='source-over';
+      ctx.restore();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
 })();
 
 // ============================================================
@@ -1282,7 +1352,8 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
   window.setupForjaPin=function(){
     const section=document.getElementById('forja');
     const imgs=document.querySelectorAll('#forjaGallery .fg-img');
-    const btnWrap=document.getElementById('forjaBtnWrap');
+    const fade=document.getElementById('forjaGalleryFade');
+    const btn=document.getElementById('forjaGalleryBtn');
     if(!section||!imgs.length)return;
     const n=imgs.length;
     ScrollTrigger.create({
@@ -1293,12 +1364,16 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
       scrub:.6,
       anticipatePin:1,
       onUpdate(self){
-        const idx=Math.min(n-1,Math.floor(self.progress*n));
+        const raw=self.progress*n;
+        const idx=Math.min(n-1,Math.floor(raw));
+        const localT=raw-idx;
         imgs.forEach((img,i)=>{
           img.classList.toggle('on',i===idx);
           img.classList.toggle('prev',i===idx-1);
         });
-        if(btnWrap)btnWrap.classList.toggle('on',self.progress>0.8);
+        const showOverlay=idx===n-1&&localT>0.35;
+        if(fade)fade.classList.toggle('on',showOverlay);
+        if(btn)btn.classList.toggle('on',showOverlay);
       }
     });
   };
