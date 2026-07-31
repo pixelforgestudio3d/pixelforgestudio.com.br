@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/logo isotipo.png" type="image/png">
 
 <meta property="og:title" content="PixelForge Studio — CGI & Direção Criativa 3D">
-<meta property="og:description" content="Direção criativa & CGI para lançamentos de alto nível. Product reveals, luxo e Fake Out of Home.">
+<meta property="og:description" content="Direção de arte, CGI e composição com IA para lançamentos de alto nível. Product reveals, campanhas e Fake Out of Home.">
 <meta property="og:image" content="https://pixelforgestudio.com.br/assets/thumb-site.jpg">
 <meta property="og:url" content="https://pixelforgestudio.com.br/">
 <meta property="og:type" content="website">
@@ -69,27 +69,33 @@ nav.s{background:rgba(0,0,0,.92);backdrop-filter:blur(20px);border-bottom:.5px s
 .nc:hover{opacity:.85}
 
 /* HERO */
-.hero{position:relative;height:85vh;display:flex;flex-direction:column;justify-content:center;padding:0 2.5rem;overflow:hidden}
+.hero{position:relative;height:100vh;overflow:hidden}
 .hv{position:absolute;inset:0}
-.hv video{width:100%;height:100%;object-fit:cover;opacity:.45}
-.ho{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0%,rgba(0,0,0,.2) 40%,transparent 100%)}
-.ha{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(61,23,225,.15) 0%,transparent 100%)}
-.hc{position:relative;z-index:2;margin-top:-4rem}
-.he{display:flex;align-items:center;gap:12px;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:fu .7s .4s forwards}
-.hl{width:32px;height:1px;background:var(--grad)}
-h1{font-size:clamp(4rem,10.5vw,9.5rem);font-weight:500;line-height:.9;letter-spacing:-.01em;margin-bottom:1.75rem;opacity:0;animation:fu .7s .55s forwards}
-h1 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hs{font-size:16px;color:var(--muted2);max-width:480px;line-height:1.85;opacity:0;animation:fu .7s .7s forwards}
-.hb{position:absolute;bottom:2.5rem;left:2.5rem;right:2.5rem;display:flex;justify-content:space-between;align-items:flex-end;z-index:2}
-.hst{display:flex;gap:3.5rem;opacity:0;animation:fu .7s .9s forwards}
-.sn{font-size:2.2rem;font-weight:500;background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
-.sl{font-size:11px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-top:6px}
-.hscr{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fu .7s 1.1s forwards}
+.hv video{width:100%;height:100%;object-fit:cover;opacity:.85}
+.ho{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6) 0%,transparent 30%)}
+.ha{position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(61,23,225,.12) 0%,transparent 100%)}
+.hb{position:absolute;bottom:2.5rem;left:0;right:0;display:flex;justify-content:center;z-index:2}
+.hscr{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fu .7s 1s forwards}
 .sb{width:1px;height:52px;background:linear-gradient(to bottom,var(--pink),transparent);animation:p 2s 1.5s infinite}
 .st{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;writing-mode:vertical-lr}
 
+/* HERO TEXT (revelado ao rolar, logo abaixo do vídeo) */
+.hero-text{position:relative;padding:7rem 2.5rem 8rem;overflow:hidden}
+.hc{position:relative;z-index:2;max-width:900px}
+.he{display:flex;align-items:center;gap:12px;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:1.5rem;opacity:0}
+.hl{width:32px;height:1px;background:var(--grad)}
+h1{font-size:clamp(4rem,10.5vw,9.5rem);font-weight:500;line-height:.9;letter-spacing:-.01em;margin-bottom:1.75rem}
+h1 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h1 .g .split-char{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h1 .split-char{will-change:transform,opacity}
+.hs{font-size:16px;color:var(--muted2);max-width:480px;line-height:1.85;opacity:0}
+
 @keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* PEÇA 3D INTERATIVA */
+.pf3d{position:relative;height:90vh;background:#000;overflow:hidden;border-top:.5px solid var(--border);border-bottom:.5px solid var(--border)}
+.pf3d canvas{display:block;width:100%;height:100%}
 
 /* MARQUEE */
 .mw{background:var(--dark);border-top:.5px solid var(--border);border-bottom:.5px solid var(--border);padding:3rem 0;overflow:hidden}
@@ -97,9 +103,29 @@ h1 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .mt{display:flex;width:max-content;animation:mq 55s linear infinite}
 .mt:hover{animation-play-state:paused}
 .mi{padding:0 3.5rem;border-right:.5px solid var(--border);display:flex;align-items:center;justify-content:center}
-.mi img{height:clamp(32px,5vw,48px);max-width:clamp(120px,18vw,180px);filter:brightness(0) invert(1);opacity:.6;transition:opacity .3s;object-fit:contain}
+.mi img{height:clamp(36px,5.5vw,56px);max-width:clamp(130px,19vw,190px);opacity:.6;transition:opacity .3s;object-fit:contain}
 .mi:hover img{opacity:1}
 @keyframes mq{to{transform:translateX(-50%)}}
+
+/* CLIENTES / ESCOPO */
+.cle{padding:6rem 2.5rem}
+.cle-row{position:relative;display:flex;justify-content:flex-end}
+.cle-float{position:absolute;left:0;top:50%;width:clamp(140px,16vw,220px);transform:translateY(-50%);opacity:0;transition:opacity .35s;pointer-events:none}
+.cle-float.on{opacity:1}
+.cle-float img{width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 12px 30px rgba(0,0,0,.5))}
+.cle-cols{display:flex;gap:clamp(3rem,6vw,6rem)}
+.cle-clients{column-count:2;column-gap:2.5rem;max-width:560px}
+.cle-scope{display:flex;flex-direction:column;gap:.7rem;padding-top:.2rem}
+.cli{font-size:1.05rem;line-height:2.1;color:var(--muted);cursor:pointer;transition:color .25s;white-space:nowrap;break-inside:avoid}
+.cli:hover,.cli.on{color:var(--white);font-weight:500}
+.clt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.4;transition:opacity .25s,color .25s;white-space:nowrap}
+.clt.on{color:var(--pink);opacity:1}
+@media(max-width:768px){
+  .cle{padding:4rem 1.5rem}
+  .cle-float{display:none}
+  .cle-cols{flex-direction:column;gap:2.5rem}
+  .cle-clients{column-count:1;max-width:none}
+}
 
 /* GRAD LINE */
 .gl{height:1px;background:var(--grad)}
@@ -113,9 +139,22 @@ h2{font-size:clamp(2.8rem,5vw,5rem);font-weight:500;line-height:.92;letter-spaci
 h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .ss{font-size:16px;color:var(--muted2);max-width:520px;line-height:1.9}
 
+/* SERVIÇOS */
+.svg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.04)}
+.svi{display:block;background:var(--black);color:inherit;text-decoration:none;padding:2.5rem 2rem;transition:background .3s}
+.svi:hover{background:var(--card)}
+.svi-media{aspect-ratio:16/10;overflow:hidden;margin-bottom:1.5rem}
+.svi-media video,.svi-media img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.svi:hover .svi-media video,.svi:hover .svi-media img{transform:scale(1.04)}
+.svi-name{font-size:1.3rem;font-weight:500;margin-bottom:.6rem}
+.svi-desc{font-size:14px;color:var(--muted2);line-height:1.7;margin-bottom:1.2rem}
+.svi-cta{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pink);display:inline-flex;align-items:center;gap:6px;transition:gap .25s}
+.svi-cta svg{width:14px;height:14px}
+.svi:hover .svi-cta{gap:10px}
+
 /* PROJ GRID */
 .pg{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:rgba(255,255,255,.04)}
-.pi{position:relative;overflow:hidden;background:var(--black);}
+.pi{position:relative;overflow:hidden;background:var(--black);display:block;color:inherit;text-decoration:none;max-height:70vh}
 .pi.w7{grid-column:span 7}.pi.w5{grid-column:span 5}
 .pi.w6{grid-column:span 6}.pi.w4{grid-column:span 4}
 .pi video.pt{width:100%;height:100%;object-fit:cover;transition:transform .6s,filter .4s}
@@ -127,8 +166,13 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .pc{font-size:11px;letter-spacing:.2em;color:var(--pink);text-transform:uppercase;margin-bottom:.4rem}
 .pn{font-size:1.35rem;font-weight:500;transform:translateY(6px);transition:transform .35s}
 .pi:hover .pn{transform:none}
-.pa{position:absolute;top:1.5rem;right:1.5rem;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:.5px solid rgba(255,255,255,.25);opacity:0;transition:opacity .3s,background .2s;text-decoration:none}
-.pi:hover .pa{opacity:1}.pa:hover{background:var(--pink)}
+
+/* IA + CGI GRID */
+.iag{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:rgba(255,255,255,.04)}
+.iai{position:relative;overflow:hidden;background:var(--black);aspect-ratio:16/9}
+.iai.w7{grid-column:span 7}.iai.w5{grid-column:span 5}.iai.w6{grid-column:span 6}
+.iai img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.iai:hover img{transform:scale(1.04)}
 
 /* FOOH CARROSSEL */
 .fooh-wrap{margin-top:4rem;position:relative;height:clamp(450px,45vw,680px);display:flex;align-items:center;justify-content:center;perspective:1400px;overflow:hidden}
@@ -149,12 +193,18 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .fd{width:5px;height:5px;border-radius:50%;background:var(--muted);transition:all .3s;}
 .fd.a{background:var(--pink);width:24px;border-radius:3px}
 
-/* ABOUT */
-.aw{display:grid;grid-template-columns:1.4fr 1fr;gap:6rem;align-items:center}
-.ai{position:relative;height:clamp(450px,45vw,650px)}
-.aim{position:absolute;right:0;top:0;width:78%;height:88%;object-fit:cover}
-.ais{position:absolute;left:0;bottom:0;width:46%;height:52%;object-fit:cover;outline:4px solid var(--black)}
-.aac{position:absolute;top:1.5rem;right:-1rem;width:60px;height:60px;background:var(--grad);-webkit-mask:url('assets/logo isotipo.png') center/contain no-repeat;mask:url('assets/logo isotipo.png') center/contain no-repeat}
+/* A FORJA */
+.forja-banner{position:relative;height:clamp(220px,26vw,380px);overflow:hidden;margin-bottom:5rem}
+.forja-banner img{width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block}
+.forja-banner-fade{position:absolute;inset:0;background:linear-gradient(to top,var(--black) 0%,rgba(0,0,0,.3) 55%,rgba(0,0,0,.55) 100%)}
+.forja-banner-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(3rem,8vw,7rem);font-weight:500;letter-spacing:.02em;margin:0}
+.aw{display:grid;grid-template-columns:1.4fr 1fr;gap:6rem;align-items:start}
+.forja-gallery-wrap{position:relative;height:400vh}
+.forja-gallery{position:relative;height:min(78vh,650px);overflow:hidden}
+.fg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease}
+.fg-img.on{opacity:1}
+.forja-gallery-btn-wrap{margin-top:2.5rem}
+.forja-gallery-btn{padding:14px 32px;background:transparent;border:.5px solid var(--borderh);color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:not-allowed;opacity:.5}
 .al{width:40px;height:2px;background:var(--grad);margin-bottom:1.5rem}
 .sk{display:flex;flex-wrap:wrap;gap:8px;margin-top:2.5rem}
 .ski{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:.5px solid var(--borderh);padding:6px 14px;transition:all .2s;}
@@ -199,20 +249,21 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 @media(max-width:768px){
   nav{padding:0 1.5rem;}
   .nls{display:none;}
-  .hero,.sec,.cs{padding-left:1.5rem;padding-right:1.5rem;}
-  .hero{height:auto;min-height:90svh;padding-top:7rem;justify-content:flex-start;}
-  .hc{margin-top:2rem;}
-  .hb{position:relative;bottom:auto;left:auto;right:auto;margin-top:3rem;flex-direction:column;align-items:flex-start;gap:2rem;}
-  .hst{display:grid;grid-template-columns:1fr 1fr;gap:2rem;width:100%;opacity:1;}
+  .hero-text,.sec,.cs{padding-left:1.5rem;padding-right:1.5rem;}
+  .hero{height:100svh;}
+  .hero-text{padding-top:5rem;padding-bottom:5rem;}
   .hscr{display:none;}
+  .pf3d{height:70vh;}
+  .svg{grid-template-columns:1fr;}
   .pg{grid-template-columns:1fr;gap:4px;}
   .pi.w7,.pi.w5,.pi.w6,.pi.w4{grid-column:span 1;}
+  .iai.w7,.iai.w5,.iai.w6{grid-column:span 1;}
   .pi video.pt{filter:brightness(.4);}
   .pov{opacity:1;padding:1.5rem;background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,transparent 80%);}
   .pn{transform:none;font-size:1.15rem;}
-  .pa{opacity:1;top:1rem;right:1rem;width:34px;height:34px;}
-  .aw{grid-template-columns:1fr;gap:4rem;}
-  .ai{height:400px;}
+  .aw{grid-template-columns:1fr;gap:3rem;}
+  .forja-gallery-wrap{height:250vh;}
+  .forja-gallery{height:60vh;}
   footer{grid-template-columns:1fr;gap:3rem;text-align:center;padding:4rem 1.5rem;}
   .fl{justify-content:center;}
   .fr{text-align:center;}
@@ -271,30 +322,33 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
     <img src="assets/Logo Principal.png" alt="PixelForge" style="height:36px;filter:brightness(0) invert(1);transform:translateX(-6px);">
   </a>
   <div class="nls">
+    <a href="#servicos">Serviços</a>
     <a href="#projetos">Projetos</a>
     <a href="#fooh">FOOH</a>
+    <a href="#iacgi">IA + CGI</a>
     <a href="#forja">A Forja</a>
-    <a href="mailto:borba@pixelforgestudio.com.br" class="nc">Iniciar Projeto</a>
+    <a href="contato.html" class="nc">Contato</a>
   </div>
 </nav>
 
 <section class="hero">
-  <div class="hv"><video autoplay muted loop playsinline><source src="assets/HERO SITE V3.mp4" type="video/mp4"></video></div>
+  <div class="hv"><video autoplay muted loop playsinline><source src="assets/HERO SITE V4.mp4" type="video/mp4"></video></div>
   <div class="ho"></div><div class="ha"></div>
-  <div class="hc">
-    <div class="he"><div class="hl"></div>CGI · Direção Criativa · FOOH</div>
-    <h1>Imagens que<br>não são <span class="g">reais</span><br>— mas poderiam.</h1>
-    <p class="hs">Direção criativa & CGI para lançamentos de alto nível. Product reveals, luxo e Fake Out of Home.</p>
-  </div>
   <div class="hb">
-    <div class="hst">
-      <div><div class="sn">60+</div><div class="sl">Marcas atendidas</div></div>
-      <div><div class="sn">+20M</div><div class="sl">Views em projetos</div></div>
-      <div><div class="sn">8+</div><div class="sl">Anos Design<br>e Direção de Arte</div></div>
-      <div><div class="sn">5+</div><div class="sl">Anos em CGI<br>e 3D</div></div>
-    </div>
     <div class="hscr"><div class="sb"></div><span class="st">Scroll</span></div>
   </div>
+</section>
+
+<section class="hero-text" id="heroText">
+  <div class="hc">
+    <div class="he"><div class="hl"></div>CGI · Direção Criativa · FOOH</div>
+    <h1 id="heroH1">Imagens que<br>não são <span class="g">reais</span><br>— mas poderiam.</h1>
+    <p class="hs">Direção de arte, CGI e composição com IA para lançamentos de alto nível. Product reveals, campanhas e Fake Out of Home.</p>
+  </div>
+</section>
+
+<section class="pf3d" id="pf3d">
+  <canvas id="pf3dCanvas"></canvas>
 </section>
 
 <div class="mw">
@@ -358,43 +412,150 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 
 <div class="gl"></div>
 
+<section class="sec" id="servicos">
+  <div class="sec-header">
+    <div class="st2 rv">01 — Serviços</div>
+  </div>
+  <div class="svg rv d1">
+    <a class="svi" href="servicos/launch-film.html">
+      <div class="svi-media"><video autoplay muted loop playsinline><source src="assets/portfolio/THUMB LEGACY PORT TOP VF.mp4" type="video/mp4"></video></div>
+      <div class="svi-body">
+        <h3 class="svi-name">Launch Film</h3>
+        <p class="svi-desc">Filme de lançamento em CGI 3D, do conceito à entrega. Um modelo, e o material vira reel, stories, e-commerce e PDV.</p>
+        <span class="svi-cta">Saiba mais <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span>
+      </div>
+    </a>
+    <a class="svi" href="servicos/3d-film.html">
+      <div class="svi-media"><video autoplay muted loop playsinline><source src="assets/grid/THUMB QUAD OSKLEN.mp4" type="video/mp4"></video></div>
+      <div class="svi-body">
+        <h3 class="svi-name">3D Film</h3>
+        <p class="svi-desc">Produção 3D sob medida pra qualquer momento de campanha, sazonal ou pontual, com direção de arte própria fora do contexto de lançamento.</p>
+        <span class="svi-cta">Saiba mais <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span>
+      </div>
+    </a>
+    <a class="svi" href="servicos/packshot.html">
+      <div class="svi-media"><img src="assets/grid/THUMB QUAD STILL VF.png" alt="Packshot"></div>
+      <div class="svi-body">
+        <h3 class="svi-name">Packshot</h3>
+        <p class="svi-desc">Still de produto renderizado em CGI: luz, ângulo e material sob controle total, com variações ilimitadas a partir de um único modelo 3D.</p>
+        <span class="svi-cta">Saiba mais <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span>
+      </div>
+    </a>
+    <a class="svi" href="servicos/fooh.html">
+      <div class="svi-media"><video autoplay muted loop playsinline><source src="assets/fooh/FOOH 1 VF.mp4" type="video/mp4"></video></div>
+      <div class="svi-body">
+        <h3 class="svi-name">FOOH</h3>
+        <p class="svi-desc">Fake Out of Home. CGI integrado ao mundo real, instalações impossíveis que rodam a internet sem locação.</p>
+        <span class="svi-cta">Saiba mais <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span>
+      </div>
+    </a>
+    <a class="svi" href="servicos/cgi-ai.html">
+      <div class="svi-media"><img src="assets/NOVAS IMAGENS/SWEET CRUSH 01.png" alt="CGI + AI"></div>
+      <div class="svi-body">
+        <h3 class="svi-name">CGI + AI</h3>
+        <p class="svi-desc">3D pra controle. IA pra velocidade. Juntos, fecham um produto final completo e profissional.</p>
+        <span class="svi-cta">Saiba mais <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span>
+      </div>
+    </a>
+    <a class="svi" href="servicos/pos-producao.html">
+      <div class="svi-media"><video autoplay muted loop playsinline><source src="assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video></div>
+      <div class="svi-body">
+        <h3 class="svi-name">Pós-produção</h3>
+        <p class="svi-desc">Compositing, chroma key, VFX e motion: a camada final que transforma render em imagem publicável.</p>
+        <span class="svi-cta">Saiba mais <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<div class="gl"></div>
+
 <section class="sec" id="projetos">
   <div class="sec-header">
-    <div class="st2 rv">01 — Trabalho Selecionado</div>
+    <div class="st2 rv">02 — Trabalho Selecionado</div>
     <h2 class="rv d1">Projetos que<br>definem <span class="g">padrão.</span></h2>
   </div>
   <div class="pg rv d2">
-    <div class="pi w7">
-      <video class="pt" autoplay muted loop playsinline><source src="assets/portfolio/THUMB LEGACY PORT TOP VF.mp4" type="video/mp4"></video>
+    <a class="pi w7" href="projects/marine-fishing/vara-legacy.html">
+      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB LEGACY PORT TOP VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Vara Legacy — Launch Film</div></div>
-      <a href="https://www.behance.net/gallery/242526731" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
-    </div>
-    <div class="pi w5">
-      <video class="pt" autoplay muted loop playsinline><source src="assets/grid/THUMB VERTICAL KOPENHAGEN V2.mp4" type="video/mp4"></video>
+    </a>
+    <a class="pi w5" href="projects/kopenhagen/chocolate-asmr.html">
+      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/grid/THUMB VERTICAL KOPENHAGEN V2.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Kopenhagen · CGI</div><div class="pn">Chocolate ASMR</div></div>
-    </div>
-    <div class="pi w6">
-      <video class="pt" autoplay muted loop playsinline><source src="assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video>
+    </a>
+    <a class="pi w6" href="projects/everlast/powerlock-og.html">
+      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Everlast · 2025</div><div class="pn">Powerlock OG</div></div>
-      <a href="https://vimeo.com/1167500388" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
-    </div>
-    <div class="pi w6">
-      <video class="pt" autoplay muted loop playsinline><source src="assets/portfolio/THUMB SMIRNOFF PORT SEC VF.mp4" type="video/mp4"></video>
+    </a>
+    <a class="pi w6" href="projects/smirnoff/gashapon-ice-reveal.html">
+      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB SMIRNOFF PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Smirnoff · 2025</div><div class="pn">Gashapon Ice Reveal</div></div>
-    </div>
-    <div class="pi w4">
-      <video class="pt" autoplay muted loop playsinline><source src="assets/portfolio/THUMB HEINEKEN PORT SEC VF.mp4" type="video/mp4"></video>
+    </a>
+    <a class="pi w4" href="projects/heineken/sams-club-00.html">
+      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB HEINEKEN PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Heineken · DOOH 2025</div><div class="pn">Sam's Club 0.0</div></div>
-      <a href="https://vimeo.com/1167505221" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
-    </div>
-    <div class="pi w4">
-      <video class="pt" autoplay muted loop playsinline><source src="assets/portfolio/THUMB PICCADILLY PORT SEC VF.mp4" type="video/mp4"></video>
+    </a>
+    <a class="pi w4" href="projects/piccadilly/soft-step.html">
+      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB PICCADILLY PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Piccadilly · 2025</div><div class="pn">Soft Step Launch</div></div>
-      <a href="https://vimeo.com/1167495888" class="pa" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
-    </div>
-    <div class="pi w4">
-      <video class="pt" autoplay muted loop playsinline><source src="assets/portfolio/THUMB AVENGER PORT TOP VF.mp4" type="video/mp4"></video>
+    </a>
+    <a class="pi w4" href="projects/marine-fishing/carretilha-avenger.html">
+      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB AVENGER PORT TOP VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Carretilha Avenger</div></div>
+    </a>
+  </div>
+</section>
+
+<div class="gl"></div>
+
+<section class="cle" id="clientes">
+  <div class="cle-row">
+    <div class="cle-float" id="cleFloat"><img id="cleFloatImg" src="" alt=""></div>
+    <div class="cle-cols">
+      <div class="cle-col cle-clients" id="cleClients"></div>
+      <div class="cle-col cle-scope" id="cleScope"></div>
+    </div>
+  </div>
+</section>
+
+<div class="gl"></div>
+
+<section class="sec forja" id="forja">
+  <div class="forja-banner">
+    <img src="assets/NOVAS IMAGENS/Frame_Marreta_PixelForge3.png" alt="">
+    <div class="forja-banner-fade"></div>
+    <h2 class="forja-banner-title">A FORJA</h2>
+  </div>
+  <div class="aw">
+    <div>
+      <div class="forja-gallery-wrap" id="forjaGalleryWrap">
+        <div class="forja-gallery" id="forjaGallery">
+          <img class="fg-img on" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/HERO 1 MANSCAPED.jpg" alt="Estudo — Manscaped">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/HERO 2 MANSCAPED.jpg" alt="Estudo — Manscaped">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 1 V1 AFPM.png" alt="Estudo — AFPM">
+          <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 2 V2 AFPM.png" alt="Estudo — AFPM">
+        </div>
+      </div>
+      <div class="forja-gallery-btn-wrap">
+        <!-- TODO: destino/ação do botão ainda em aberto (ver seção 5.4 do doc) -->
+        <button class="forja-gallery-btn" type="button" disabled>Ver mais</button>
+      </div>
+    </div>
+    <div>
+      <div class="st2 rv">03 — A Forja</div>
+      <div class="al rv"></div>
+      <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.6rem" class="rv">CEO & Diretor Criativo</p>
+      <h2 class="rv d1" style="margin-bottom:1.5rem">Ericson<br>Borba</h2>
+      <p style="font-size:15px;color:var(--muted2);line-height:1.95;margin-bottom:1.2rem" class="rv d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lideramos um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
+      <p style="font-size:15px;color:var(--muted2);line-height:1.95;margin-bottom:1.2rem" class="rv d3">Nosso arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini. Controle absoluto sobre cada detalhe, do primeiro frame ao render final. A IA entra quando acelera esse processo, nunca no lugar dele.</p>
+      <p style="font-size:15px;color:var(--muted2);line-height:1.95" class="rv d3">Nossa expertise na publicidade global garante que a complexidade técnica esteja sempre a serviço de uma narrativa visual impecável e estratégica.</p>
+      <div class="sk rv d3">
+        <span class="ski">Cinema 4D</span><span class="ski">Octane</span><span class="ski">RedShift</span>
+        <span class="ski">Houdini</span><span class="ski">Z-Brush</span><span class="ski">Substance</span>
+        <span class="ski">Unreal Engine</span><span class="ski">After Effects</span><span class="ski">AI + CGI</span>
+      </div>
     </div>
   </div>
 </section>
@@ -402,9 +563,9 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 <div class="gl"></div>
 
 <section class="sec" id="fooh">
-  <div class="st2 rv">02 — Fake Out of Home</div>
+  <div class="st2 rv">04 — Fake Out of Home</div>
   <h2 class="rv d1">O impossível<br>na <span class="g">rua.</span></h2>
-  <p class="ss rv d2">CGI integrado ao mundo real com precisão de câmera, tracking e iluminação cinematográfica. Instalações que param o scroll — e o trânsito.</p>
+  <p class="ss rv d2">CGI integrado ao mundo real com precisão de câmera, tracking e iluminação cinematográfica. Instalações que param o scroll e o trânsito.</p>
   <div class="fooh-wrap rv d3">
     <div class="fooh-stage" id="foohStage"></div>
   </div>
@@ -421,37 +582,27 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 
 <div class="gl"></div>
 
-<section class="sec" id="forja">
-  <div class="aw">
-    <div class="ai rv">
-      <img class="aim" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
-      <img class="ais" src="assets/perfil/RENDER 5 VF.png" alt="Render">
-      <div class="aac"></div>
-    </div>
-    <div>
-      <div class="st2 rv">03 — A Forja</div>
-      <div class="al rv"></div>
-      <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.6rem" class="rv">CEO & Diretor Criativo</p>
-      <h2 class="rv d1" style="margin-bottom:1.5rem">Ericson<br>Borba</h2>
-      <p style="font-size:15px;color:var(--muted2);line-height:1.95;margin-bottom:1.2rem" class="rv d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lidero um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
-      <p style="font-size:15px;color:var(--muted2);line-height:1.95;margin-bottom:1.2rem" class="rv d3">Meu arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini — RBD, FLIP fluids — para entregar o que nenhuma IA consegue replicar: controle absoluto sobre cada detalhe.</p>
-      <p style="font-size:15px;color:var(--muted2);line-height:1.95" class="rv d3">Minha expertise em direção de arte para publicidade high-ticket garante que a complexidade técnica esteja sempre a serviço de uma narrativa visual impecável e estratégica para o mercado de luxo e marcas globais.</p>
-      <div class="sk rv d3">
-        <span class="ski">Cinema 4D</span><span class="ski">Octane</span><span class="ski">RedShift</span>
-        <span class="ski">Houdini</span><span class="ski">Z-Brush</span><span class="ski">Substance</span>
-        <span class="ski">Unreal Engine</span><span class="ski">After Effects</span><span class="ski">AI + CGI</span>
-      </div>
-    </div>
+<section class="sec" id="iacgi">
+  <div class="sec-header">
+    <div class="st2 rv">05 — IA + CGI</div>
+    <h2 class="rv d1">Controle e velocidade,<br>numa <span class="g">imagem só.</span></h2>
+    <p class="ss rv d2">CGI e IA não competem, se compõem. Cada tecnologia entra numa camada diferente do processo (modelagem, textura, luz, ambientação) até a composição final fundir tudo numa peça só, pronta pra publicar.</p>
+  </div>
+  <div class="iag rv d3">
+    <div class="iai w7"><img src="assets/NOVAS IMAGENS/FRESH SKIN HUMANIZADA 01.png" alt="Composição CGI e IA"></div>
+    <div class="iai w5"><img src="assets/NOVAS IMAGENS/LUXY 01 HUMANIZADA v2.png" alt="Composição CGI e IA"></div>
+    <div class="iai w6"><img src="assets/NOVAS IMAGENS/PROVOKE 01 HUMANIZADA.png" alt="Composição CGI e IA"></div>
+    <div class="iai w6"><img src="assets/NOVAS IMAGENS/SWEET CRUSH 01 v2.png" alt="Composição CGI e IA"></div>
   </div>
 </section>
 
 <div class="gl"></div>
 
 <section class="cs">
-  <div class="st2 rv" style="justify-content:center">04 — Contato</div>
+  <div class="st2 rv" style="justify-content:center">06 — Contato</div>
   <h2 class="ch rv d1">Pronto para forjar<br>o <span class="g">impossível?</span></h2>
-  <p class="csub rv d2">Vamos criar campanhas visuais que nenhuma IA consegue replicar. Craft real. Resultado impossível de ignorar.</p>
-  <a href="https://wa.me/5551994689649" class="cb2 rv d3" target="_blank">
+  <p class="csub rv d2">Vamos criar campanhas visuais impossíveis de ignorar. Direção de arte e tecnologia trabalhando a ideia até o resultado perfeito!</p>
+  <a href="contato.html" class="cb2 rv d3">
     Iniciar Projeto
     <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
   </a>
@@ -466,9 +617,12 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
     <div style="font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1rem">Novo Hamburgo, Brasil</div>
   </div>
   <div class="flk">
+    <a href="#servicos">Serviços</a>
     <a href="#projetos">Projetos</a>
     <a href="#fooh">FOOH</a>
+    <a href="#iacgi">IA + CGI</a>
     <a href="#forja">A Forja</a>
+    <a href="contato.html">Contato</a>
     <a href="https://www.behance.net/pixelforge3d" target="_blank">Behance</a>
   </div>
   <div class="fr">
@@ -481,6 +635,157 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
     <div class="fc2">© 2026 PixelForge Studio.<br>Todos os direitos reservados.</div>
   </div>
 </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<!-- ============================================================
+     PEÇA 3D INTERATIVA — ATRATOR + REPULSÃO (ref. Lusion)
+     ============================================================ -->
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+(function initPF3D(){
+  const section=document.getElementById('pf3d');
+  const canvas=document.getElementById('pf3dCanvas');
+  if(!section||!canvas)return;
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(45,section.clientWidth/Math.max(section.clientHeight,1),0.1,100);
+  camera.position.set(0,0,9);
+
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(section.clientWidth,section.clientHeight);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.1;
+
+  const pmrem=new THREE.PMREMGenerator(renderer);
+  scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+
+  scene.add(new THREE.AmbientLight(0xffffff,.5));
+  const key=new THREE.DirectionalLight(0xffffff,1.5);key.position.set(4,6,6);scene.add(key);
+  const rim=new THREE.DirectionalLight(0xda2c80,1.4);rim.position.set(-5,-3,-4);scene.add(rim);
+  const fillLight=new THREE.PointLight(0x8017e2,1.4,20);fillLight.position.set(0,0,5);scene.add(fillLight);
+
+  const dracoLoader=new DRACOLoader();
+  dracoLoader.setDecoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/draco/');
+  const gltfLoader=new GLTFLoader();
+  gltfLoader.setDRACOLoader(dracoLoader);
+
+  const PIECE_COUNT=48;
+  const CLUSTER_RADIUS=3.4;
+  const ATTRACT=0.02;
+  const DAMPING=0.9;
+  const REPEL_RADIUS=1.8;
+  const REPEL_STRENGTH=0.1;
+
+  const pieces=[];
+  const material=new THREE.MeshStandardMaterial({color:0xffffff,metalness:.8,roughness:.26,emissive:0x1a0630,emissiveIntensity:.35});
+
+  gltfLoader.load('assets/3D/Isotipo_PixelForge_otm.glb',(gltf)=>{
+    let sourceMesh=null;
+    gltf.scene.traverse(o=>{if(!sourceMesh&&o.isMesh)sourceMesh=o;});
+    if(!sourceMesh)return;
+    sourceMesh.geometry.computeBoundingSphere();
+    const baseScale=0.9/(sourceMesh.geometry.boundingSphere.radius||1);
+
+    for(let i=0;i<PIECE_COUNT;i++){
+      const mesh=new THREE.Mesh(sourceMesh.geometry,material);
+      const s=baseScale*(0.35+Math.random()*0.5);
+      mesh.scale.setScalar(s);
+      const dir=new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
+      const r=Math.random()*CLUSTER_RADIUS;
+      mesh.position.copy(dir.multiplyScalar(r));
+      mesh.rotation.set(Math.random()*Math.PI*2,Math.random()*Math.PI*2,Math.random()*Math.PI*2);
+      mesh.userData.velocity=new THREE.Vector3();
+      mesh.userData.spin=new THREE.Vector3((Math.random()-.5)*.006,(Math.random()-.5)*.006,(Math.random()-.5)*.006);
+      scene.add(mesh);
+      pieces.push(mesh);
+    }
+  });
+
+  const raycaster=new THREE.Raycaster();
+  const pointerNDC=new THREE.Vector2(-10,-10);
+  const interactionPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+  const mouseWorld=new THREE.Vector3();
+  let hasPointer=false;
+
+  function setPointer(clientX,clientY){
+    const rect=canvas.getBoundingClientRect();
+    pointerNDC.x=((clientX-rect.left)/rect.width)*2-1;
+    pointerNDC.y=-(((clientY-rect.top)/rect.height)*2-1);
+    hasPointer=true;
+  }
+  canvas.addEventListener('pointermove',e=>setPointer(e.clientX,e.clientY));
+  canvas.addEventListener('pointerleave',()=>{hasPointer=false;});
+
+  let visible=true;
+  const io=new IntersectionObserver(entries=>{entries.forEach(en=>{visible=en.isIntersecting;});},{threshold:0});
+  io.observe(section);
+
+  const clock=new THREE.Clock();
+  const toCenter=new THREE.Vector3();
+  const toPiece=new THREE.Vector3();
+
+  function animate(){
+    requestAnimationFrame(animate);
+    if(!visible)return;
+    const dt=Math.min(clock.getDelta(),0.05);
+    const dtScale=dt*60;
+
+    if(hasPointer){
+      raycaster.setFromCamera(pointerNDC,camera);
+      raycaster.ray.intersectPlane(interactionPlane,mouseWorld);
+    }
+
+    for(const p of pieces){
+      toCenter.copy(p.position).multiplyScalar(-1);
+      p.userData.velocity.addScaledVector(toCenter,ATTRACT*dtScale);
+
+      if(hasPointer){
+        toPiece.copy(p.position).sub(mouseWorld);
+        const dist=toPiece.length();
+        if(dist<REPEL_RADIUS&&dist>0.0001){
+          const strength=(1-dist/REPEL_RADIUS)*REPEL_STRENGTH;
+          p.userData.velocity.addScaledVector(toPiece.normalize(),strength*dtScale);
+        }
+      }
+
+      p.userData.velocity.multiplyScalar(Math.pow(DAMPING,dtScale));
+      p.position.addScaledVector(p.userData.velocity,dtScale);
+      p.rotation.x+=p.userData.spin.x*dtScale;
+      p.rotation.y+=p.userData.spin.y*dtScale;
+      p.rotation.z+=p.userData.spin.z*dtScale;
+    }
+
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  function handleResize(){
+    const w=section.clientWidth,h=section.clientHeight;
+    if(!w||!h)return;
+    camera.aspect=w/h;camera.updateProjectionMatrix();
+    renderer.setSize(w,h);
+  }
+  window.addEventListener('resize',handleResize);
+})();
+</script>
 
 <script>
 // ============================================================
@@ -789,6 +1094,54 @@ const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.targ
 document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 
 // ============================================================
+// HERO — REVEAL DE TEXTO AO SCROLL (GSAP + SplitText)
+// ============================================================
+(function(){
+  if(!window.gsap||!window.ScrollTrigger||!window.SplitText)return;
+  gsap.registerPlugin(ScrollTrigger,SplitText);
+
+  function setup(){
+    const split=new SplitText('#heroH1',{type:'chars,words',wordsClass:'split-word',charsClass:'split-char'});
+    gsap.set(split.chars,{yPercent:120,opacity:0});
+    gsap.set('.hero-text .he',{opacity:0,y:24});
+    gsap.set('.hero-text .hs',{opacity:0,y:24});
+
+    gsap.timeline({
+      scrollTrigger:{trigger:'#heroText',start:'top 85%',toggleActions:'play none none reverse'}
+    })
+    .to('.hero-text .he',{opacity:1,y:0,duration:.6,ease:'power2.out'})
+    .to(split.chars,{yPercent:0,opacity:1,duration:.9,stagger:.02,ease:'power4.out'},'-=0.3')
+    .to('.hero-text .hs',{opacity:1,y:0,duration:.7,ease:'power2.out'},'-=0.55');
+  }
+
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(setup);
+  else setup();
+})();
+
+// ============================================================
+// A FORJA — GALERIA COM SCROLL PINADO (GSAP ScrollTrigger)
+// ============================================================
+(function(){
+  if(!window.gsap||!window.ScrollTrigger)return;
+  gsap.registerPlugin(ScrollTrigger);
+  const wrap=document.getElementById('forjaGalleryWrap');
+  const imgs=document.querySelectorAll('#forjaGallery .fg-img');
+  if(!wrap||!imgs.length)return;
+  const n=imgs.length;
+  ScrollTrigger.create({
+    trigger:wrap,
+    start:'top top',
+    end:'bottom bottom',
+    pin:'#forjaGallery',
+    scrub:true,
+    onUpdate(self){
+      const idx=Math.min(n-1,Math.floor(self.progress*n));
+      imgs.forEach((img,i)=>img.classList.toggle('on',i===idx));
+    }
+  });
+})();
+
+// ============================================================
 // FOOH CARROSSEL
 // ============================================================
 const foohVideos=[
@@ -822,6 +1175,97 @@ let auto=setInterval(next,4000);
 stage.addEventListener('mouseenter',()=>clearInterval(auto));
 stage.addEventListener('mouseleave',()=>{auto=setInterval(next,4000)});
 render();
+
+// ============================================================
+// GRID DE PROJETOS — HOVER PLAY/PAUSE (thumb limpa, vídeo só no hover)
+// ============================================================
+(function(){
+  const cards=document.querySelectorAll('#projetos .pi');
+  const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  cards.forEach(card=>{
+    const video=card.querySelector('video.pt');
+    if(!video)return;
+    if(hoverCapable){
+      card.addEventListener('mouseenter',()=>{video.currentTime=0;video.play().catch(()=>{});});
+      card.addEventListener('mouseleave',()=>{video.pause();});
+    }else{
+      video.play().catch(()=>{});
+    }
+  });
+})();
+
+// ============================================================
+// CLIENTES / ESCOPO
+// ============================================================
+const CLIENTS=[
+  {name:'Heineken',logo:'assets/logos/HEINEKEN LOGO.png',scope:['DOOH']},
+  {name:'Natura',logo:'assets/logos/NATURA LOGO.png',scope:['CGI','Pós-produção']},
+  {name:'Smirnoff',logo:'assets/logos/SMIRNOFF LOGO.png',scope:['CGI','Launch Film']},
+  {name:'Vivo',logo:'assets/logos/VIVO LOGO.png',scope:['CGI']},
+  {name:'Everlast',logo:'assets/logos/EVERLAST LOGO.png',scope:['CGI','Launch Film']},
+  {name:'Fila',logo:'assets/logos/FILA LOGO.png',scope:['CGI']},
+  {name:'Piccadilly',logo:'assets/logos/PICCADILLY LOGO.png',scope:['CGI','Launch Film']},
+  {name:'Bio Extratus',logo:'assets/logos/BIO EXTRATUS LOGO.png',scope:['FOOH']},
+  {name:'Bruna Tavares',logo:'assets/logos/BRUNA TAVARES LOGO.png',scope:['FOOH','CGI']},
+  {name:'Scania',logo:'assets/logos/SCANIA LOGO.png',scope:['FOOH']},
+  {name:'Caixa',logo:'assets/logos/CAIXA LOGO.png',scope:['FOOH']},
+  {name:'Osklen',logo:'assets/logos/OSKLEN LOGO.png',scope:['Visualizador 3D']},
+  {name:'Decathlon',logo:'assets/logos/DECATHLON LOGO.png',scope:['Visualizador 3D']},
+  {name:'TV Globo',logo:'assets/logos/GLOBO LOGO.png',scope:['FOOH']},
+  {name:'SESC',logo:'assets/logos/SESC LOGO.png',scope:['FOOH']},
+  {name:'Marine Fishing',logo:'assets/logos/LOGO MARINE.png',scope:['CGI','Direção de Arte','Launch Film']},
+  {name:'Lupo',logo:'assets/logos/LUPO LOGO.png',scope:['CGI','FOOH']},
+  {name:'Merrachi',logo:'assets/logos/MERRACHI LOGO.png',scope:['FOOH']},
+  {name:'Hello Kitty',logo:'assets/logos/HELLO KITTY LOGO.png',scope:['FOOH']},
+  {name:'Ellus',logo:'assets/logos/ELLUS LOGO.png',scope:['Visualizador 3D']},
+  {name:'AAT',logo:'assets/logos/AAT LOGO.png',scope:['Visualizador 3D','PackShot']},
+  {name:'Bis Sigma',logo:'assets/logos/BIS SIGMA LOGO.png',scope:['FOOH']},
+  {name:'Lobits',logo:'assets/logos/LOBITS LOGO.png',scope:['FOOH']},
+  {name:'Positivo',logo:'assets/logos/POSITIVO LOGO.png',scope:['CGI']},
+  {name:'Rodonaves',logo:'assets/logos/RODONAVES LOGO.png',scope:['Visualizador 3D (VR Unreal)']}
+];
+const SCOPE_TAGS=[...new Set(CLIENTS.flatMap(c=>c.scope))];
+
+const cleClientsEl=document.getElementById('cleClients');
+const cleScopeEl=document.getElementById('cleScope');
+const cleFloat=document.getElementById('cleFloat');
+const cleFloatImg=document.getElementById('cleFloatImg');
+
+const cliEls=CLIENTS.map(c=>{
+  const d=document.createElement('div');d.className='cli';d.textContent=c.name;
+  cleClientsEl.appendChild(d);return d;
+});
+const tagEls={};
+SCOPE_TAGS.forEach(tag=>{
+  const d=document.createElement('div');d.className='clt';d.textContent=tag;
+  cleScopeEl.appendChild(d);tagEls[tag]=d;
+});
+
+function cleActivate(i){
+  cliEls.forEach((el,idx)=>el.classList.toggle('on',idx===i));
+  Object.values(tagEls).forEach(el=>el.classList.remove('on'));
+  CLIENTS[i].scope.forEach(tag=>{if(tagEls[tag])tagEls[tag].classList.add('on');});
+  cleFloatImg.src=CLIENTS[i].logo;
+  cleFloatImg.alt=CLIENTS[i].name;
+  cleFloat.classList.add('on');
+}
+function cleReset(){
+  cliEls.forEach(el=>el.classList.remove('on'));
+  Object.values(tagEls).forEach(el=>el.classList.remove('on'));
+  cleFloat.classList.remove('on');
+}
+
+const cleHoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+cliEls.forEach((el,i)=>{
+  if(cleHoverCapable){
+    el.addEventListener('mouseenter',()=>cleActivate(i));
+  }else{
+    el.addEventListener('click',()=>{
+      if(el.classList.contains('on'))cleReset();else cleActivate(i);
+    });
+  }
+});
+if(cleHoverCapable)document.getElementById('clientes').addEventListener('mouseleave',cleReset);
 </script>
 </body>
 </html>

@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta de CGI + AI — Olera x PixelForge</title>
+<style>
+  @media print {
+    @page { size: 297mm 210mm landscape; margin: 0; }
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #000000;
+    --dark: #070707;
+    --card: #0f0f0f;
+    --card2: #111111;
+    --white: #ffffff;
+    --muted: rgba(255,255,255,.42);
+    --muted2: rgba(255,255,255,.68);
+    --border: rgba(255,255,255,.06);
+    --borderh: rgba(255,255,255,.15);
+    --pd: #3D17e1;
+    --pm: #8017e2;
+    --pink: #f433bb;
+    --mag: #da2c80;
+    --grad: linear-gradient(135deg, #3D17e1 0%, #8017e2 40%, #da2c80 70%, #f433bb 100%);
+    --grad-text: linear-gradient(90deg, #3D17e1, #f433bb);
+    --grad-bar: linear-gradient(90deg, #2931a1, #6031b2, #dc1065, #f433bb);
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 300;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 297mm;
+    height: 210mm;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    break-after: page;
+    background: var(--dark);
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media print {
+    body { margin: 0; }
+    .page { margin: 0; width: 297mm; height: 210mm; }
+    @page { size: 297mm 210mm; margin: 0; }
+  }
+
+  .grad-line { height: 1px; background: var(--grad-bar); width: 100%; }
+
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .label::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--grad-bar);
+    flex-shrink: 0;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    line-height: 1.0;
+  }
+  .grad-text {
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* NAV */
+  .nav {
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 0.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .nav-logos { display: flex; align-items: center; gap: 14px; }
+  .nav-sep { width: 1px; height: 18px; background: var(--border); }
+  .nav-logo-olera {
+    height: 20px;
+    filter: brightness(0) invert(1);
+  }
+  .nav-logo-pf {
+    height: 28px;
+    filter: brightness(0) invert(1);
+  }
+  .page-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+
+  /* FOOTER */
+  .footer {
+    padding: 10px 32px;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .footer span {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,.18);
+    text-transform: uppercase;
+  }
+
+  /* CORNERS */
+  .corner-tl, .corner-br { position: absolute; width: 10px; height: 10px; }
+  .corner-tl { top: 6px; left: 6px; border-top: 1px solid var(--pd); border-left: 1px solid var(--pd); }
+  .corner-br { bottom: 6px; right: 6px; border-bottom: 1px solid var(--pink); border-right: 1px solid var(--pink); }
+
+  /* ======================== PAGE 1 — CAPA ======================== */
+  .p1-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 45% 55%;
+    overflow: hidden;
+  }
+  .p1-left {
+    padding: 28px 32px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 0.5px solid var(--border);
+  }
+  .p1-title h1 {
+    font-size: 42px;
+    line-height: 1.0;
+    margin-top: 10px;
+    margin-bottom: 12px;
+  }
+  .p1-title h1 .main-title {
+    display: block;
+    color: var(--white);
+  }
+  .p1-subtitle {
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--muted2);
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+  .p1-meta { display: flex; gap: 28px; }
+  .meta-item .meta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .meta-item .meta-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--white);
+  }
+  .p1-right {
+    position: relative;
+    overflow: hidden;
+  }
+  .p1-right img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    display: block;
+  }
+  .p1-right-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(7,7,7,0.5) 0%, transparent 40%);
+  }
+
+  /* ======================== PAGE 2 — CREDENCIAIS ======================== */
+  .p2-body {
+    flex: 1;
+    padding: 24px 32px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow: hidden;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 0.5px solid var(--border);
+    flex-shrink: 0;
+  }
+  .stat-item {
+    background: var(--card);
+    padding: 14px 18px;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-desc {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .logos-block { flex: 1; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  .logos-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 0.5px solid var(--border);
+    flex: 1;
+  }
+  .logo-cell {
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px 7px;
+    gap: 6px;
+  }
+  .logo-cell img {
+    max-width: 82%;
+    max-height: 30px;
+    object-fit: contain;
+    opacity: 0.65;
+  }
+  .logo-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 6px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1;
+  }
+  .p2-note {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.5;
+    flex-shrink: 0;
+  }
+
+  /* ======================== PAGE 3 — ENTREGÁVEIS ======================== */
+  .p3-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 48% 52%;
+    overflow: hidden;
+  }
+  .p3-left {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-right: 0.5px solid var(--border);
+    overflow: hidden;
+  }
+  .p3-left h2 { font-size: 26px; line-height: 1.05; }
+  .p3-lead { font-size: 11px; color: var(--muted2); line-height: 1.6; }
+  .deliverable-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 0.5px solid var(--border);
+    overflow: hidden;
+  }
+  .del-item {
+    flex: 1;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+  }
+  .del-item:last-child { border-bottom: none; }
+  .del-header { display: flex; align-items: center; justify-content: space-between; }
+  .del-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--white);
+  }
+  .del-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--pink);
+    opacity: 0.85;
+  }
+  .del-desc { font-size: 9.5px; font-weight: 300; color: var(--muted); line-height: 1.45; }
+  .del-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    color: var(--pink);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    border: 0.5px solid rgba(244, 51, 187, 0.3);
+    padding: 3px 8px;
+    width: fit-content;
+  }
+  .del-link:hover { background: rgba(244,51,187,0.08); }
+  .del-link svg { flex-shrink: 0; }
+
+  .p3-right {
+    padding: 24px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+  }
+  /* Layout página 3: coluna esquerda grande (Juvia) + coluna direita (Olera em cima, Render embaixo) */
+  .img-gallery {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    overflow: hidden;
+  }
+  .img-juvia {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    position: relative;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+  }
+  .img-olera-ref {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+  }
+  .img-render {
+    grid-column: 2;
+    grid-row: 2;
+    position: relative;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+  }
+  .img-juvia img,
+  .img-olera-ref img,
+  .img-render img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  .img-badge {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--white);
+    background: rgba(0,0,0,0.65);
+    padding: 3px 7px;
+  }
+  .p3-caption {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    line-height: 1.5;
+    flex-shrink: 0;
+  }
+
+  /* ======================== PAGE 4 — INVESTIMENTO ======================== */
+  .p4-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 50% 50%;
+    overflow: hidden;
+  }
+  .p4-left {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 0.5px solid var(--border);
+  }
+  .p4-left-top { display: flex; flex-direction: column; gap: 14px; }
+  .p4-left h2 { font-size: 32px; }
+  .investment-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 54px;
+    font-weight: 800;
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .inv-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .payment-block {
+    display: flex;
+    flex-direction: column;
+    border: 0.5px solid var(--border);
+  }
+  .pay-row {
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    gap: 10px;
+  }
+  .pay-row:last-child { border-bottom: none; }
+  .pay-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--pink);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .pay-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+  .pay-desc { font-size: 10px; font-weight: 300; color: var(--muted); line-height: 1.45; }
+
+  .validity-box {
+    border: 0.5px solid var(--borderh);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .v-dot { width: 6px; height: 6px; background: var(--grad); border-radius: 50%; flex-shrink: 0; }
+  .v-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.08em;
+    color: var(--muted2);
+    text-transform: uppercase;
+  }
+  .v-text strong { color: var(--white); font-weight: 500; }
+
+  .p4-right {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .includes-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 0.5px solid var(--border);
+  }
+  .inc-item {
+    flex: 1;
+    padding: 8px 14px;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+  }
+  .inc-item:last-child { border-bottom: none; }
+  .inc-arrow { color: var(--pink); font-size: 9px; flex-shrink: 0; margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .inc-text { font-size: 10.5px; font-weight: 300; color: var(--muted2); line-height: 1.45; }
+  .inc-text strong { color: var(--white); font-weight: 400; }
+
+  .contact-block { display: flex; flex-direction: column; gap: 6px; }
+  .contact-item { display: flex; gap: 16px; align-items: center; }
+  .c-key {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    width: 60px;
+    flex-shrink: 0;
+  }
+  .c-val { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--white); }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 — CAPA -->
+<div class="page">
+  <div class="corner-tl"></div>
+  <div class="corner-br"></div>
+  <nav class="nav">
+    <div class="nav-logos">
+      <img class="nav-logo-olera" src="assets/Olera/logo-olera.svg" alt="Olera">
+      <div class="nav-sep"></div>
+      <img class="nav-logo-pf" src="assets/Logo_PixelForge_White.svg" alt="PixelForge">
+    </div>
+    <span class="page-num">01 / 04</span>
+  </nav>
+
+  <div class="p1-body">
+    <div class="p1-left">
+      <div class="p1-title">
+        <div class="label">Proposta de CGI</div>
+        <h1>
+          <span class="main-title">CGI + AI</span>
+          <span class="main-title">para</span>
+          <span class="grad-text">Olera.</span>
+        </h1>
+        <p class="p1-subtitle">Imagens que não são reais — mas poderiam ser.<br>Produto real, física real, identidade de marca em cada frame.</p>
+      </div>
+      <div class="p1-meta">
+        <div class="meta-item">
+          <div class="meta-label">Data</div>
+          <div class="meta-val">10 de Junho, 2026</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Validade</div>
+          <div class="meta-val">até 12/06/2026</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Preparado por</div>
+          <div class="meta-val">Ericson Borba</div>
+        </div>
+      </div>
+    </div>
+    <div class="p1-right">
+      <img src="assets/Olera/IMG OLERA 1.png" alt="Regenerative Cream Olera">
+      <div class="p1-right-overlay"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>PixelForge Studio © 2026</span>
+    <span>pixelforgestudio.com.br</span>
+  </div>
+</div>
+
+
+<!-- PAGE 2 — CREDENCIAIS -->
+<div class="page">
+  <div class="corner-tl"></div>
+  <div class="corner-br"></div>
+  <nav class="nav">
+    <div class="nav-logos">
+      <img class="nav-logo-olera" src="assets/Olera/logo-olera.svg" alt="Olera">
+      <div class="nav-sep"></div>
+      <img class="nav-logo-pf" src="assets/Logo_PixelForge_White.svg" alt="PixelForge">
+    </div>
+    <span class="page-num">02 / 04</span>
+  </nav>
+
+  <div class="p2-body">
+    <div class="label">Quem já confiou</div>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-num">60+</div>
+        <div class="stat-desc">Marcas atendidas</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">+20M</div>
+        <div class="stat-desc">Views gerados</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">8+</div>
+        <div class="stat-desc">Anos de direção de arte</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">5+</div>
+        <div class="stat-desc">Anos em CGI / 3D</div>
+      </div>
+    </div>
+
+    <div class="logos-block">
+      <div class="label">Marcas no portfólio</div>
+      <div class="logos-grid">
+        <div class="logo-cell"><img src="assets/logos/HEINEKEN LOGO.png" alt="Heineken"><span class="logo-name">Heineken</span></div>
+        <div class="logo-cell"><img src="assets/logos/NATURA LOGO.png" alt="Natura"><span class="logo-name">Natura</span></div>
+        <div class="logo-cell"><img src="assets/logos/SMIRNOFF LOGO.png" alt="Smirnoff"><span class="logo-name">Smirnoff</span></div>
+        <div class="logo-cell"><img src="assets/logos/VIVO LOGO.png" alt="Vivo"><span class="logo-name">Vivo</span></div>
+        <div class="logo-cell"><img src="assets/logos/EVERLAST LOGO.png" alt="Everlast"><span class="logo-name">Everlast</span></div>
+        <div class="logo-cell"><img src="assets/logos/FILA LOGO.png" alt="Fila"><span class="logo-name">Fila</span></div>
+        <div class="logo-cell"><img src="assets/logos/PICCADILLY LOGO.png" alt="Piccadilly"><span class="logo-name">Piccadilly</span></div>
+        <div class="logo-cell"><img src="assets/logos/BIO EXTRATUS LOGO.png" alt="Bio Extratus"><span class="logo-name">Bio Extratus</span></div>
+        <div class="logo-cell"><img src="assets/logos/BRUNA TAVARES LOGO.png" alt="Bruna Tavares"><span class="logo-name">Bruna Tavares</span></div>
+        <div class="logo-cell"><img src="assets/logos/SCANIA LOGO.png" alt="Scania"><span class="logo-name">Scania</span></div>
+        <div class="logo-cell"><img src="assets/logos/CAIXA LOGO.png" alt="Caixa"><span class="logo-name">Caixa</span></div>
+        <div class="logo-cell"><img src="assets/logos/OSKLEN LOGO.png" alt="Osklen"><span class="logo-name">Osklen</span></div>
+        <div class="logo-cell"><img src="assets/logos/DECATHLON LOGO.png" alt="Decathlon"><span class="logo-name">Decathlon</span></div>
+        <div class="logo-cell"><img src="assets/logos/GLOBO LOGO.png" alt="TV Globo"><span class="logo-name">TV Globo</span></div>
+        <div class="logo-cell"><img src="assets/logos/SESC LOGO.png" alt="SESC"><span class="logo-name">SESC</span></div>
+        <div class="logo-cell"><img src="assets/logos/LOGO MARINE.png" alt="Marine"><span class="logo-name">Marine</span></div>
+        <div class="logo-cell"><img src="assets/logos/LUPO LOGO.png" alt="Lupo"><span class="logo-name">Lupo</span></div>
+        <div class="logo-cell"><img src="assets/logos/MERRACHI LOGO.png" alt="Merrachi"><span class="logo-name">Merrachi</span></div>
+        <div class="logo-cell"><img src="assets/logos/HELLO KITTY LOGO.png" alt="Hello Kitty"><span class="logo-name">Hello Kitty</span></div>
+        <div class="logo-cell"><img src="assets/logos/ELLUS LOGO.png" alt="Ellus"><span class="logo-name">Ellus</span></div>
+      </div>
+    </div>
+
+    <p class="p2-note">Marcas de beleza, moda, bebidas, esporte e varejo — com um denominador em comum: exigência visual acima da média.</p>
+  </div>
+
+  <div class="footer">
+    <span>PixelForge Studio © 2026</span>
+    <span>pixelforgestudio.com.br</span>
+  </div>
+</div>
+
+
+<!-- PAGE 3 — ENTREGÁVEIS -->
+<div class="page">
+  <div class="corner-tl"></div>
+  <div class="corner-br"></div>
+  <nav class="nav">
+    <div class="nav-logos">
+      <img class="nav-logo-olera" src="assets/Olera/logo-olera.svg" alt="Olera">
+      <div class="nav-sep"></div>
+      <img class="nav-logo-pf" src="assets/Logo_PixelForge_White.svg" alt="PixelForge">
+    </div>
+    <span class="page-num">03 / 04</span>
+  </nav>
+
+  <div class="p3-body">
+    <div class="p3-left">
+      <div class="label">O que será entregue</div>
+      <h2>Pacote completo de<br><span class="grad-text">lançamento visual.</span></h2>
+      <p class="p3-lead">Modelagem 3D, teaser cinematográfico e banco de imagens para todas as plataformas — tudo em uma produção integrada.</p>
+
+      <div class="deliverable-list">
+        <div class="del-item">
+          <div class="del-header">
+            <span class="del-name">01 — Modelagem 3D do Produto</span>
+            <span class="del-tag">Incluso</span>
+          </div>
+          <p class="del-desc">Modelo 3D fotorrealista com materiais, acabamentos e identidade da Olera. Ativo permanente da marca para futuras produções sem custo adicional.</p>
+        </div>
+        <div class="del-item">
+          <div class="del-header">
+            <span class="del-name">02 — Teaser CGI (até 15s)</span>
+            <span class="del-tag">Reels · TikTok · Paid</span>
+          </div>
+          <p class="del-desc">Vídeo cinematográfico com até 3 cenas de 3 a 5 segundos. Motion de produto com look premium, pronto para feed e paid media.</p>
+          <a class="del-link" href="https://www.instagram.com/p/DXtwAgGAVOu/" target="_blank">
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M1 8L8 1M8 1H3M8 1V6" stroke="#f433bb" stroke-width="1.2"/></svg>
+            Clique para assistir ao exemplo de vídeo
+          </a>
+        </div>
+        <div class="del-item">
+          <div class="del-header">
+            <span class="del-name">03 — 3 Imagens CGI do Produto</span>
+            <span class="del-tag">Feed · E-comm</span>
+          </div>
+          <p class="del-desc">Pack shots em alta resolução. Luz, ângulo e ambiente controlados. Formatos para feed, stories e e-commerce.</p>
+        </div>
+        <div class="del-item">
+          <div class="del-header">
+            <span class="del-name">04 — 3 Imagens de Contexto</span>
+            <span class="del-tag">Stories · Lifestyle</span>
+          </div>
+          <p class="del-desc">Imagens geradas por AI no estilo da referência visual da Olera, compostas para complementar o banco de conteúdo da marca.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p3-right">
+      <div class="label">Referência visual</div>
+      <div class="img-gallery">
+        <div class="img-juvia">
+          <img src="assets/Juvia/JUVIA_STILL_01.jpg" alt="CGI Juvia Still 01">
+          <span class="img-badge">CGI — produto</span>
+        </div>
+        <div class="img-olera-ref">
+          <img src="assets/Olera/IMG OLERA 1.png" alt="Exemplo imagem de contexto Olera">
+          <span class="img-badge">Imagem de contexto — referência</span>
+        </div>
+        <div class="img-render">
+          <img src="assets/perfil/RENDER 5 VF.png" alt="CGI produto">
+          <span class="img-badge">CGI — produto</span>
+        </div>
+      </div>
+      <p class="p3-caption">Exemplos de CGI produzido para cosméticos. Produção: 14 dias úteis a partir da aprovação.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>PixelForge Studio © 2026</span>
+    <span>pixelforgestudio.com.br</span>
+  </div>
+</div>
+
+
+<!-- PAGE 4 — INVESTIMENTO -->
+<div class="page">
+  <div class="corner-tl"></div>
+  <div class="corner-br"></div>
+  <nav class="nav">
+    <div class="nav-logos">
+      <img class="nav-logo-olera" src="assets/Olera/logo-olera.svg" alt="Olera">
+      <div class="nav-sep"></div>
+      <img class="nav-logo-pf" src="assets/Logo_PixelForge_White.svg" alt="PixelForge">
+    </div>
+    <span class="page-num">04 / 04</span>
+  </nav>
+
+  <div class="p4-body">
+    <div class="p4-left">
+      <div class="p4-left-top">
+        <div class="label">Investimento</div>
+        <h2>Simples.<br><span class="grad-text">Direto.</span></h2>
+        <div>
+          <div class="investment-val">R$ 2.500</div>
+          <div class="inv-note">Pacote completo — tudo incluso</div>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom: 8px;">Condições de pagamento</div>
+          <div class="payment-block">
+            <div class="pay-row">
+              <span class="pay-num">01</span>
+              <div>
+                <div class="pay-title">À vista</div>
+                <p class="pay-desc">Pagamento integral no início. Produção começa imediatamente após confirmação.</p>
+              </div>
+            </div>
+            <div class="pay-row">
+              <span class="pay-num">02</span>
+              <div>
+                <div class="pay-title">50% + 50%</div>
+                <p class="pay-desc">50% para iniciar. Os outros 50% apenas na aprovação da versão final, antes da entrega dos arquivos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="validity-box">
+        <div class="v-dot"></div>
+        <span class="v-text">Proposta válida até <strong>12/06/2026</strong>. Após essa data os valores podem ser revisados.</span>
+      </div>
+    </div>
+
+    <div class="p4-right">
+      <div class="label">Incluso no pacote</div>
+      <div class="includes-list">
+        <div class="inc-item">
+          <span class="inc-arrow">+</span>
+          <span class="inc-text"><strong>Modelagem 3D</strong> do produto com materiais e acabamentos fiéis à embalagem real</span>
+        </div>
+        <div class="inc-item">
+          <span class="inc-arrow">+</span>
+          <span class="inc-text"><strong>Teaser CGI</strong> até 15 segundos, até 3 cenas, formatos para Reels e TikTok</span>
+        </div>
+        <div class="inc-item">
+          <span class="inc-arrow">+</span>
+          <span class="inc-text"><strong>3 imagens CGI</strong> do produto em alta resolução para feed, stories e e-commerce</span>
+        </div>
+        <div class="inc-item">
+          <span class="inc-arrow">+</span>
+          <span class="inc-text"><strong>3 imagens de contexto</strong> geradas por AI no estilo visual da Olera</span>
+        </div>
+        <div class="inc-item">
+          <span class="inc-arrow">+</span>
+          <span class="inc-text"><strong>2 rodadas de revisão</strong> em todas as entregas</span>
+        </div>
+        <div class="inc-item">
+          <span class="inc-arrow">+</span>
+          <span class="inc-text"><strong>Prazo de 14 dias úteis</strong> podendo se estender conforme tempo de feedback</span>
+        </div>
+        <div class="inc-item">
+          <span class="inc-arrow">+</span>
+          <span class="inc-text"><strong>Modelo 3D permanente</strong> da Olera, ativo para futuras produções sem custo de modelagem</span>
+        </div>
+      </div>
+
+      <div class="contact-block">
+        <div class="label" style="margin-bottom: 4px;">Próximo passo</div>
+        <div class="contact-item">
+          <span class="c-key">WhatsApp</span>
+          <span class="c-val">+55 51 9 9468-9649</span>
+        </div>
+        <div class="contact-item">
+          <span class="c-key">E-mail</span>
+          <span class="c-val">borba@pixelforgestudio.com.br</span>
+        </div>
+        <div class="contact-item">
+          <span class="c-key">Portfólio</span>
+          <span class="c-val">pixelforgestudio.com.br</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>PixelForge Studio © 2026 — Imagens que não são reais — mas poderiam ser.</span>
+    <span>pixelforgestudio.com.br</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ericson Borba — CV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #000000;
+    --dark: #070707;
+    --card: #0f0f0f;
+    --white: #ffffff;
+    --muted: rgba(255,255,255,0.42);
+    --muted2: rgba(255,255,255,0.68);
+    --border: rgba(255,255,255,0.06);
+    --borderh: rgba(255,255,255,0.15);
+    --pd: #3D17e1;
+    --pm: #8017e2;
+    --pink: #f433bb;
+    --mag: #da2c80;
+    --grad: linear-gradient(135deg, #3D17e1 0%, #8017e2 40%, #da2c80 70%, #f433bb 100%);
+    --grad-text: linear-gradient(90deg, #3D17e1, #f433bb);
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    width: 210mm;
+    min-height: 297mm;
+    background: var(--dark);
+    color: var(--white);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 300;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── LAYOUT ── */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    display: grid;
+    grid-template-columns: 68mm 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--black);
+    padding: 10mm 7mm 10mm 8mm;
+    display: flex;
+    flex-direction: column;
+    gap: 7mm;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--grad);
+  }
+
+  /* photo */
+  .photo-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    filter: grayscale(15%);
+  }
+
+  .photo-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6));
+  }
+
+  /* sidebar sections */
+  .s-block { display: flex; flex-direction: column; gap: 3mm; }
+
+  .s-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .s-label::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 1px;
+    background: var(--grad);
+  }
+
+  .s-text {
+    font-size: 8.5pt;
+    color: var(--muted2);
+    line-height: 1.6;
+  }
+
+  .s-text a {
+    color: var(--muted2);
+    text-decoration: none;
+  }
+
+  /* skills */
+  .skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5mm;
+  }
+
+  .skill-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1mm;
+  }
+
+  .skill-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5pt;
+    color: var(--white);
+    letter-spacing: 0.04em;
+  }
+
+  .skill-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .skill-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--grad);
+  }
+
+  /* soft skills tags */
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2mm;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 7pt;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 1mm 2.5mm;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    padding: 10mm 9mm 10mm 10mm;
+    display: flex;
+    flex-direction: column;
+    gap: 7mm;
+  }
+
+  /* header */
+  .main-header { display: flex; flex-direction: column; gap: 2mm; }
+
+  .name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28pt;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .title {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5pt;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .profile-text {
+    font-size: 8.5pt;
+    color: var(--muted2);
+    line-height: 1.65;
+    padding-top: 2mm;
+    border-top: 1px solid var(--border);
+  }
+
+  /* section */
+  .section { display: flex; flex-direction: column; gap: 4mm; }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* experience */
+  .exp-item { display: flex; flex-direction: column; gap: 1.5mm; }
+
+  .exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 4mm;
+  }
+
+  .exp-role {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 10pt;
+    color: var(--white);
+  }
+
+  .exp-period {
+    font-family: 'DM Mono', monospace;
+    font-size: 7pt;
+    color: var(--muted);
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+
+  .exp-company {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5pt;
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .exp-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1mm;
+    padding-left: 3mm;
+  }
+
+  .exp-bullets li {
+    font-size: 8pt;
+    color: var(--muted2);
+    line-height: 1.55;
+    position: relative;
+  }
+
+  .exp-bullets li::before {
+    content: '—';
+    position: absolute;
+    left: -3mm;
+    color: var(--pd);
+    font-size: 7pt;
+  }
+
+  .exp-projects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5mm;
+    margin-top: 1mm;
+  }
+
+  .exp-project-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 6.5pt;
+    color: var(--pink);
+    border: 1px solid rgba(244,51,187,0.2);
+    padding: 0.5mm 2mm;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  .exp-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1mm 0;
+  }
+
+  /* education */
+  .edu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3mm;
+  }
+
+  .edu-item { display: flex; flex-direction: column; gap: 0.8mm; }
+
+  .edu-name {
+    font-size: 8.5pt;
+    color: var(--white);
+    font-weight: 400;
+  }
+
+  .edu-inst {
+    font-family: 'DM Mono', monospace;
+    font-size: 7pt;
+    color: var(--muted);
+  }
+
+  /* links bar */
+  .links-bar {
+    display: flex;
+    gap: 4mm;
+    flex-wrap: wrap;
+    padding-top: 3mm;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+  }
+
+  .link-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5mm;
+    font-family: 'DM Mono', monospace;
+    font-size: 7pt;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .link-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--grad);
+    flex-shrink: 0;
+  }
+
+  /* gradient accent line top of page */
+  .page::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--grad);
+    z-index: 10;
+  }
+
+  /* corner marks */
+  .corner {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    opacity: 0.18;
+  }
+
+  .corner-tl { top: 6mm; left: 6mm; border-top: 1px solid var(--pd); border-left: 1px solid var(--pd); }
+  .corner-br { bottom: 6mm; right: 6mm; border-bottom: 1px solid var(--pink); border-right: 1px solid var(--pink); }
+
+  @media print {
+    html, body { background: var(--dark); }
+    .page { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- corner marks -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-br"></div>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- photo -->
+    <div class="photo-wrap">
+      <img src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
+    </div>
+
+    <!-- contact -->
+    <div class="s-block">
+      <span class="s-label">Contact</span>
+      <div class="s-text">
+        borba@pixelforgestudio.com.br<br>
+        +55 51 994 689 649<br>
+        Novo Hamburgo, RS — Brazil
+      </div>
+    </div>
+
+    <!-- links -->
+    <div class="s-block">
+      <span class="s-label">Links</span>
+      <div class="s-text">
+        pixelforgestudio.com.br<br>
+        behance.net/ericsonborba2<br>
+        @pixelforge.studio
+      </div>
+    </div>
+
+    <!-- core software -->
+    <div class="s-block">
+      <span class="s-label">Core Software</span>
+      <div class="skill-list">
+        <div class="skill-item">
+          <span class="skill-name">Cinema 4D</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:98%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">Octane Render</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:95%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">Houdini (FX)</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:82%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">After Effects</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:88%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">ZBrush</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:78%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">Substance Painter</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:80%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">Unreal Engine</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:65%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- specialties -->
+    <div class="s-block">
+      <span class="s-label">Specialties</span>
+      <div class="tag-list">
+        <span class="tag">Hard Surface</span>
+        <span class="tag">Lookdev</span>
+        <span class="tag">Product CGI</span>
+        <span class="tag">FOOH</span>
+        <span class="tag">RBD / FLIP Sim</span>
+        <span class="tag">Motion Design</span>
+        <span class="tag">Art Direction</span>
+        <span class="tag">Storyboard</span>
+      </div>
+    </div>
+
+    <!-- languages -->
+    <div class="s-block">
+      <span class="s-label">Languages</span>
+      <div class="skill-list">
+        <div class="skill-item">
+          <span class="skill-name">Portuguese — Native</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:100%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">English — Intermediate</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:60%"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- header -->
+    <div class="main-header">
+      <h1 class="name">Ericson Borba</h1>
+      <p class="title">CGI Artist &nbsp;·&nbsp; Art Director &nbsp;·&nbsp; 3D Designer</p>
+      <p class="profile-text">
+        CGI Artist and Art Director with 5+ years of experience in photorealistic 3D rendering, look development, and product visualization. Founder of PixelForge Studio, delivering high-end CGI for brands across sportswear, food &amp; beverage, cosmetics, and entertainment. Proficient in the full production pipeline — from concept and art direction to final render and compositing — with a strong focus on visual quality and creative problem-solving.
+      </p>
+    </div>
+
+    <!-- experience -->
+    <div class="section">
+      <span class="section-label">Experience</span>
+
+      <!-- PixelForge -->
+      <div class="exp-item">
+        <div class="exp-header">
+          <div>
+            <div class="exp-role">Founder &amp; Lead CGI Artist</div>
+            <div class="exp-company">PixelForge Studio</div>
+          </div>
+          <span class="exp-period">2020 — Present</span>
+        </div>
+        <ul class="exp-bullets">
+          <li>Creative and technical lead across all phases of CGI production — modeling, lookdev, lighting, animation, and final compositing.</li>
+          <li>Delivered product CGI, motion design, and FOOH campaigns for 30+ brands including Heineken, Natura, Smirnoff, Everlast, Piccadilly, and Marine Fishing.</li>
+          <li>Built and managed the full C4D → Houdini → Octane pipeline, including RBD and FLIP fluid simulations for dynamic product visuals.</li>
+          <li>Developed storyboards and art direction for product reveals, brand campaigns, social media, and in-store media.</li>
+        </ul>
+        <div class="exp-projects">
+          <span class="exp-project-tag">Marine Legacy — Award Nominee</span>
+          <span class="exp-project-tag">Heineken DOOH</span>
+          <span class="exp-project-tag">Smirnoff Ice Reveal</span>
+          <span class="exp-project-tag">Everlast Powerlock</span>
+          <span class="exp-project-tag">Piccadilly Soft Step</span>
+        </div>
+      </div>
+
+      <div class="exp-divider"></div>
+
+      <!-- Studio Jeph Araujo -->
+      <div class="exp-item">
+        <div class="exp-header">
+          <div>
+            <div class="exp-role">3D Artist</div>
+            <div class="exp-company">Studio Jeph Araujo</div>
+          </div>
+          <span class="exp-period">2019 — 2020</span>
+        </div>
+        <ul class="exp-bullets">
+          <li>Produced 3D assets, lookdev, and product animations for advertising campaigns in collaboration with the creative team.</li>
+          <li>Contributed to high-fidelity renders and motion pieces delivered to major entertainment and consumer brands.</li>
+        </ul>
+      </div>
+
+      <div class="exp-divider"></div>
+
+      <!-- Metakosmos -->
+      <div class="exp-item">
+        <div class="exp-header">
+          <div>
+            <div class="exp-role">3D Generalist</div>
+            <div class="exp-company">Metakosmos</div>
+          </div>
+          <span class="exp-period">2018 — 2019</span>
+        </div>
+        <ul class="exp-bullets">
+          <li>Developed 3D assets and motion graphics for digital campaigns, working across modeling, texturing, and basic animation.</li>
+          <li>Collaborated with the design team to ensure visual consistency across deliverables.</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- education -->
+    <div class="section">
+      <span class="section-label">Education &amp; Training</span>
+      <div class="edu-grid">
+        <div class="edu-item">
+          <span class="edu-name">Graphic Design</span>
+          <span class="edu-inst">Uninter — Undergraduate</span>
+        </div>
+        <div class="edu-item">
+          <span class="edu-name">VFX Pro</span>
+          <span class="edu-inst">Professional Course</span>
+        </div>
+        <div class="edu-item">
+          <span class="edu-name">C4D Product Rendering</span>
+          <span class="edu-inst">Momentor</span>
+        </div>
+        <div class="edu-item">
+          <span class="edu-name">3D Cinematic</span>
+          <span class="edu-inst">Coloso</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- links bar -->
+    <div class="links-bar">
+      <a href="https://pixelforgestudio.com.br" class="link-item">
+        <span class="link-dot"></span>pixelforgestudio.com.br
+      </a>
+      <a href="https://www.behance.net/ericsonborba2" class="link-item">
+        <span class="link-dot"></span>behance.net/ericsonborba2
+      </a>
+      <a href="mailto:borba@pixelforgestudio.com.br" class="link-item">
+        <span class="link-dot"></span>borba@pixelforgestudio.com.br
+      </a>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
