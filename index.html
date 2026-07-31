@@ -1129,9 +1129,9 @@ window.addEventListener('scroll',()=>document.getElementById('nav').classList.to
 })();
 
 // ============================================================
-// REVEAL
+// REVEAL — reversível: entra E sai ao rolar pra cima (11.13)
 // ============================================================
-const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('on');obs.unobserve(x.target)}})},{threshold:.1});
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{x.target.classList.toggle('on',x.isIntersecting)})},{threshold:.1});
 document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 
 // ============================================================
