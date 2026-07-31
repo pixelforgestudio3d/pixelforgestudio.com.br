@@ -124,17 +124,30 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
     <img src="../../assets/Logo Principal.png" alt="PixelForge" style="height:36px;filter:brightness(0) invert(1);transform:translateX(-6px)">
   </a>
   <div class="nls">
-    <div class="nd" id="navDropdown">
+    <div class="nd">
       <button type="button" class="nd-trigger">
         Home
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="nd-menu">
-        <a href="../../index.html#servicos">Serviços</a>
         <a href="../../index.html#projetos">Projetos</a>
+        <a href="../../index.html#forja">A Forja</a>
         <a href="../../index.html#fooh">FOOH</a>
         <a href="../../index.html#iacgi">IA + CGI</a>
-        <a href="../../index.html#forja">A Forja</a>
+      </div>
+    </div>
+    <div class="nd">
+      <button type="button" class="nd-trigger">
+        Serviços
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="nd-menu">
+        <a href="../../servicos/launch-film.html">Launch Film</a>
+        <a href="../../servicos/3d-film.html">3D Film</a>
+        <a href="../../servicos/packshot.html">Packshot</a>
+        <a href="../../servicos/fooh.html">FOOH</a>
+        <a href="../../servicos/cgi-ai.html">CGI + AI</a>
+        <a href="../../servicos/pos-producao.html">Pós-produção</a>
       </div>
     </div>
     <a href="../../contato.html" class="nc">Contato</a>
@@ -200,6 +213,7 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
       <a href="https://www.behance.net/pixelforge3d" target="_blank"><img src="../../assets/behance.png" alt="Behance"></a>
     </div>
     <div class="fc2">© 2026 PixelForge Studio.<br>Todos os direitos reservados.</div>
+    <div class="fc2" style="opacity:.55;margin-top:.5rem">Site em construção.</div>
   </div>
 </footer>
 <div class="top-fade-overlay" id="topFadeOverlay"></div>
@@ -208,20 +222,29 @@ window.addEventListener('scroll',()=>document.getElementById('nav').classList.to
 const obs=new IntersectionObserver(e=>{e.forEach(x=>{x.target.classList.toggle('on',x.isIntersecting)})},{threshold:.1});
 document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 
-(function(){
-  const nd=document.getElementById('navDropdown');
-  if(!nd)return;
+document.querySelectorAll('.nd').forEach(nd=>{
   const trigger=nd.querySelector('.nd-trigger');
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   if(hoverCapable){
-    nd.addEventListener('mouseenter',()=>nd.classList.add('open'));
-    nd.addEventListener('mouseleave',()=>nd.classList.remove('open'));
+    let closeTimer=null;
+    nd.addEventListener('mouseenter',()=>{
+      if(closeTimer){clearTimeout(closeTimer);closeTimer=null;}
+      nd.classList.add('open');
+    });
+    nd.addEventListener('mouseleave',()=>{
+      closeTimer=setTimeout(()=>{nd.classList.remove('open');closeTimer=null;},300);
+    });
   }else{
-    trigger.addEventListener('click',e=>{e.stopPropagation();nd.classList.toggle('open');});
+    trigger.addEventListener('click',e=>{
+      e.stopPropagation();
+      const willOpen=!nd.classList.contains('open');
+      document.querySelectorAll('.nd').forEach(o=>o.classList.remove('open'));
+      if(willOpen)nd.classList.add('open');
+    });
     document.addEventListener('click',()=>nd.classList.remove('open'));
   }
   nd.querySelectorAll('.nd-menu a').forEach(a=>a.addEventListener('click',()=>nd.classList.remove('open')));
-})();
+});
 
 (function(){
   const btn=document.getElementById('backToTopBtn');

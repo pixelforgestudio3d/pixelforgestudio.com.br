@@ -490,10 +490,15 @@ Seção grande/pesada demais. Formato correto: layout split — imagens ocupando
 - Lista de links do rodapé replica os mesmos nomes do nav principal — reduzir, não precisa repetir tudo.
 - Em vez de listar todas as seções de novo, colocar um botão "voltar ao topo" que, ao clicar, dispara uma animação de transição (ex: efeito de "desintegrar" a tela) e volta pro início sem obrigar o usuário a rolar manualmente até lá.
 - O logo do PixelForge no rodapé precisa SEMPRE ser o logo de verdade (asset gráfico/SVG — `assets/Logo_PixelForge_White.svg` já existe no repo), nunca texto digitado tentando imitar o logo.
+- **Adição 31/07/2026:** incluir no rodapé uma linha pequena e discreta (nada chamativo, texto pequeno/apagado) avisando "site em construção" (ou similar) — deixa claro pro visitante que o site ainda está sendo finalizado, sem parecer um aviso de erro ou alarde.
 
 ### 11.10 Navegação (nav) — consolidar seções da Home
 
 Pra não poluir o nav com um item pra cada seção da Home (Serviços, Projetos, FOOH, IA+CGI, A Forja), consolidar: um único item no nav (ex: "Home") que, ao clicar/passar o mouse, abre um dropdown com as opções de seção pra pular direto (âncora), em vez de cada seção ter seu próprio item de primeiro nível.
+
+**Correção 31/07/2026, depois de ver o dropdown implementado:**
+- **Ordem errada.** O dropdown "Home" saiu com a ordem Serviços, Projetos, FOOH, IA+CGI, A Forja — não bate com a ordem real das seções no site. Ordem correta, seguindo a seção 1 (Hero → Peça 3D → Marquee → Serviços → Grid de projetos → Clientes/Escopo → A Forja → FOOH → IA+CGI → CTA): **Serviços, Projetos, A Forja, FOOH, IA+CGI.**
+- **"Serviços" sai do dropdown "Home" e vira item próprio no nav**, ao lado de "Home" (ex.: Home · Serviços · Contato). Esse item "Serviços" também abre um dropdown no hover, mas com as 6 páginas individuais de serviço (Launch Film, 3D Film, Packshot, FOOH, CGI + AI, Pós-produção — seção 5.6), permitindo ir direto pra página de qualquer um sem passar pela Home. O dropdown "Home" fica só com: Projetos, A Forja, FOOH, IA+CGI (Serviços sai de lá).
 
 ### 11.11 Dinamismo geral — falta de animação em todo o site
 
