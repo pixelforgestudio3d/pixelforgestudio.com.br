@@ -971,20 +971,11 @@ function initCursor(){
   ];
   const HOT_X=4,HOT_Y=0,TAIL_COL=5,TAIL_ROW=12;
 
-  const IBEAM_MAP=[
-    [1,1,1,1,1],
-    [0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],
-    [0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],
-    [1,1,1,1,1],
-  ];
-  const IB_P=1,IB_HOT_X=2,IB_HOT_Y=5;
-
   const PAL={
     default:{light:'#ffffff',mid:'#aaaaaa',dark:'#000000'},
     link:{light:'#f433bb',mid:'#8017e2',dark:'#0d0010'},
     video:{light:'#ff5ad2',mid:'#dc1065',dark:'#1a0015'},
     drag:{light:'#c084fc',mid:'#8017e2',dark:'#0d0020'},
-    text:{light:'#ffffff',mid:'#8888cc',dark:'#000000'},
   };
 
   const POOL=160;
@@ -1005,7 +996,6 @@ function initCursor(){
       p.color=state==='link'?TC[2+Math.floor(Math.random()*3)]:
               state==='video'?TC[3+Math.floor(Math.random()*3)]:
               state==='drag'?TC[Math.floor(Math.random()*3)]:
-              state==='text'?'rgba(180,180,255,0.9)':
               TC[Math.floor(Math.random()*TC.length)];
       p.active=true;
     }
@@ -1047,19 +1037,8 @@ function initCursor(){
     ctx.restore();
   }
 
-  function drawIBeamPixel(x,y,blink){
-    const ox=x-IB_HOT_X*IB_P,oy=y-IB_HOT_Y*IB_P;
-    for(let r=0;r<IBEAM_MAP.length;r++)for(let c=0;c<IBEAM_MAP[r].length;c++){
-      const v=IBEAM_MAP[r][c];if(!v)continue;
-      const isBar=(c===2&&r>=1&&r<=9);
-      if(isBar&&!blink)continue;
-      ctx.fillStyle=isBar?'rgba(255,255,255,0.95)':'rgba(255,255,255,0.45)';
-      ctx.fillRect(ox+c*IB_P,oy+r*IB_P,IB_P,IB_P);
-    }
-  }
-
   let mx=200,my=200,lastTX=0,lastTY=0,curState='default';
-  let t=0,blinkFrame=0,angle=0,angleTarget=0,isHeld=false;
+  let t=0,angle=0,angleTarget=0,isHeld=false;
 
   document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
   document.addEventListener('mouseover',e=>{
@@ -1067,7 +1046,6 @@ function initCursor(){
     if(el.closest('a,button,[role="button"]'))curState='link';
     else if(el.closest('[data-video],video'))curState='video';
     else if(el.closest('[draggable="true"]'))curState='drag';
-    else if(el.closest('p,h1,h2,h3,h4,h5,h6,input,textarea'))curState='text';
     else curState='default';
   });
   document.addEventListener('mousedown',()=>{
@@ -1078,19 +1056,17 @@ function initCursor(){
   document.addEventListener('mouseup',()=>{isHeld=false;});
 
   function tick(){
-    t+=0.05;blinkFrame++;
+    t+=0.05;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     angleTarget=isHeld?-Math.PI/2:0;
     angle+=(angleTarget-angle)*(isHeld?0.28:0.18);
     if(Math.abs(angle-angleTarget)<0.005)angle=angleTarget;
 
     const pal=PAL[curState]||PAL.default;
-    if(curState!=='text'){
-      const cos=Math.cos(angle),sin=Math.sin(angle);
-      const tdx=(TAIL_COL-HOT_X)*P,tdy=(TAIL_ROW-HOT_Y)*P;
-      const tx=mx+cos*tdx-sin*tdy,ty=my+sin*tdx+cos*tdy;
-      if(Math.hypot(tx-lastTX,ty-lastTY)>3){spawnTrail(tx,ty,curState);lastTX=tx;lastTY=ty;}
-    }else{lastTX=mx;lastTY=my;}
+    const cos=Math.cos(angle),sin=Math.sin(angle);
+    const tdx=(TAIL_COL-HOT_X)*P,tdy=(TAIL_ROW-HOT_Y)*P;
+    const tx=mx+cos*tdx-sin*tdy,ty=my+sin*tdx+cos*tdy;
+    if(Math.hypot(tx-lastTX,ty-lastTY)>3){spawnTrail(tx,ty,curState);lastTX=tx;lastTY=ty;}
 
     for(let i=0;i<POOL;i++){
       const p=pool[i];if(!p.active)continue;
@@ -1117,8 +1093,8 @@ function initCursor(){
     }
     ctx.globalAlpha=1;
 
-    if(curState==='text')drawIBeamPixel(mx,my,(blinkFrame%40)<22);
-    else{const pulse=curState!=='default'?Math.max(0,Math.sin(t*2.8))*0.35:0;drawHammer(mx,my,pal,angle,pulse);}
+    const pulse=curState!=='default'?Math.max(0,Math.sin(t*2.8))*0.35:0;
+    drawHammer(mx,my,pal,angle,pulse);
     requestAnimationFrame(tick);
   }
   tick();

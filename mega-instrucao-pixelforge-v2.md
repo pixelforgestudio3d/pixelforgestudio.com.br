@@ -33,6 +33,8 @@ Site multi-página (vanilla HTML/CSS/JS, GitHub Pages, sem framework, sem build 
 - `index.html` — Home: hero → marquee + Clientes/Escopo → grid de projetos (linka pra páginas individuais) → seção FOOH → seção IA+CGI → seção A Forja → CTA de contato
 - `contato.html` — página de contato dedicada (Formspree)
 - `projects/[cliente]/[projeto].html` — página dedicada por case real, modelo Tendril (capa → intro c/ ficha técnica → embed Vimeo → grid de stills → CTA → nav prev/next entre projetos → footer).
+- **`projetos.html` (NOVA, 31/07/2026)** — página hub dedicada listando TODOS os cases (mínimo ~15, referência direta: página "Projects" do Lusion, que lista 17 cases em grid — ver seção 13.3). Diferente do grid da Home, que mostra só uma curadoria de 7. Cada item linka pra sua página própria (`projects/[cliente]/[projeto].html`), formato de apresentação tipo Behance (talvez mais resumido que o Behance original).
+- **`galeria.html` (NOVA, 31/07/2026)** — página dedicada só pros itens "Estudo" (Manscaped, AFPM, e futuros) em formato de galeria completa, separada da versão condensada que aparece dentro da seção "A Forja" (ver seção 13.6).
 
 **Lista de cases com página própria — ATUALIZADA 23/07/2026 (ainda não fechada, Ericson vai definir mais um item):**
   1. Marine Fishing — Vara Legacy
@@ -636,3 +638,66 @@ Ericson confirmou que gostou do formato base da página de projeto — "bem simp
 ### 12.22 Contexto de prazo (31/07/2026)
 
 Ericson entra essa semana com força em duas frentes: prospecção de clientes novos, e busca de parceiros/estúdios — incluindo possivelmente estúdios de Portugal, destino pra onde ele planeja se mudar no próximo ano. Motivo pelo qual quer o site bem polido o quanto antes — não é só preferência estética, é ferramenta ativa de prospecção a partir de agora.
+
+---
+
+## 13. Revisão de implementação V3 — terceira rodada, novos vídeos de referência (31/07/2026)
+
+Nova leva de feedback, com dois vídeos novos do Lusion como referência direta (About Us — efeito de distorção; Our Projects — página de projetos + física do rodapé) e três screenshots do estado atual do build. Itens abaixo substituem ou reforçam pontos anteriores conforme indicado em cada um.
+
+### 13.1 Efeito de "distorção" — SUBSTITUI a descrição da seção 11.6, não é o que foi implementado
+
+**Errado no Bloco 2:** Claude Code implementou como transformação CSS por caractere (skew/scale) reagindo ao mouse sobre o texto "Serviços" — Ericson foi claro: *"não é exatamente o que ele fez ali."*
+
+**Correto (confirmado por análise de frame do vídeo "Lusion - About Us" enviado por Ericson):** é um efeito de **distorção líquida com separação de cor (RGB-split/chromatic aberration)** — não um transform por letra. Funciona assim:
+- O texto "Serviços" fica em tamanho grande, estilo watermark/plano de fundo (não é o texto pequeno de um card).
+- O efeito só acontece **localizado na posição do cursor** — não no texto inteiro de uma vez. Enquanto o mouse se move sobre o texto, a área ao redor do cursor exibe uma distorção líquida colorida (deslocamento de canais cyan/vermelho/azul, como um "vazamento" de cor), como se o texto fosse fluido e reagisse à proximidade do ponteiro.
+- Fora da área de influência do cursor, o texto permanece nítido/normal — não é um efeito aplicado à página toda.
+- Tecnicamente: provavelmente um shader (WebGL/Three.js com render-to-texture do texto, ou filtro CSS/SVG com `feDisplacementMap` + separação de canais RGB) amarrado à posição do mouse via listener, não uma transformação de layout por caractere.
+- **O box/painel da seção Serviços ainda precisa ser centralizado** — pendência já registrada nas seções 11.4/12.4, reforçando aqui.
+
+### 13.2 Efeito de "voltar ao topo" (pixels/desintegração) — APROVADO, quer mais desse nível
+
+Ericson elogiou explicitamente: *"gostei do efeito em que o site volta ao topo, bem legal, quero mais disso, efeito que impressiona."* Não é uma correção — é validação do padrão de qualidade esperado (já especificado nas seções 11.9/12.13). Deve servir de referência de nível de polimento pra outros efeitos do site, especialmente os de entrada/transição de seção.
+
+### 13.3 Nova arquitetura da página "Projetos" — complementa a seção 1, não contradiz a lista de cases existente
+
+**Confirmado por análise do vídeo "Lusion - Our Projects":** o Lusion tem uma página dedicada só de projetos ("Projects", com 17 cases listados), separada da curadoria da Home.
+
+Estrutura pra pixelforgestudio.com.br:
+- **Home continua mostrando só os 7 projetos já curados** no grid atual (seção 5/5.1) — sem mudança aí.
+- **Nova página `projetos.html`** (adicionada à seção 1) reúne **pelo menos ~15 cases** — a "Lista de cases com página própria" já documentada na seção 1 (10-11 itens) é o ponto de partida/subconjunto atual dessa lista, não um número final; ela cresce até chegar em 15+ conforme mais projetos entrarem.
+- Cada item da lista `projetos.html` continua linkando pra sua página própria (`projects/[cliente]/[projeto].html`, modelo Tendril já aprovado na 12.21) — formato de apresentação inspirado no Behance, possivelmente mais resumido que o Behance original.
+- **Efeito de "surgimento"** (entrada dos cards conforme aparecem na tela, visto no vídeo do Lusion) deve ser aplicado nessa página — cards entram com uma animação de revelação, não aparecem estáticos.
+- **Reforça a 11.13 (scroll reversível) especificamente aqui:** ao rolar pra cima e sair da viewport, os cards devem "desfazer" a animação de entrada; ao rolar de volta pra baixo, refazem — não pode ficar tudo estático depois da primeira aparição. O vídeo do Lusion é a prova visual direta desse comportamento.
+- Nav: adicionar item **"Projetos"** apontando pra essa página (ver 13.7).
+
+### 13.4 Física 2D no rodapé — mesma engine do efeito "voltar ao topo"
+
+**Confirmado por análise do vídeo "Lusion - Our Projects" (trecho ~24s–44s):** o rodapé do Lusion é preenchido por peças pequenas 2D (quadrados coloridos tipo pixel) empilhadas de forma irregular com gravidade, interativas (o usuário pode mexer nelas ao passar o mouse), com o texto "Let's work together!" aparecendo parcialmente submerso entre as peças.
+
+Pra pixelforgestudio.com.br: **é o MESMO sistema de partículas já implementado pro efeito de "voltar ao topo"** (seção 11.9/12.13/13.2) — não é uma feature nova, é reuso do mesmo motor de física 2D em dois lugares:
+1. No footer, as peças ficam paradas/empilhadas com gravidade, ocupando o espaço do rodapé, e reagem ao mouse (nudge/empurrão leve ao passar por cima).
+2. Na transição "voltar ao topo", as mesmas peças preenchem a tela toda durante a animação de desintegração.
+Tecnicamente: um único componente de física reutilizável (canvas ou DOM+transform), instanciado nos dois contextos com parâmetros diferentes (área de contenção, densidade, trigger de ativação).
+
+### 13.5 BUG MEGA IMPORTANTE — cursor customizado não pode virar texto/I-beam sobre textos
+
+Reportado como prioridade alta por Ericson: o cursor customizado (martelinho/marreta) está revertendo pro cursor padrão de texto (I-beam) sempre que passa por cima de qualquer elemento de texto do site. **O cursor precisa permanecer o martelinho em 100% da página, sem exceção, inclusive sobre parágrafos, títulos e links.** Correção técnica: aplicar `cursor: none` (ou a URL do cursor customizado) globalmente via CSS, incluindo explicitamente elementos de texto (`p`, `h1`-`h6`, `span`, `a`, etc.) que por padrão herdam `cursor: text` ou `auto` do user-agent stylesheet — garantir que a regra do cursor customizado tenha especificidade/`!important` suficiente pra vencer qualquer estilo herdado, e revisar se o cursor é implementado via CSS puro ou via elemento JS seguindo o mouse (nesse caso, garantir que o `cursor: none` nativo está aplicado em todos os elementos, não só no `body`).
+
+### 13.6 "A Forja" — layout definitivo, SUBSTITUI a spec da seção 12.8
+
+Nova versão, mais específica que todas as anteriores (11.7 e 12.8 ficam supersedidas por esta):
+- Split 50/50 entre texto e imagens, mas com uma regra de alinhamento específica: o bloco de texto é alinhado à esquerda, **partindo da linha central horizontal da seção** (ou seja, o texto ocupa a metade direita da seção, mas o texto em si é left-aligned a partir do meio, não colado na borda direita).
+- A foto do Ericson fica posicionada imediatamente ao lado do nome dele, dentro desse bloco de texto (não solta em outro lugar da seção).
+- **As imagens de demonstração (galeria) ficam na extremidade mais à esquerda da seção, em tamanho maior** do que a spec anterior (12.8 pedia "quadro maior"; aqui fica ainda mais explícito: é a peça visual dominante da composição, maior que o texto e a foto).
+- As imagens passam **uma de cada vez** conforme o scroll (mantém a mecânica de pin da 11.7 — a seção fica fixa até todas passarem).
+- **A última imagem da sequência recebe um fade por cima** (escurecimento gradual) **com o botão "visitar galeria" sobreposto diretamente nela** — não precisa de um botão separado abaixo da composição (isso substitui o pedido de reposicionamento de botão da 12.8, que fica obsoleto: não é mais um botão solto, é integrado à última imagem).
+- Ao clicar no botão "visitar galeria", direciona pra nova página `galeria.html` (seção 1).
+
+### 13.7 Nav — novo item "Galeria" + botão de escolha Projetos/Galeria
+
+Consequência direta das seções 13.3 e 13.6: o nav precisa refletir as duas páginas novas.
+- Adicionar **"Galeria"** ao nav, posicionado logo após "Serviços".
+- Sugestão de estrutura: um botão adicional no nav, no mesmo padrão visual de "Home" e "Serviços" (seção 11.10), que ao hover/clique abre um dropdown oferecendo duas opções: **"Projetos"** (vai pra `projetos.html`) e **"Galeria"** (vai pra `galeria.html`) — evita adicionar dois itens de primeiro nível separados, mantendo o nav consolidado como já decidido na 11.10.
+- Ordem final do nav de primeiro nível: **Home · Serviços · Projetos/Galeria · Contato** (ajustar conforme a ordem real das seções — ver 11.10 pra lógica de ordenação).

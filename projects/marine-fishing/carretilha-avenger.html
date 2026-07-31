@@ -20,10 +20,16 @@
   --grad:linear-gradient(135deg,#3D17e1 0%,#8017e2 40%,#da2c80 70%,#f433bb 100%);
   --gt:linear-gradient(90deg,#3D17e1,#f433bb);
 }
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;cursor:none!important}
 html{scroll-behavior:smooth}
 body{background:var(--black);color:var(--white);font-family:'Space Grotesk',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden}
 @view-transition{navigation:auto}
+
+/* CURSOR — CANVAS (13.5: martelo fica em 100% da página, sem exceção) */
+#pf-cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:99998;image-rendering:pixelated}
+@media(hover:none) and (pointer:coarse){
+  #pf-cursor{display:none!important}
+}
 
 nav{position:fixed;top:0;left:0;right:0;z-index:200;height:80px;padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s;background:linear-gradient(180deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0) 100%)}
 nav.s{background:rgba(0,0,0,.92);backdrop-filter:blur(20px);border-bottom:.5px solid var(--border)}
@@ -118,6 +124,7 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 </style>
 </head>
 <body>
+<canvas id="pf-cursor"></canvas>
 
 <nav id="nav">
   <a href="../../index.html" class="nl">
@@ -212,6 +219,164 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 </footer>
 <canvas class="top-pixel-canvas" id="topPixelCanvas"></canvas>
 <script>
+// ============================================================
+// CURSOR — MARRETA PIXEL ART v7 (13.5: sem estado de texto/I-beam)
+// ============================================================
+(function initCursor(){
+  const canvas=document.getElementById('pf-cursor');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+
+  const P=2;
+  const HAMMER=[
+    [0,0,0,3,3,3,3,3,3,0,0,0,0,0],
+    [0,0,3,1,1,1,1,1,1,3,0,0,0,0],
+    [0,3,1,1,1,1,1,1,1,2,3,0,0,0],
+    [3,1,1,1,1,1,1,1,1,2,2,3,0,0],
+    [3,1,1,1,1,1,1,1,1,2,2,3,0,0],
+    [0,3,1,1,1,1,1,1,1,2,3,0,0,0],
+    [0,0,3,3,3,1,1,3,3,3,0,0,0,0],
+    [0,0,0,0,3,1,1,3,0,0,0,0,0,0],
+    [0,0,0,0,3,1,2,3,0,0,0,0,0,0],
+    [0,0,0,0,3,1,2,3,0,0,0,0,0,0],
+    [0,0,0,0,3,1,2,3,0,0,0,0,0,0],
+    [0,0,0,0,3,2,2,3,0,0,0,0,0,0],
+    [0,0,0,0,0,3,3,0,0,0,0,0,0,0],
+  ];
+  const HOT_X=4,HOT_Y=0,TAIL_COL=5,TAIL_ROW=12;
+
+  const PAL={
+    default:{light:'#ffffff',mid:'#aaaaaa',dark:'#000000'},
+    link:{light:'#f433bb',mid:'#8017e2',dark:'#0d0010'},
+    video:{light:'#ff5ad2',mid:'#dc1065',dark:'#1a0015'},
+    drag:{light:'#c084fc',mid:'#8017e2',dark:'#0d0020'},
+  };
+
+  const POOL=160;
+  const pool=Array.from({length:POOL},()=>({active:false,x:0,y:0,life:0,maxLife:0,size:0,color:'#fff',vx:0,vy:0}));
+  let pidx=0;
+  const TC=['#2931a1','#6031b2','#8017e2','#dc1065','#f433bb','#ff5ad2'];
+
+  function spawnTrail(tx,ty,state){
+    for(let i=0;i<3;i++){
+      const p=pool[pidx%POOL];pidx++;
+      const snap=3,spread=6;
+      const ang=Math.random()*Math.PI*2,r=Math.random()*spread;
+      p.x=Math.round((tx+Math.cos(ang)*r)/snap)*snap;
+      p.y=Math.round((ty+Math.sin(ang)*r)/snap)*snap;
+      p.vx=(Math.random()-.5)*0.5;p.vy=(Math.random()-.5)*0.5;
+      p.size=[2,2,3,3,4][Math.floor(Math.random()*5)];
+      p.life=0;p.maxLife=22+Math.floor(Math.random()*20);
+      p.color=state==='link'?TC[2+Math.floor(Math.random()*3)]:
+              state==='video'?TC[3+Math.floor(Math.random()*3)]:
+              state==='drag'?TC[Math.floor(Math.random()*3)]:
+              TC[Math.floor(Math.random()*TC.length)];
+      p.active=true;
+    }
+  }
+
+  function spawnBurst(x,y){
+    const bc=['#ff5ad2','#f433bb','#dc1065','#8017e2','#ffffff','#ffaa00'];
+    for(let i=0;i<14;i++){
+      const p=pool[pidx%POOL];pidx++;
+      const ang=(Math.PI*2/14)*i+(Math.random()-.5)*.4,spd=2+Math.random()*3;
+      p.x=x;p.y=y;p.vx=Math.cos(ang)*spd;p.vy=Math.sin(ang)*spd;
+      p.size=[3,4,5,6][Math.floor(Math.random()*4)];
+      p.life=0;p.maxLife=28+Math.floor(Math.random()*18);
+      p.color=bc[Math.floor(Math.random()*bc.length)];p.active=true;
+    }
+  }
+
+  const impacts=[];
+  function spawnImpact(x,y){
+    for(let r=0;r<3;r++)impacts.push({x,y,life:0,maxLife:18+r*8,size:1+r*3,color:['#f433bb','#8017e2','#2931a1'][r],delay:r*4});
+    spawnBurst(x,y);
+  }
+
+  function getImpactPoint(mx,my,angle){
+    const dx=(0-HOT_X)*P,dy=(0-HOT_Y)*P;
+    const cos=Math.cos(angle),sin=Math.sin(angle);
+    return{x:mx+cos*dx-sin*dy,y:my+sin*dx+cos*dy};
+  }
+
+  function drawHammer(ox,oy,pal,angle,pulseAlpha){
+    ctx.save();ctx.translate(ox,oy);ctx.rotate(angle);ctx.translate(-ox,-oy);
+    for(let r=0;r<HAMMER.length;r++)for(let c=0;c<HAMMER[r].length;c++){
+      const v=HAMMER[r][c];if(!v)continue;
+      ctx.fillStyle=v===3?pal.dark:v===2?pal.mid:pal.light;
+      ctx.fillRect(ox+(c-HOT_X)*P,oy+(r-HOT_Y)*P,P,P);
+    }
+    if(pulseAlpha>0)for(let r=0;r<HAMMER.length;r++)for(let c=0;c<HAMMER[r].length;c++)
+      if(HAMMER[r][c]===1){ctx.fillStyle=`rgba(255,90,210,${pulseAlpha})`;ctx.fillRect(ox+(c-HOT_X)*P,oy+(r-HOT_Y)*P,P,P);}
+    ctx.restore();
+  }
+
+  let mx=200,my=200,lastTX=0,lastTY=0,curState='default';
+  let t=0,angle=0,angleTarget=0,isHeld=false;
+
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  document.addEventListener('mouseover',e=>{
+    const el=e.target;if(!el){curState='default';return;}
+    if(el.closest('a,button,[role="button"]'))curState='link';
+    else if(el.closest('[data-video],video'))curState='video';
+    else if(el.closest('[draggable="true"]'))curState='drag';
+    else curState='default';
+  });
+  document.addEventListener('mousedown',()=>{
+    isHeld=true;
+    const ip=getImpactPoint(mx,my,-Math.PI/2);
+    spawnImpact(ip.x,ip.y);
+  });
+  document.addEventListener('mouseup',()=>{isHeld=false;});
+
+  function tick(){
+    t+=0.05;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    angleTarget=isHeld?-Math.PI/2:0;
+    angle+=(angleTarget-angle)*(isHeld?0.28:0.18);
+    if(Math.abs(angle-angleTarget)<0.005)angle=angleTarget;
+
+    const pal=PAL[curState]||PAL.default;
+    const cos=Math.cos(angle),sin=Math.sin(angle);
+    const tdx=(TAIL_COL-HOT_X)*P,tdy=(TAIL_ROW-HOT_Y)*P;
+    const tx=mx+cos*tdx-sin*tdy,ty=my+sin*tdx+cos*tdy;
+    if(Math.hypot(tx-lastTX,ty-lastTY)>3){spawnTrail(tx,ty,curState);lastTX=tx;lastTY=ty;}
+
+    for(let i=0;i<POOL;i++){
+      const p=pool[i];if(!p.active)continue;
+      p.life++;const prog=p.life/p.maxLife;
+      p.x+=p.vx*(1-prog);p.y+=p.vy*(1-prog);
+      if(p.life%5===0&&prog<0.45){const s=3;if(Math.random()>.55)p.x+=Math.random()>.5?s:-s;if(Math.random()>.55)p.y+=Math.random()>.5?s:-s;}
+      const sz=Math.max(1,Math.round(p.size*(1-prog*0.75)));
+      const op=Math.max(0,(1-prog*prog)*0.85);
+      ctx.globalAlpha=op;ctx.fillStyle=p.color;
+      ctx.fillRect(p.x-sz/2,p.y-sz/2,sz,sz);
+      if(p.life>=p.maxLife)p.active=false;
+    }
+    ctx.globalAlpha=1;
+
+    for(let i=impacts.length-1;i>=0;i--){
+      const im=impacts[i];
+      if(im.life<im.delay){im.life++;continue;}
+      im.life++;const prog=(im.life-im.delay)/(im.maxLife-im.delay);
+      if(prog>=1){impacts.splice(i,1);continue;}
+      const sz=im.size+prog*16,op=Math.max(0,1-prog)*0.8;
+      ctx.globalAlpha=op;ctx.strokeStyle=im.color;ctx.lineWidth=1;
+      const half=Math.round(sz/2);
+      ctx.strokeRect(im.x-half,im.y-half,half*2,half*2);
+    }
+    ctx.globalAlpha=1;
+
+    const pulse=curState!=='default'?Math.max(0,Math.sin(t*2.8))*0.35:0;
+    drawHammer(mx,my,pal,angle,pulse);
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
 window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('s',scrollY>80));
 const obs=new IntersectionObserver(e=>{e.forEach(x=>{x.target.classList.toggle('on',x.isIntersecting)})},{threshold:.1});
 document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
