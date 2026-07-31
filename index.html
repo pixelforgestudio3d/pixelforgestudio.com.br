@@ -68,6 +68,17 @@ nav.s{background:rgba(0,0,0,.92);backdrop-filter:blur(20px);border-bottom:.5px s
 .nc{padding:10px 24px;background:var(--grad);color:var(--white)!important;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:opacity .2s}
 .nc:hover{opacity:.85}
 
+/* NAV — dropdown único "Home" consolidando seções (11.10) */
+.nd{position:relative}
+.nd-trigger{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:0;transition:color .2s}
+.nd-trigger:hover{color:var(--white)}
+.nd-trigger svg{width:12px;height:12px;transition:transform .25s}
+.nd.open .nd-trigger svg{transform:rotate(180deg)}
+.nd-menu{position:absolute;top:calc(100% + 20px);left:50%;transform:translateX(-50%) translateY(-6px);background:rgba(8,8,8,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.5px solid var(--borderh);border-radius:6px;padding:.5rem;display:flex;flex-direction:column;min-width:170px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.nd.open .nd-menu{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.nd-menu a{padding:.7rem .9rem;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);text-decoration:none;border-radius:4px;transition:background .2s,color .2s}
+.nd-menu a:hover{background:rgba(255,255,255,.06);color:var(--white)}
+
 /* HERO — seção pinada, texto revela por cima do vídeo (11.1) */
 .hero{position:relative;height:100vh;overflow:hidden;display:flex;align-items:center;padding:0 2.5rem}
 .hv{position:absolute;inset:0}
@@ -331,11 +342,19 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
     <img src="assets/Logo Principal.png" alt="PixelForge" style="height:36px;filter:brightness(0) invert(1);transform:translateX(-6px);">
   </a>
   <div class="nls">
-    <a href="#servicos">Serviços</a>
-    <a href="#projetos">Projetos</a>
-    <a href="#fooh">FOOH</a>
-    <a href="#iacgi">IA + CGI</a>
-    <a href="#forja">A Forja</a>
+    <div class="nd" id="navDropdown">
+      <button type="button" class="nd-trigger">
+        Home
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="nd-menu">
+        <a href="#servicos">Serviços</a>
+        <a href="#projetos">Projetos</a>
+        <a href="#fooh">FOOH</a>
+        <a href="#iacgi">IA + CGI</a>
+        <a href="#forja">A Forja</a>
+      </div>
+    </div>
     <a href="contato.html" class="nc">Contato</a>
   </div>
 </nav>
@@ -1088,6 +1107,24 @@ function initCursor(){
 // NAV
 // ============================================================
 window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('s',scrollY>80));
+
+// ============================================================
+// NAV — DROPDOWN "HOME" (11.10)
+// ============================================================
+(function(){
+  const nd=document.getElementById('navDropdown');
+  if(!nd)return;
+  const trigger=nd.querySelector('.nd-trigger');
+  const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  if(hoverCapable){
+    nd.addEventListener('mouseenter',()=>nd.classList.add('open'));
+    nd.addEventListener('mouseleave',()=>nd.classList.remove('open'));
+  }else{
+    trigger.addEventListener('click',e=>{e.stopPropagation();nd.classList.toggle('open');});
+    document.addEventListener('click',()=>nd.classList.remove('open'));
+  }
+  nd.querySelectorAll('.nd-menu a').forEach(a=>a.addEventListener('click',()=>nd.classList.remove('open')));
+})();
 
 // ============================================================
 // FOOTER — VOLTAR AO TOPO (transição de fade, 11.9)
