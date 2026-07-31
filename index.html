@@ -159,8 +159,8 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .pi video.pt{width:100%;height:100%;object-fit:cover;transition:transform .6s,filter .4s}
 .pi.w7 video.pt,.pi.w6 video.pt,.pi.w4 video.pt{aspect-ratio:16/9}
 .pi.w5 video.pt{aspect-ratio:3/4}
-.pi:hover video.pt{transform:scale(1.05);filter:brightness(.25)}
-.pov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:2rem;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,transparent 60%);opacity:0;transition:opacity .35s}
+.pi:hover video.pt{transform:scale(1.05);filter:brightness(.65)}
+.pov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:2rem;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,transparent 45%);opacity:0;transition:opacity .35s}
 .pi:hover .pov{opacity:1}
 .pc{font-size:11px;letter-spacing:.2em;color:var(--pink);text-transform:uppercase;margin-bottom:.4rem}
 .pn{font-size:1.35rem;font-weight:500;transform:translateY(6px);transition:transform .35s}
@@ -472,31 +472,31 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
   </div>
   <div class="pg rv d2">
     <a class="pi w7" href="projects/marine-fishing/vara-legacy.html">
-      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB LEGACY PORT TOP VF.mp4" type="video/mp4"></video>
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB LEGACY PORT TOP VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Vara Legacy — Launch Film</div></div>
     </a>
     <a class="pi w5" href="projects/kopenhagen/chocolate-asmr.html">
-      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/grid/THUMB VERTICAL KOPENHAGEN V2.mp4" type="video/mp4"></video>
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="assets/grid/THUMB VERTICAL KOPENHAGEN V2.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Kopenhagen · CGI</div><div class="pn">Chocolate ASMR</div></div>
     </a>
     <a class="pi w6" href="projects/everlast/powerlock-og.html">
-      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video>
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Everlast · 2025</div><div class="pn">Powerlock OG</div></div>
     </a>
     <a class="pi w6" href="projects/smirnoff/gashapon-ice-reveal.html">
-      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB SMIRNOFF PORT SEC VF.mp4" type="video/mp4"></video>
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB SMIRNOFF PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Smirnoff · 2025</div><div class="pn">Gashapon Ice Reveal</div></div>
     </a>
     <a class="pi w4" href="projects/heineken/sams-club-00.html">
-      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB HEINEKEN PORT SEC VF.mp4" type="video/mp4"></video>
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB HEINEKEN PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Heineken · DOOH 2025</div><div class="pn">Sam's Club 0.0</div></div>
     </a>
     <a class="pi w4" href="projects/piccadilly/soft-step.html">
-      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB PICCADILLY PORT SEC VF.mp4" type="video/mp4"></video>
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB PICCADILLY PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Piccadilly · 2025</div><div class="pn">Soft Step Launch</div></div>
     </a>
     <a class="pi w4" href="projects/marine-fishing/carretilha-avenger.html">
-      <video class="pt" muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB AVENGER PORT TOP VF.mp4" type="video/mp4"></video>
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="assets/portfolio/THUMB AVENGER PORT TOP VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Carretilha Avenger</div></div>
     </a>
   </div>
@@ -1219,24 +1219,6 @@ let auto=setInterval(next,4000);
 stage.addEventListener('mouseenter',()=>clearInterval(auto));
 stage.addEventListener('mouseleave',()=>{auto=setInterval(next,4000)});
 render();
-
-// ============================================================
-// GRID DE PROJETOS — HOVER PLAY/PAUSE (thumb limpa, vídeo só no hover)
-// ============================================================
-(function(){
-  const cards=document.querySelectorAll('#projetos .pi');
-  const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-  cards.forEach(card=>{
-    const video=card.querySelector('video.pt');
-    if(!video)return;
-    if(hoverCapable){
-      card.addEventListener('mouseenter',()=>{video.currentTime=0;video.play().catch(()=>{});});
-      card.addEventListener('mouseleave',()=>{video.pause();});
-    }else{
-      video.play().catch(()=>{});
-    }
-  });
-})();
 
 // ============================================================
 // CLIENTES / ESCOPO
