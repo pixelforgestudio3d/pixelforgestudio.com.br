@@ -403,11 +403,32 @@ Ericson confirmou explicitamente: **física real mesmo**, do mesmo jeito que exi
 - Hover: ao passar o mouse, as peças PRÓXIMAS ao cursor se afastam — cada peça reage individualmente à própria física, não a "bola" inteira se afastando como um bloco só.
 - Peças podem ser um pouco maiores; a seção em si pode ser um pouco MENOR do que ficou na V1 — é só um efeito de impacto pra quem visita o site, não precisa ocupar tanto espaço de tela.
 - Shader: variar entre metal/prata e vidro transparente com reflexos — não usar um material só pra todas as peças.
-- Nota técnica pro Claude Code: isso é uma simulação de física real (partículas com repulsão mútua + atrator central + repulsão do mouse), não só posicionamento estático com leve rotação. Considerar uma lib leve de física (cannon-es, ou sistema de partículas com verlet integration customizado) em vez de só Three.js puro sem física.
+- Nota técnica pro Claude Code: isso é uma simulação de física real (partículas com repulsão mútua + atrator central + repulsão do mouse), não só posicionamento estático com leve rotação.
+- **Investigação técnica 31/07/2026:** checamos as requisições de rede reais do lusion.co (network tab) e não há nenhuma engine de física carregada (sem WASM, sem rapier/cannon/ammo) — só os modelos 3D deles em formato próprio (`.buf`) e áudio. Forte indício de que a física de lá é um sistema custom simples calculado em JS puro a cada frame (atração ao centro + repulsão par-a-par entre peças quando ficam perto demais + repulsão do cursor), sem biblioteca externa pesada — é exatamente esse tipo de cálculo leve que resulta em algo fluido/leve. **Não usar uma lib de física completa (cannon-es, rapier, ammo.js) pra isso** — implementar o comportamento com um sistema de forças simples (Verlet ou Euler integration básica), mais leve e mais alinhado com o que a referência realmente faz.
+- **Análise de vídeo 31/07/2026 (gravação enviada pelo Ericson, analisada quadro a quadro a cada 0.2s e a cada 1s):** três camadas de movimento identificadas, TODAS precisam estar presentes, não só a reação ao hover:
+  1. **Animação idle contínua e independente do mouse** — mesmo sem interação nenhuma, existe uma deriva/zoom lento e constante da câmera ou do aglomerado (mudança muito gradual entre frames de 0.2s, sem nenhum salto), dando sensação de "vivo" mesmo parado. Isso precisa rodar sempre, em loop, não só quando o usuário interage.
+  2. **Rotação própria de cada peça**, em eixo e velocidade levemente diferentes entre si — visível claramente comparando frames sequenciais, peças vizinhas giram de forma dessincronizada.
+  3. **Respiração cíclica do aglomerado** (visível em escala de segundos, não frames) — o conjunto alterna entre um estado mais compacto e mais espalhado ao longo do tempo, sugerindo que a força do atrator central não é constante, oscila levemente (ou o raio de repulsão entre peças pulsa).
+  - **Movimento em todas as camadas é extremamente suave/gradual** (sem saltos entre frames próximos) — confirma a recomendação de damping/lerp já registrada abaixo, com um fator de suavização bem baixo (movimento lento por frame).
+  - **Luz:** reflexos suaves, sem sombra dura, luz parece vir de múltiplas direções (ambiente) — reforça a recomendação de HDRI/environment map abaixo.
+- **Movimento (damping/lerp):** cada peça não deve pular direto pra posição alvo — persegue a posição com interpolação suave por frame (ex.: `position += (target - position) * fator_baixo`), criando o atraso/flutuação natural confirmado na análise de vídeo acima.
+- **Iluminação (HDRI):** usar um environment map (HDRI) nas peças de metal/vidro em vez de luz pontual direta — dá o reflexo suave/"caro" confirmado na análise de vídeo, ao contrário de uma luz dura comum.
+
+**Comparação direta com a implementação atual do PixelForge — análise de vídeo 31/07/2026 (gravação do Ericson, mesma técnica de frame-a-frame a cada 0.2s):**
+
+1. **Formato das peças parece explosão bruta de mesh, não peças desenhadas.** Cada fragmento tem forma irregular diferente (tamanhos/formas aleatórias), lembra um modelo que sofreu um "explode" cru, não um conjunto de módulos repetidos e limpos como as cruzes do Lusion. **Pergunta em aberto pro Ericson, não presumir:** o isotipo é conceitualmente fragmentado/quebrado de propósito (linguagem "forjar/quebrar pixel" da marca), ou o asset `Isotipo_PixelForge_otm.glb` deveria estar segmentado em peças mais uniformes e não está? Confirmar antes de mexer no asset.
+2. **Material único, cinza/branco fosco em todas as peças** — zero variação metal/vidro, zero reflexo visível em qualquer frame analisado. Não bate com a spec.
+3. **Elementos magenta/rosa não especificados:** bordas de algumas peças brilhando em magenta, e partículas rosa soltas flutuando entre as peças — não faz parte de nenhuma spec, remover (parece resíduo de outro efeito/debug).
+4. **Peças se sobrepõem/atravessam visivelmente** no aglomerado — falta a colisão entre peças especificada acima.
+5. **Movimento errático/instável, não suave.** Comparando frames de 0.2 em 0.2s, o aglomerado inteiro salta de posição na tela de forma abrupta (nada como a deriva lenta e controlada do Lusion), e em pontos específicos do vídeo uma peça se solta e sai voando sozinha longe do grupo sem controle — indício de simulação instável (forças descompensadas), não física contida. Precisa de amortecimento/clamping de velocidade mais forte.
+6. **Peças escapando do container da seção** — em pelo menos um frame, uma peça aparece atrás do menu/header no topo da página. Precisa de um limite de posição (bounding box) que mantenha todas as peças dentro da área da seção.
+7. **Ainda pequeno demais** — o pedido já registrado acima (peças maiores, seção pode ser menor) não foi aplicado.
 
 ### 11.3 Marquee "Parcerias Criativas" — fixes antigos não aplicados
 
 Os ajustes já pedidos anteriormente (seção 3: remover filtro de brightness/invert; aumentar tamanho dos logos; adicionar nome da marca visível abaixo de cada logo) **não foram aplicados na V1** — o marquee de logos continua idêntico ao site antigo. Não é pendência nova, só não foi feita — reforçar.
+
+**Atualização 31/07/2026:** no vídeo mais recente enviado pelo Ericson, o marquee já aparece com logo + nome da marca embaixo (Marine Fishing, Lupo, Hello Kitty, Ellus, etc.) — esse ponto específico parece ter avançado. Confirmar com o Ericson se o tamanho do logo já está adequado ou se ainda precisa aumentar mais.
 
 ### 11.4 Seção "Clientes/Escopo" — redesign completo, ficou fraca — mecânica exata verificada ao vivo no Valkiria (31/07/2026)
 
