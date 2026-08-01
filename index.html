@@ -67,8 +67,8 @@ body{background:var(--black);color:var(--white);font-family:'Space Grotesk',sans
 #pf-cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:99998;image-rendering:pixelated;}
 
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:200;height:80px;padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s;background:linear-gradient(180deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0) 100%);}
-nav.s{background:rgba(0,0,0,.92);backdrop-filter:blur(20px);border-bottom:.5px solid var(--border)}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:80px;padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0) 100%);}
+nav::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:.5px solid var(--border);opacity:var(--nav-t,0);pointer-events:none}
 .nl{display:flex;align-items:center;gap:10px;text-decoration:none}
 .nls{display:flex;align-items:center;gap:2rem}
 .nls a{font-size:12px;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s;text-transform:uppercase}
@@ -160,7 +160,7 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 /* SERVIÇOS — painel centralizado sobre watermark líquido (13.1, substitui 11.6) */
 .svc-sec{position:relative;overflow:hidden}
 .svc-watermark-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0}
-.svc-watermark-canvas{width:100%;height:100%;max-width:1400px}
+.svc-watermark-canvas{width:100%;height:100%}
 .svc-inner{position:relative;z-index:1;max-width:760px;margin:0 auto;text-align:center}
 .svc-inner .st2{justify-content:center}
 .svl{max-width:760px;margin:0 auto;background:rgba(255,255,255,.03);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:.5px solid var(--borderh);border-radius:6px;overflow:hidden;text-align:left}
@@ -1113,7 +1113,23 @@ function initCursor(){
 // ============================================================
 // NAV
 // ============================================================
-window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('s',scrollY>80));
+// ============================================================
+// NAV — fundo com fade suave vinculado ao scroll (13.16), reversível
+// ============================================================
+(function(){
+  const navEl=document.getElementById('nav');
+  if(!navEl)return;
+  let ticking=false;
+  function update(){
+    const t=Math.min(1,Math.max(0,window.scrollY/120));
+    navEl.style.setProperty('--nav-t',t.toFixed(3));
+    ticking=false;
+  }
+  window.addEventListener('scroll',()=>{
+    if(!ticking){ticking=true;requestAnimationFrame(update);}
+  });
+  update();
+})();
 
 // ============================================================
 // NAV — DROPDOWNS "HOME" E "SERVIÇOS" (11.10)
@@ -1158,53 +1174,78 @@ document.querySelectorAll('.nd').forEach(nd=>{
   const canvas=document.getElementById('svcWatermarkCanvas');
   if(!section||!wrap||!canvas)return;
   const ctx=canvas.getContext('2d');
-  const TEXT='Serviços';
-  const CHANNELS=[
-    {color:'#f433bb',baseDx:-13,alpha:.85},
-    {color:'#8017e2',baseDx:0,alpha:.55},
-    {color:'#2931a1',baseDx:13,alpha:.85},
-  ];
+  const TEXT='SERVIÇOS';
+  const CHANNELS=['#f433bb','#2931a1','#8017e2','#dc1065','#3D17e1'];
   const strokeLayer=document.createElement('canvas');
   const fillMask=document.createElement('canvas');
-  const trailCanvas=document.createElement('canvas');
+  const edgeMask=document.createElement('canvas');
   const liquidCanvas=document.createElement('canvas');
-  const offChannels=CHANNELS.map(()=>document.createElement('canvas'));
-  let cw=0,ch=0,dpr=Math.min(window.devicePixelRatio||1,2);
-  let mx=-9999,my=-9999;
-  let lastMX=null,lastMY=null,lastT=null,intensity=0;
+  const tmpCanvas=document.createElement('canvas');
+  let cw=0,ch=0,dpr=Math.min(window.devicePixelRatio||1,1.5);
+  let mx=-9999,my=-9999,driftX=0,driftY=0,vx=0,vy=0,hasMoved=false;
+  let lastMX=null,lastMY=null,lastT=null;
+  const ripples=[];
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  function hexToRgba(hex,a){
+    const n=parseInt(hex.slice(1),16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+  }
+
+  // 13.13/13.15/13.17 — PRIORIDADE MÁXIMA: a palavra precisa caber inteira
+  // e legível de ponta a ponta do canvas. Mede a largura numa fonte de
+  // referência e escala pra preencher ~96% da largura disponível.
+  function fitFontSize(){
+    const measCtx=fillMask.getContext('2d');
+    measCtx.setTransform(dpr,0,0,dpr,0,0);
+    const probe=Math.max(10,ch*0.85);
+    measCtx.font=`800 ${probe}px 'Space Grotesk',sans-serif`;
+    try{measCtx.letterSpacing='-1px';}catch(e){}
+    const w=measCtx.measureText(TEXT).width||1;
+    let fontSize=probe*((cw*0.96)/w);
+    fontSize=Math.min(fontSize,ch*0.92);
+    return fontSize;
+  }
 
   function buildLayers(){
     const r=canvas.getBoundingClientRect();
     cw=Math.max(1,Math.round(r.width));
     ch=Math.max(1,Math.round(r.height));
-    [canvas,strokeLayer,fillMask,trailCanvas,liquidCanvas,...offChannels].forEach(c=>{
+    [canvas,strokeLayer,fillMask,edgeMask,liquidCanvas,tmpCanvas].forEach(c=>{
       c.width=cw*dpr;c.height=ch*dpr;
       c.style.width=cw+'px';c.style.height=ch+'px';
     });
-    const fontSize=Math.min(cw*0.16,ch*0.6);
-    const font=`700 ${fontSize}px 'Space Grotesk',sans-serif`;
+    const fontSize=fitFontSize();
+    const font=`800 ${fontSize}px 'Space Grotesk',sans-serif`;
+    const ls='-1px';
 
+    // base sempre visível: contorno fino, cinza escuro, quase invisível (13.15)
     const sctx=strokeLayer.getContext('2d');
     sctx.setTransform(dpr,0,0,dpr,0,0);
     sctx.font=font;sctx.textAlign='center';sctx.textBaseline='middle';
-    sctx.lineWidth=1.4;
-    sctx.strokeStyle='rgba(255,255,255,.16)';
+    try{sctx.letterSpacing=ls;}catch(e){}
+    sctx.lineWidth=1.1;
+    sctx.strokeStyle='rgba(125,125,140,.22)';
     sctx.strokeText(TEXT,cw/2,ch/2);
 
+    // máscara sólida ESTÁTICA (nunca se move/deforma) — usada só pra clip do interior
     const mctx=fillMask.getContext('2d');
+    mctx.clearRect(0,0,fillMask.width,fillMask.height);
     mctx.setTransform(dpr,0,0,dpr,0,0);
     mctx.font=font;mctx.textAlign='center';mctx.textBaseline='middle';
+    try{mctx.letterSpacing=ls;}catch(e){}
     mctx.fillStyle='#fff';
     mctx.fillText(TEXT,cw/2,ch/2);
 
-    offChannels.forEach((oc,i)=>{
-      const octx=oc.getContext('2d');
-      octx.setTransform(dpr,0,0,dpr,0,0);
-      octx.font=font;octx.textAlign='center';octx.textBaseline='middle';
-      octx.fillStyle=CHANNELS[i].color;
-      octx.fillText(TEXT,cw/2,ch/2);
-    });
+    // máscara de borda ESTÁTICA — faixa fina ao longo do contorno, onde o
+    // brilho fica mais forte (13.15: "cor mais viva se concentra na borda")
+    const ectx=edgeMask.getContext('2d');
+    ectx.setTransform(dpr,0,0,dpr,0,0);
+    ectx.font=font;ectx.textAlign='center';ectx.textBaseline='middle';
+    try{ectx.letterSpacing=ls;}catch(e){}
+    ectx.lineWidth=Math.max(5,fontSize*0.05);
+    ectx.strokeStyle='#fff';
+    ectx.strokeText(TEXT,cw/2,ch/2);
   }
   buildLayers();
   window.addEventListener('resize',buildLayers);
@@ -1216,65 +1257,89 @@ document.querySelectorAll('.nd').forEach(nd=>{
       const now=performance.now();
       if(lastMX!==null){
         const dt=Math.max(1,now-lastT);
-        const dist=Math.hypot(mx-lastMX,my-lastMY);
-        const speed=dist/dt;
-        const target=Math.min(1,speed/2.2);
-        intensity=Math.max(intensity,target);
+        const dx=mx-lastMX,dy=my-lastMY;
+        const speed=Math.hypot(dx,dy)/dt;
+        vx=dx/dt*7;vy=dy/dt*7;
+        if(speed>0.15){
+          ripples.push({x:mx,y:my,birth:now,strength:Math.min(1,speed/2.2),seed:Math.random()});
+          if(ripples.length>20)ripples.shift();
+        }
       }
+      driftX=mx;driftY=my;hasMoved=true;
       lastMX=mx;lastMY=my;lastT=now;
     });
     section.addEventListener('mouseleave',()=>{lastMX=null;});
   }
 
-  let t=0;
+  function drawRipple(lctx,rp,now){
+    const life=900;
+    const p=(now-rp.birth)/life;
+    if(p>=1)return false;
+    const radius=10+p*140;
+    const alpha=rp.strength*(1-p)*0.95;
+    if(alpha<=0.012)return true;
+    const c1=CHANNELS[Math.floor(rp.seed*CHANNELS.length)%CHANNELS.length];
+    const c2=CHANNELS[Math.floor(rp.seed*CHANNELS.length+2)%CHANNELS.length];
+    const grad=lctx.createRadialGradient(rp.x,rp.y,Math.max(0,radius-30),rp.x,rp.y,radius);
+    grad.addColorStop(0,'rgba(0,0,0,0)');
+    grad.addColorStop(.55,hexToRgba(c1,alpha*.95));
+    grad.addColorStop(.8,hexToRgba(c2,alpha*.7));
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    lctx.fillStyle=grad;
+    lctx.beginPath();lctx.arc(rp.x,rp.y,radius,0,Math.PI*2);lctx.fill();
+    return true;
+  }
+
+  // desenha `source` clipado por `mask` (destination-in) dentro de um canvas
+  // temporário, depois compõe no canvas visível — a máscara é sempre a
+  // silhueta ESTÁTICA da letra, o conteúdo líquido é que se move (13.13 pt.3)
+  function drawMasked(source,mask,alpha){
+    tmpCanvas.width=tmpCanvas.width; // limpa mantendo dimensões
+    const tctx=tmpCanvas.getContext('2d');
+    tctx.setTransform(1,0,0,1,0,0);
+    tctx.drawImage(source,0,0);
+    tctx.globalCompositeOperation='destination-in';
+    tctx.drawImage(mask,0,0);
+    tctx.globalCompositeOperation='source-over';
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.globalCompositeOperation='lighter';
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.drawImage(tmpCanvas,0,0);
+    ctx.restore();
+  }
+
   function draw(){
-    t+=0.02;
+    const now=performance.now();
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,cw,ch);
     ctx.drawImage(strokeLayer,0,0,strokeLayer.width,strokeLayer.height,0,0,cw,ch);
 
-    intensity*=0.9;
-
-    const tctx=trailCanvas.getContext('2d');
-    tctx.setTransform(dpr,0,0,dpr,0,0);
-    tctx.globalCompositeOperation='destination-out';
-    tctx.fillStyle='rgba(0,0,0,.1)';
-    tctx.fillRect(0,0,cw,ch);
-    tctx.globalCompositeOperation='source-over';
-
-    if(hoverCapable&&intensity>0.015){
-      if(mx>-1000){
-        const radius=36+intensity*80;
-        const grad=tctx.createRadialGradient(mx,my,0,mx,my,radius);
-        grad.addColorStop(0,`rgba(255,255,255,${Math.min(.6,intensity*.7)})`);
-        grad.addColorStop(1,'rgba(255,255,255,0)');
-        tctx.fillStyle=grad;
-        tctx.beginPath();tctx.arc(mx,my,radius,0,Math.PI*2);tctx.fill();
+    // 13.17 — momentum: mesmo sem input novo, o "dedo na água" continua
+    // empurrando e gerando ondulações residuais até desacelerar de vez
+    if(hasMoved&&(Math.abs(vx)>0.05||Math.abs(vy)>0.05)){
+      driftX+=vx;driftY+=vy;
+      vx*=0.92;vy*=0.92;
+      if(Math.random()<0.5){
+        ripples.push({x:driftX,y:driftY,birth:now,strength:Math.min(.55,Math.hypot(vx,vy)/6),seed:Math.random()});
+        if(ripples.length>20)ripples.shift();
       }
+    }
 
+    if(hoverCapable&&ripples.length){
       const lctx=liquidCanvas.getContext('2d');
       lctx.setTransform(dpr,0,0,dpr,0,0);
       lctx.clearRect(0,0,cw,ch);
       lctx.globalCompositeOperation='lighter';
-      const bands=12,strip=Math.ceil(ch/bands);
-      CHANNELS.forEach((chan,i)=>{
-        const off=offChannels[i];
-        lctx.globalAlpha=Math.min(1,chan.alpha*intensity);
-        for(let b=0;b<bands;b++){
-          const y=b*strip;
-          const sh=Math.min(strip,ch-y);
-          if(sh<=0)continue;
-          const dx=chan.baseDx*intensity+Math.sin(t*4+b*0.7)*12*intensity;
-          lctx.drawImage(off,0,y*dpr,cw*dpr,sh*dpr,dx,y,cw,sh);
-        }
-      });
-      lctx.globalAlpha=1;
-      lctx.globalCompositeOperation='destination-in';
-      lctx.drawImage(trailCanvas,0,0,trailCanvas.width,trailCanvas.height,0,0,cw,ch);
-      lctx.drawImage(fillMask,0,0,fillMask.width,fillMask.height,0,0,cw,ch);
+      for(let i=ripples.length-1;i>=0;i--){
+        if(!drawRipple(lctx,ripples[i],now))ripples.splice(i,1);
+      }
       lctx.globalCompositeOperation='source-over';
 
-      ctx.drawImage(liquidCanvas,0,0,liquidCanvas.width,liquidCanvas.height,0,0,cw,ch);
+      // interior: versão mais escura/opaca (13.15)
+      drawMasked(liquidCanvas,fillMask,.38);
+      // borda: cor mais viva/saturada, concentrada no contorno (13.15)
+      drawMasked(liquidCanvas,edgeMask,1);
     }
     requestAnimationFrame(draw);
   }
