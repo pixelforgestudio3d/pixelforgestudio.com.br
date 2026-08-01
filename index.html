@@ -1144,10 +1144,13 @@ document.querySelectorAll('.nd').forEach(nd=>{
 });
 
 // ============================================================
-// SERVIÇOS — WATERMARK COM DISTORÇÃO LÍQUIDA + RGB-SPLIT (13.1)
-// texto grande de fundo, nítido fora da área do cursor; perto do
-// cursor, tiras horizontais do texto se separam em canais de cor
-// com leve ondulação, como um "vazamento" líquido cromático.
+// SERVIÇOS — WATERMARK STROKE-ONLY COM DISTORÇÃO LÍQUIDA CLIPADA
+// PELA FORMA DAS LETRAS, INTENSIDADE POR VELOCIDADE DO MOUSE (13.1)
+// texto quase invisível (só contorno) por padrão. A distorção líquida
+// colorida só aparece DENTRO da forma das letras (a letra é a máscara),
+// na posição por onde o mouse passou, com força proporcional à
+// velocidade do cursor — rápido = efeito forte, parado = quase zero,
+// com decaimento suave (rastro), nunca corte abrupto.
 // ============================================================
 (function(){
   const section=document.getElementById('servicos');
@@ -1157,31 +1160,44 @@ document.querySelectorAll('.nd').forEach(nd=>{
   const ctx=canvas.getContext('2d');
   const TEXT='Serviços';
   const CHANNELS=[
-    {color:'rgba(244,51,187,.8)',baseDx:-11},
-    {color:'rgba(128,23,226,.55)',baseDx:0},
-    {color:'rgba(41,49,161,.8)',baseDx:11},
+    {color:'#f433bb',baseDx:-13,alpha:.85},
+    {color:'#8017e2',baseDx:0,alpha:.55},
+    {color:'#2931a1',baseDx:13,alpha:.85},
   ];
-  const offWhite=document.createElement('canvas');
+  const strokeLayer=document.createElement('canvas');
+  const fillMask=document.createElement('canvas');
+  const trailCanvas=document.createElement('canvas');
+  const liquidCanvas=document.createElement('canvas');
   const offChannels=CHANNELS.map(()=>document.createElement('canvas'));
   let cw=0,ch=0,dpr=Math.min(window.devicePixelRatio||1,2);
-  let mx=-9999,my=-9999,active=false;
+  let mx=-9999,my=-9999;
+  let lastMX=null,lastMY=null,lastT=null,intensity=0;
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 
   function buildLayers(){
-    const r=wrap.getBoundingClientRect();
+    const r=canvas.getBoundingClientRect();
     cw=Math.max(1,Math.round(r.width));
     ch=Math.max(1,Math.round(r.height));
-    [canvas,offWhite,...offChannels].forEach(c=>{
+    [canvas,strokeLayer,fillMask,trailCanvas,liquidCanvas,...offChannels].forEach(c=>{
       c.width=cw*dpr;c.height=ch*dpr;
       c.style.width=cw+'px';c.style.height=ch+'px';
     });
     const fontSize=Math.min(cw*0.16,ch*0.6);
     const font=`700 ${fontSize}px 'Space Grotesk',sans-serif`;
-    const wctx=offWhite.getContext('2d');
-    wctx.setTransform(dpr,0,0,dpr,0,0);
-    wctx.font=font;wctx.textAlign='center';wctx.textBaseline='middle';
-    wctx.fillStyle='#fff';
-    wctx.fillText(TEXT,cw/2,ch/2);
+
+    const sctx=strokeLayer.getContext('2d');
+    sctx.setTransform(dpr,0,0,dpr,0,0);
+    sctx.font=font;sctx.textAlign='center';sctx.textBaseline='middle';
+    sctx.lineWidth=1.4;
+    sctx.strokeStyle='rgba(255,255,255,.16)';
+    sctx.strokeText(TEXT,cw/2,ch/2);
+
+    const mctx=fillMask.getContext('2d');
+    mctx.setTransform(dpr,0,0,dpr,0,0);
+    mctx.font=font;mctx.textAlign='center';mctx.textBaseline='middle';
+    mctx.fillStyle='#fff';
+    mctx.fillText(TEXT,cw/2,ch/2);
+
     offChannels.forEach((oc,i)=>{
       const octx=oc.getContext('2d');
       octx.setTransform(dpr,0,0,dpr,0,0);
@@ -1196,9 +1212,18 @@ document.querySelectorAll('.nd').forEach(nd=>{
   if(hoverCapable){
     section.addEventListener('mousemove',e=>{
       const r=canvas.getBoundingClientRect();
-      mx=e.clientX-r.left;my=e.clientY-r.top;active=true;
+      mx=e.clientX-r.left;my=e.clientY-r.top;
+      const now=performance.now();
+      if(lastMX!==null){
+        const dt=Math.max(1,now-lastT);
+        const dist=Math.hypot(mx-lastMX,my-lastMY);
+        const speed=dist/dt;
+        const target=Math.min(1,speed/2.2);
+        intensity=Math.max(intensity,target);
+      }
+      lastMX=mx;lastMY=my;lastT=now;
     });
-    section.addEventListener('mouseleave',()=>{active=false;});
+    section.addEventListener('mouseleave',()=>{lastMX=null;});
   }
 
   let t=0;
@@ -1206,30 +1231,50 @@ document.querySelectorAll('.nd').forEach(nd=>{
     t+=0.02;
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,cw,ch);
-    ctx.globalAlpha=.07;
-    ctx.drawImage(offWhite,0,0,offWhite.width,offWhite.height,0,0,cw,ch);
-    ctx.globalAlpha=1;
+    ctx.drawImage(strokeLayer,0,0,strokeLayer.width,strokeLayer.height,0,0,cw,ch);
 
-    if(active){
-      const radius=Math.min(cw,ch)*0.32;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(mx,my,radius,0,Math.PI*2);
-      ctx.clip();
-      ctx.globalCompositeOperation='lighter';
-      const strip=6;
+    intensity*=0.9;
+
+    const tctx=trailCanvas.getContext('2d');
+    tctx.setTransform(dpr,0,0,dpr,0,0);
+    tctx.globalCompositeOperation='destination-out';
+    tctx.fillStyle='rgba(0,0,0,.1)';
+    tctx.fillRect(0,0,cw,ch);
+    tctx.globalCompositeOperation='source-over';
+
+    if(hoverCapable&&intensity>0.015){
+      if(mx>-1000){
+        const radius=36+intensity*80;
+        const grad=tctx.createRadialGradient(mx,my,0,mx,my,radius);
+        grad.addColorStop(0,`rgba(255,255,255,${Math.min(.6,intensity*.7)})`);
+        grad.addColorStop(1,'rgba(255,255,255,0)');
+        tctx.fillStyle=grad;
+        tctx.beginPath();tctx.arc(mx,my,radius,0,Math.PI*2);tctx.fill();
+      }
+
+      const lctx=liquidCanvas.getContext('2d');
+      lctx.setTransform(dpr,0,0,dpr,0,0);
+      lctx.clearRect(0,0,cw,ch);
+      lctx.globalCompositeOperation='lighter';
+      const bands=12,strip=Math.ceil(ch/bands);
       CHANNELS.forEach((chan,i)=>{
         const off=offChannels[i];
-        for(let y=0;y<ch;y+=strip){
-          const distY=Math.abs((y+strip/2)-my);
-          const falloff=Math.max(0,1-distY/radius);
-          if(falloff<=0)continue;
-          const dx=chan.baseDx*falloff+Math.sin(t*3+y*0.06)*10*falloff;
-          ctx.drawImage(off,0,y*dpr,cw*dpr,strip*dpr,dx,y,cw,strip);
+        lctx.globalAlpha=Math.min(1,chan.alpha*intensity);
+        for(let b=0;b<bands;b++){
+          const y=b*strip;
+          const sh=Math.min(strip,ch-y);
+          if(sh<=0)continue;
+          const dx=chan.baseDx*intensity+Math.sin(t*4+b*0.7)*12*intensity;
+          lctx.drawImage(off,0,y*dpr,cw*dpr,sh*dpr,dx,y,cw,sh);
         }
       });
-      ctx.globalCompositeOperation='source-over';
-      ctx.restore();
+      lctx.globalAlpha=1;
+      lctx.globalCompositeOperation='destination-in';
+      lctx.drawImage(trailCanvas,0,0,trailCanvas.width,trailCanvas.height,0,0,cw,ch);
+      lctx.drawImage(fillMask,0,0,fillMask.width,fillMask.height,0,0,cw,ch);
+      lctx.globalCompositeOperation='source-over';
+
+      ctx.drawImage(liquidCanvas,0,0,liquidCanvas.width,liquidCanvas.height,0,0,cw,ch);
     }
     requestAnimationFrame(draw);
   }
