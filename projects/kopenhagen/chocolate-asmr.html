@@ -67,7 +67,9 @@ h2{font-size:clamp(2.4rem,4.5vw,4.2rem);line-height:1.02;margin-bottom:1.5rem}
 .cb2:hover{opacity:.88;gap:18px}
 .cb2 svg{width:16px;height:16px}
 
-footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem;border-top:.5px solid var(--border)}
+footer{position:relative;overflow:hidden;padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2rem;border-top:.5px solid var(--border)}
+footer>div{position:relative;z-index:1}
+#footerPhysicsCanvas{position:absolute;inset:0;pointer-events:none;z-index:0}
 .fl{font-size:1.2rem;font-weight:500;letter-spacing:.06em;display:flex;align-items:center;gap:12px}
 .fl span{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .flk{display:flex;flex-direction:column;gap:.6rem;text-align:center}
@@ -211,6 +213,7 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 </div>
 
 <footer>
+  <canvas id="footerPhysicsCanvas"></canvas>
   <div>
     <div class="fl">
       <img src="../../assets/Logo_PixelForge_White.svg" alt="PixelForge" style="height:26px">
@@ -493,6 +496,93 @@ document.querySelectorAll('.nd').forEach(nd=>{
       animate(420,true,()=>{canvas.classList.remove('on');});
     });
   });
+})();
+
+(function(){
+  const footer=document.querySelector('footer');
+  const canvas=document.getElementById('footerPhysicsCanvas');
+  if(!footer||!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const COLORS=['#2931a1','#6031b2','#8017e2','#dc1065','#f433bb','#ff5ad2'];
+  const SIZE=14,N=46,GRAVITY=.35,FRICTION=.985,NUDGE_RADIUS=70;
+  let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
+  let particles=[];
+  let mx=-9999,my=-9999;
+  const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  function resize(){
+    const r=footer.getBoundingClientRect();
+    w=Math.max(1,r.width);h=Math.max(1,r.height);
+    canvas.width=w*dpr;canvas.height=h*dpr;
+    canvas.style.width=w+'px';canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function seed(){
+    particles=Array.from({length:N},()=>({
+      x:Math.random()*w,
+      y:-Math.random()*h*.7-20,
+      vx:0,vy:0,
+      size:SIZE*(.7+Math.random()*.6),
+      color:COLORS[Math.floor(Math.random()*COLORS.length)]
+    }));
+  }
+  resize();seed();
+  window.addEventListener('resize',()=>{resize();});
+
+  if(hoverCapable){
+    footer.addEventListener('mousemove',e=>{
+      const r=footer.getBoundingClientRect();
+      mx=e.clientX-r.left;my=e.clientY-r.top;
+    });
+    footer.addEventListener('mouseleave',()=>{mx=-9999;my=-9999;});
+  }
+
+  function step(){
+    particles.forEach(p=>{
+      p.vy+=GRAVITY;
+      p.x+=p.vx;p.y+=p.vy;
+      p.vx*=FRICTION;
+      if(p.y+p.size/2>h){p.y=h-p.size/2;p.vy*=-.28;if(Math.abs(p.vy)<.6)p.vy=0;}
+      if(p.x-p.size/2<0){p.x=p.size/2;p.vx*=-.4;}
+      if(p.x+p.size/2>w){p.x=w-p.size/2;p.vx*=-.4;}
+      const dx=p.x-mx,dy=p.y-my,dist=Math.hypot(dx,dy);
+      if(dist<NUDGE_RADIUS&&dist>.01){
+        const force=(1-dist/NUDGE_RADIUS)*2.2;
+        p.vx+=(dx/dist)*force;
+        p.vy+=(dy/dist)*force-force*.4;
+      }
+    });
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const a=particles[i],b=particles[j];
+        const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
+        const minDist=(a.size+b.size)/2*.9;
+        if(dist<minDist&&dist>.001){
+          const overlap=(minDist-dist)/2,nx=dx/dist,ny=dy/dist;
+          a.x-=nx*overlap;a.y-=ny*overlap;
+          b.x+=nx*overlap;b.y+=ny*overlap;
+        }
+      }
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    ctx.globalAlpha=.85;
+    particles.forEach(p=>{ctx.fillStyle=p.color;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);});
+    ctx.globalAlpha=1;
+  }
+  let running=false;
+  function loop(){
+    if(!running)return;
+    step();draw();
+    requestAnimationFrame(loop);
+  }
+  new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting){if(!running){running=true;loop();}}
+      else running=false;
+    });
+  },{threshold:.05}).observe(footer);
 })();
 
 </script>
