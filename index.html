@@ -206,15 +206,22 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
   .iacgi-media{max-width:100%;margin:0 auto}
 }
 
-/* FOOH — carrossel de scroll horizontal, sem clique (11.11) */
-.fooh-wrap{margin-top:4rem;position:relative;overflow:hidden}
-.fooh-track{display:flex;gap:1.5rem;width:max-content;will-change:transform}
-.fc{position:relative;width:min(300px,68vw);aspect-ratio:9/16;border-radius:6px;overflow:hidden;flex-shrink:0;box-shadow:0 24px 60px rgba(0,0,0,.5)}
-.fc video{width:100%;height:100%;object-fit:cover;display:block}
-.fc-tag{position:absolute;bottom:1.5rem;left:1.5rem;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:4px 12px;border:.5px solid rgba(244,51,187,.6);color:var(--pink);background:rgba(0,0,0,.65)}
-.fooh-dots{display:flex;justify-content:center;gap:8px;margin-top:2rem}
-.fd{width:5px;height:5px;border-radius:50%;background:var(--muted);transition:all .3s;}
-.fd.a{background:var(--pink);width:24px;border-radius:3px}
+/* FOOH — pin-scroll coverflow (5.2/12.10/13.11): 3 vídeos por vez, um em
+   destaque central, avançando um a um com o scroll; mural de ticker no
+   fundo cobrindo a seção inteira, linhas alternando direção */
+.fooh-sec{position:relative;overflow:hidden}
+.fooh-ticker-mural{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column;justify-content:space-evenly;pointer-events:none}
+.fooh-ticker-line{position:relative;white-space:nowrap;font-size:clamp(2.6rem,6vw,4.6rem);font-weight:800;letter-spacing:.01em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.09);opacity:.55;will-change:transform}
+.fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;min-height:80vh}
+.fooh-text{max-width:480px}
+.fooh-coverflow{position:relative;height:clamp(340px,42vw,540px);perspective:1400px}
+.fc-card{position:absolute;top:50%;left:50%;width:min(230px,58%);aspect-ratio:9/16;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);background:var(--card)}
+.fc-card video{width:100%;height:100%;object-fit:cover;display:block}
+.fc-card .fc-tag{position:absolute;bottom:1.2rem;left:1.2rem;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:4px 10px;border:.5px solid rgba(244,51,187,.6);color:var(--pink);background:rgba(0,0,0,.65)}
+@media(max-width:900px){
+  .fooh-split{grid-template-columns:1fr;gap:2rem;min-height:auto}
+  .fooh-coverflow{height:clamp(300px,80vw,420px)}
+}
 
 /* A FORJA — layout definitivo 13.6 (substitui 12.8): galeria dominante
    colada na borda esquerda, texto começa no meio alinhado à esquerda,
@@ -583,14 +590,16 @@ footer{padding:4rem 2.5rem;display:grid;grid-template-columns:1fr auto 1fr;align
 
 <div class="gl"></div>
 
-<section class="sec" id="fooh">
-  <div class="st2 rv">04 — Fake Out of Home</div>
-  <h2 class="rv d1">O impossível<br>na <span class="g">rua.</span></h2>
-  <p class="ss rv d2">CGI integrado ao mundo real com precisão de câmera, tracking e iluminação cinematográfica. Instalações que param o scroll e o trânsito.</p>
-  <div class="fooh-wrap rv d3" id="foohWrap">
-    <div class="fooh-track" id="foohTrack"></div>
+<section class="sec fooh-sec" id="fooh">
+  <div class="fooh-ticker-mural" id="foohTickerMural"></div>
+  <div class="fooh-split">
+    <div class="fooh-text">
+      <div class="st2 rv">04 — Fake Out of Home</div>
+      <h2 class="rv d1">O impossível<br>na <span class="g">rua.</span></h2>
+      <p class="ss rv d2">CGI integrado ao mundo real com precisão de câmera, tracking e iluminação cinematográfica. Instalações que param o scroll e o trânsito.</p>
+    </div>
+    <div class="fooh-coverflow rv d3" id="foohCoverflow"></div>
   </div>
-  <div class="fooh-dots" id="foohDots"></div>
 </section>
 
 <div class="gl"></div>
@@ -1613,9 +1622,11 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 })();
 
 // ============================================================
-// FOOH — SCROLL HORIZONTAL, SEM CLIQUE (11.11)
-// a faixa de vídeos anda conforme o usuário rola a página pra
-// baixo; a seção fica pinada enquanto isso acontece.
+// FOOH — PIN-SCROLL COVERFLOW (5.2/12.10/13.11)
+// 3 vídeos visíveis por vez (um em destaque central, dois menores/
+// apagados nas laterais), avançando um por vez conforme o scroll;
+// a seção fica presa até o último vídeo passar. NUNCA um carrossel
+// automático mostrando tudo de uma vez.
 // ============================================================
 const foohVideos=[
   'assets/fooh/FOOH 1 VF.mp4','assets/fooh/FOOH 2 VF.mp4','assets/fooh/FOOH 3 VF.mp4',
@@ -1623,38 +1634,73 @@ const foohVideos=[
   'assets/fooh/FOOH 7 VF.mp4','assets/fooh/FOOH 8 VF.mp4','assets/fooh/FOOH 9 VF.mp4',
   'assets/fooh/FOOH 10 VF.mp4','assets/fooh/FOOH 11 VF.mp4','assets/fooh/FOOH 12 VF.mp4'
 ];
-const foohTrack=document.getElementById('foohTrack');
-const foohDotsWrap=document.getElementById('foohDots');
-const total=foohVideos.length;
-foohVideos.forEach(src=>{
-  const div=document.createElement('div');div.className='fc';
-  div.innerHTML=`<video autoplay muted loop playsinline><source src="${src}" type="video/mp4"></video><div class="fc-tag">FOOH</div>`;
-  foohTrack.appendChild(div);
+const foohCoverflow=document.getElementById('foohCoverflow');
+const foohCards=foohVideos.map(src=>{
+  const div=document.createElement('div');div.className='fc-card';
+  div.innerHTML=`<video muted loop playsinline preload="metadata"><source src="${src}" type="video/mp4"></video><div class="fc-tag">FOOH</div>`;
+  foohCoverflow.appendChild(div);
+  return div;
 });
-foohVideos.forEach((_,i)=>{
-  const d=document.createElement('div');d.className='fd'+(i===0?' a':'');
-  foohDotsWrap.appendChild(d);
-});
-const foohDots=document.querySelectorAll('.fd');
+const foohVideoEls=foohCards.map(c=>c.querySelector('video'));
+
+// mural de ticker no fundo — várias linhas empilhadas, "* FAKE OUT OF HOME *"
+// colado sem espaço, alternando direção por linha (13.11)
+(function buildFoohTicker(){
+  const mural=document.getElementById('foohTickerMural');
+  if(!mural)return;
+  const PHRASE='* FAKE OUT OF HOME *';
+  const LINES=7;
+  for(let i=0;i<LINES;i++){
+    const line=document.createElement('div');
+    line.className='fooh-ticker-line';
+    line.textContent=PHRASE.repeat(10);
+    mural.appendChild(line);
+  }
+})();
 
 (function(){
   if(!window.gsap||!window.ScrollTrigger)return;
   gsap.registerPlugin(ScrollTrigger);
   window.setupFoohPin=function(){
-    const wrap=document.getElementById('foohWrap');
-    const maxX=Math.max(0,foohTrack.scrollWidth-wrap.clientWidth);
-    if(!maxX)return;
+    const section=document.getElementById('fooh');
+    const n=foohCards.length;
+    const tickerLines=document.querySelectorAll('.fooh-ticker-line');
+    if(!section||!n)return;
+
+    function layout(raw){
+      foohCards.forEach((card,i)=>{
+        const offset=i-raw;
+        const abs=Math.abs(offset);
+        const x=offset*170;
+        const scale=Math.max(.55,1-abs*.28);
+        const opacity=abs<2.2?Math.max(0,1-abs*.55):0;
+        const rotY=Math.max(-24,Math.min(24,offset*-16));
+        gsap.set(card,{x,scale,opacity,rotationY:rotY,xPercent:-50,yPercent:-50,zIndex:200-Math.round(abs*10)});
+        const vid=foohVideoEls[i];
+        if(abs<0.5){
+          if(vid.paused)vid.play().catch(()=>{});
+        }else if(!vid.paused){
+          vid.pause();
+        }
+      });
+    }
+    layout(0);
+
     ScrollTrigger.create({
-      trigger:'#fooh',
+      trigger:section,
       start:'top top',
-      end:()=>'+='+(maxX+300),
+      end:'+='+(n-1)*90+'%',
       pin:true,
       scrub:.6,
       anticipatePin:1,
       onUpdate(self){
-        gsap.set(foohTrack,{x:-maxX*self.progress});
-        const idx=Math.min(total-1,Math.floor(self.progress*total));
-        foohDots.forEach((d,i)=>d.classList.toggle('a',i===idx));
+        const raw=self.progress*(n-1);
+        layout(raw);
+        const dist=self.progress*4000;
+        tickerLines.forEach((line,i)=>{
+          const dir=i%2===0?-1:1;
+          gsap.set(line,{x:dir*(dist*.5+i*30)});
+        });
       }
     });
   };
