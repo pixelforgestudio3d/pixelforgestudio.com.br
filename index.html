@@ -1639,8 +1639,9 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
     gsap.set('.hero .he',{opacity:0,y:24});
     gsap.set('.hero .hs',{opacity:0,y:24});
     // 11.1: Hero precisa carregar 100% limpo, sem nenhum escurecimento —
-    // o overlay só pode crescer JUNTO com o scrub do reveal, nunca antes.
-    gsap.set('.hero .ho',{opacity:0});
+    // os dois overlays (.ho escurecimento geral, .ha glow de cor no topo)
+    // só podem crescer JUNTO com o scrub do reveal, nunca antes.
+    gsap.set('.hero .ho, .hero .ha',{opacity:0});
 
     gsap.timeline({
       scrollTrigger:{
@@ -1653,6 +1654,7 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
       }
     })
     .to('.hero .ho',{opacity:1,duration:1.3,ease:'none'},0)
+    .to('.hero .ha',{opacity:1,duration:1.3,ease:'none'},0)
     .to('#heroScr',{opacity:0,duration:.15},0)
     .to('.hero .he',{opacity:1,y:0,duration:.6,ease:'power2.out'},0)
     .to(split.chars,{yPercent:0,opacity:1,duration:.9,stagger:.02,ease:'power4.out'},.15)
