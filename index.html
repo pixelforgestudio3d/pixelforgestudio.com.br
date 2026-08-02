@@ -224,10 +224,10 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 /* FOOH — pin-scroll coverflow (5.2/12.10/13.11): 3 vídeos por vez, um em
    destaque central, avançando um a um com o scroll; mural de ticker no
    fundo cobrindo a seção inteira, linhas alternando direção */
-.fooh-sec{position:relative;overflow:hidden}
+.fooh-sec{position:relative;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
 .fooh-ticker-mural{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column;justify-content:space-evenly;pointer-events:none}
 .fooh-ticker-line{position:relative;white-space:nowrap;font-size:clamp(2.6rem,6vw,4.6rem);font-weight:800;letter-spacing:.01em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.09);opacity:.55;will-change:transform}
-.fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;min-height:80vh}
+.fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center}
 .fooh-text{max-width:480px}
 .fooh-coverflow{position:relative;height:clamp(340px,42vw,540px);perspective:1400px}
 .fc-card{position:absolute;top:50%;left:50%;width:min(230px,58%);aspect-ratio:9/16;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);background:var(--card)}
