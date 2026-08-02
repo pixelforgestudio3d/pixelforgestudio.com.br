@@ -131,8 +131,8 @@ h1 .split-char{will-change:transform,opacity}
 .cle-head h2{margin-bottom:0}
 .cle-list{max-width:640px;margin:0 auto;position:relative}
 .cli-row{position:relative;display:flex;align-items:baseline;justify-content:space-between;gap:1.5rem;padding:.7rem 0;cursor:pointer}
-.cli-name{font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;color:var(--white);transition:opacity .2s;white-space:nowrap}
-.cli-row:hover .cli-name,.cli-row.on .cli-name{opacity:1!important}
+.cli-name{display:inline-block;font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;color:var(--white);transition:opacity .2s,transform .35s cubic-bezier(.22,1,.36,1);transform-origin:left center;white-space:nowrap}
+.cli-row:hover .cli-name,.cli-row.on .cli-name{opacity:1!important;transform:scale(1.1)}
 .cli-logo{position:absolute;left:-150px;top:50%;transform:translateY(-50%);width:100px;max-height:60px;object-fit:contain;opacity:0;transition:opacity .3s;pointer-events:none;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
 .cli-row:hover .cli-logo,.cli-row.on .cli-logo{opacity:1}
 .cli-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;opacity:0;transition:opacity .3s}
@@ -491,7 +491,7 @@ footer>div{position:relative;z-index:1}
   </div>
   <div class="svc-inner">
     <div class="sec-header">
-      <div class="st2 rv">01 — Serviços</div>
+      <div class="st2 rv">Serviços</div>
     </div>
     <div class="svc-glass-wrap" id="svcGlassWrap">
       <canvas id="svcGlassCanvas"></canvas>
@@ -511,7 +511,7 @@ footer>div{position:relative;z-index:1}
 
 <section class="sec" id="projetos">
   <div class="sec-header">
-    <div class="st2 rv">02 — Trabalho Selecionado</div>
+    <div class="st2 rv">Trabalho Selecionado</div>
     <h2 class="rv d1">Projetos que<br>definem <span class="g">padrão.</span></h2>
   </div>
   <div class="pg rv d2">
@@ -579,7 +579,7 @@ footer>div{position:relative;z-index:1}
     </div>
     <div class="forja-gallery-cursor" id="forjaGalleryCursor">Ver galeria</div>
     <div class="forja-text-col">
-      <div class="st2 rv">03 — A Forja</div>
+      <div class="st2 rv">A Forja</div>
       <div class="al rv"></div>
       <div class="forja-name-row rv d1">
         <img class="forja-photo" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
@@ -606,7 +606,7 @@ footer>div{position:relative;z-index:1}
   <div class="fooh-ticker-mural" id="foohTickerMural"></div>
   <div class="fooh-split">
     <div class="fooh-text">
-      <div class="st2 rv">04 — Fake Out of Home</div>
+      <div class="st2 rv">Fake Out of Home</div>
       <h2 class="rv d1">O impossível<br>na <span class="g">rua.</span></h2>
       <p class="ss rv d2">CGI integrado ao mundo real com precisão de câmera, tracking e iluminação cinematográfica. Instalações que param o scroll e o trânsito.</p>
     </div>
@@ -625,7 +625,7 @@ footer>div{position:relative;z-index:1}
       <div class="iai"><img src="assets/NOVAS IMAGENS/SWEET CRUSH 01 v2.png" alt="Composição CGI e IA"></div>
     </div>
     <div class="iacgi-text">
-      <div class="st2 rv d1">05 — IA + CGI</div>
+      <div class="st2 rv d1">IA + CGI</div>
       <h2 class="rv d2">Controle e velocidade,<br>numa <span class="g">imagem só.</span></h2>
       <p class="ss rv d3">CGI e IA não competem, se compõem. Cada tecnologia entra numa camada diferente do processo (modelagem, textura, luz, ambientação) até a composição final fundir tudo numa peça só, pronta pra publicar.</p>
     </div>
@@ -635,7 +635,7 @@ footer>div{position:relative;z-index:1}
 <div class="gl"></div>
 
 <section class="cs">
-  <div class="st2 rv" style="justify-content:center">06 — Contato</div>
+  <div class="st2 rv" style="justify-content:center">Contato</div>
   <h2 class="ch rv d1">Pronto para forjar<br>o <span class="g">impossível?</span></h2>
   <p class="csub rv d2">Vamos criar campanhas visuais impossíveis de ignorar. Direção de arte e tecnologia trabalhando a ideia até o resultado perfeito!</p>
   <a href="contato.html" class="cb2 rv d3">
@@ -1638,6 +1638,9 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
     gsap.set(split.chars,{yPercent:120,opacity:0});
     gsap.set('.hero .he',{opacity:0,y:24});
     gsap.set('.hero .hs',{opacity:0,y:24});
+    // 11.1: Hero precisa carregar 100% limpo, sem nenhum escurecimento —
+    // o overlay só pode crescer JUNTO com o scrub do reveal, nunca antes.
+    gsap.set('.hero .ho',{opacity:0});
 
     gsap.timeline({
       scrollTrigger:{
@@ -1649,6 +1652,7 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
         anticipatePin:1
       }
     })
+    .to('.hero .ho',{opacity:1,duration:1.3,ease:'none'},0)
     .to('#heroScr',{opacity:0,duration:.15},0)
     .to('.hero .he',{opacity:1,y:0,duration:.6,ease:'power2.out'},0)
     .to(split.chars,{yPercent:0,opacity:1,duration:.9,stagger:.02,ease:'power4.out'},.15)
@@ -1797,7 +1801,7 @@ const foohVideoEls=foohCards.map(c=>c.querySelector('video'));
     ScrollTrigger.create({
       trigger:section,
       start:'top top',
-      end:'+='+(n-1)*90+'%',
+      end:'+='+(n-1)*35+'%',
       pin:true,
       scrub:.6,
       anticipatePin:1,
