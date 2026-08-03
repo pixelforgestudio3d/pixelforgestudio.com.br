@@ -208,7 +208,7 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 /* IA + CGI — layout split, compacto (11.8) */
 .iacgi-sec{padding:5rem 2.5rem}
 .iacgi-split{display:grid;grid-template-columns:1fr 1fr;gap:4.5rem;align-items:center;max-width:1100px;margin:0 auto}
-.iacgi-media{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:440px}
+.iacgi-media{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:440px;aspect-ratio:1/1}
 .iai{position:relative;overflow:hidden;background:var(--black);aspect-ratio:1/1}
 .iai img,.iai video{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
 .iai:hover img,.iai:hover video{transform:scale(1.04)}
@@ -967,17 +967,15 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   const key=new THREE.DirectionalLight(0xffffff,1.3);key.position.set(3,5,6);scene.add(key);
   const rim=new THREE.DirectionalLight(0xda2c80,1.1);rim.position.set(-4,-2,-3);scene.add(rim);
 
-  // fundo: textura viva do próprio watermark canvas (13.1), pro vidro ter o que refratar
-  let bgTexture=null,bgPlane=null;
-  if(srcCanvas){
-    bgTexture=new THREE.CanvasTexture(srcCanvas);
-    bgTexture.colorSpace=THREE.SRGBColorSpace;
-    const bgMat=new THREE.MeshBasicMaterial({map:bgTexture,transparent:true});
-    bgPlane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),bgMat);
-    bgPlane.position.z=-3;
-    scene.add(bgPlane);
-  }
-
+  // 14.5 — BUG: o plano de fundo abaixo reproduzia o watermark canvas
+  // inteiro (que já cobre a seção toda e reage à posição real do mouse)
+  // espremido dentro do quadro estreito do vidro — resultado: a mesma
+  // distorção aparecia DUAS vezes, uma na posição real do cursor (no
+  // canvas grande) e outra encolhida/deslocada no centro (aqui). O vidro
+  // não precisa de um plano de fundo próprio pra refratar — o
+  // MeshPhysicalMaterial com transmission já reage ao RoomEnvironment.
+  // Removido; retomar na 13.14/Bloco C se o vidro precisar de algo atrás
+  // dele pra refratar de verdade, sem duplicar o canvas 2D.
   const glassMat=new THREE.MeshPhysicalMaterial({
     color:0xffffff,metalness:0,roughness:.12,transmission:1,
     thickness:1,ior:1.4,clearcoat:.4,clearcoatRoughness:.2,
@@ -993,7 +991,6 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     renderer.setSize(w,h);
     const depth=Math.min(w,h)*0.14;
     glass.scale.set(w*0.985,h*0.985,depth);
-    if(bgPlane)bgPlane.scale.set(w,h,1);
   }
   layout();
   window.addEventListener('resize',layout);
@@ -1021,7 +1018,6 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     cx+=(tx-cx)*.06;cy+=(ty-cy)*.06;
     glass.rotation.y=cx*.18;
     glass.rotation.x=-cy*.14;
-    if(bgTexture)bgTexture.needsUpdate=true;
     renderer.render(scene,camera);
   }
   animate();
@@ -1818,6 +1814,14 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
   if(!frame||!pill)return;
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
   if(!hoverCapable)return;
+
+  // 14.8 — BUG: a pílula é position:fixed, mas vivia dentro da <section>
+  // da Forja, que o GSAP pina via transform. Um ancestral com transform
+  // vira o "containing block" de descendentes fixed (spec do CSS) —
+  // então a pílula parava de seguir o viewport de verdade e passava a
+  // seguir o deslocamento do pin, que cresce conforme rola. Corrige
+  // tirando ela da subárvore pinada, direto pra <body>.
+  document.body.appendChild(pill);
 
   let mx=0,my=0,px=0,py=0,active=false;
   frame.addEventListener('mouseenter',e=>{
