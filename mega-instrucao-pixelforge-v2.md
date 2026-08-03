@@ -647,6 +647,13 @@ Ericson entra essa semana com força em duas frentes: prospecção de clientes n
 
 Nova leva de feedback, com dois vídeos novos do Lusion como referência direta (About Us — efeito de distorção; Our Projects — página de projetos + física do rodapé) e três screenshots do estado atual do build. Itens abaixo substituem ou reforçam pontos anteriores conforme indicado em cada um.
 
+**IMPORTANTE — leia isto antes de implementar qualquer coisa relacionada ao efeito de distorção (13.1/13.13/13.15/13.17):** depois de 3 tentativas ainda distantes da referência, o Ericson apontou que a descrição em texto sozinha não está sendo suficiente pra precisão do efeito. Salvei os frames exatos extraídos do vídeo de referência do Lusion em `_referencias-claude-code/distorcao-servicos/` (na raiz do repo):
+- `distorcao-01-repouso.jpg` — estado sem interação (mostra o quão sutil/quase invisível o contorno da letra deve ser).
+- `distorcao-02-inicio.jpg` — momento em que o efeito começa a aparecer (mostra a forma do "blob" líquido inicial, ainda pequeno).
+- `distorcao-03-forca-total.jpg` — efeito em força total, cobrindo boa parte da palavra (a referência mais completa: mostra a textura líquida/marmorizada, a cor mais viva na borda da letra e mais suave no centro, e a escala da tipografia).
+
+**Antes de escrever ou reescrever qualquer código desse efeito, abra e observe essas 3 imagens diretamente (não confie só no texto abaixo) — a leitura visual direta é mais precisa que qualquer descrição em palavras pra esse tipo de efeito.** Use as imagens como a fonte de verdade visual; o texto das seções 13.1/13.13/13.15/13.17 serve como explicação complementar de mecânica/comportamento (velocidade do mouse, física de água, etc.), não como substituto da referência visual.
+
 ### 13.1 Efeito de "distorção" — SUBSTITUI a descrição da seção 11.6, não é o que foi implementado
 
 **Errado no Bloco 2 (confirmado por análise de frame do vídeo "PixelForge...22-39-17", implementação atual):** Claude Code implementou como transformação CSS por caractere (skew/scale) e depois, numa segunda tentativa, como um borrão magenta/rosa CHAPADO (cor única, sem separação de canais) que fica meio travado numa posição fixa perto do "S" em vez de acompanhar o mouse em tempo real — e o texto-base "Serviços" continua totalmente opaco/legível o tempo todo, não um watermark quase invisível. Ericson foi claro: *"não é exatamente o que ele fez ali"* e depois *"ta bugado e muito distante da referência."*
@@ -820,3 +827,128 @@ Isso adiciona uma camada de física por cima do que já estava especificado (13.
 - Não é só "decaimento de intensidade" (fade simples) — é **momentum/inércia real**: quando o mouse para ou sai da área, o efeito continua se movendo/ondulando levemente na direção em que estava indo, como se tivesse sido "empurrado" e a água continuasse balançando por conta própria, e só depois desacelera gradualmente até ficar parado.
 - Enquanto o mouse se move, gera **ondas/ondulações que se propagam** a partir do ponto de contato (igual ondas concêntricas de um dedo mexendo em água parada), não só uma mancha de cor que segue o cursor.
 - Tecnicamente: isso é uma simulação leve de fluido/ondulação (ex.: um shader de "ripple" com decay — cada movimento do mouse injeta energia num campo de onda 2D que se propaga e dissipa ao longo de vários frames, tipo os shaders clássicos de "water ripple"/"heightfield fluid" — não é um simples `lerp` de posição). Pode ser implementado com uma textura de simulação (framebuffer ping-pong, técnica comum em shaders de água em WebGL) ou, numa versão mais simples, múltiplas ondas senoidais amortecidas somadas com decaimento exponencial ao longo do tempo desde o último input do mouse.
+
+---
+
+## 14. Revisão de implementação V4 — quinta rodada, vídeo narrado completo transcrito (03/08/2026)
+
+Ericson gravou um vídeo de ~26min navegando o site inteiro (Home completa + páginas de Serviços + Projetos + Galeria), narrando ponto a ponto o que precisa mudar, incluindo comparações ao vivo com o Lusion em várias seções. Sem acesso a áudio nesta sessão, Ericson transcreveu o vídeo inteiro manualmente e colou o texto — a análise abaixo é baseada nessa transcrição completa. Segue a ordem em que ele navegou o site (topo até rodapé, depois páginas internas).
+
+### 14.1 Nav — item "Ver todos" com funcionamento incerto
+
+Baixa prioridade: ele notou um link/botão "Ver todos" no nav que não tem certeza se funciona — ajustar quando der, não é bloqueador.
+
+### 14.2 Hero — fica escuro demais logo de cara
+
+O fade/overlay escurece o Hero rápido demais ao carregar. Sugestão do Ericson: limitar a no máximo ~80% de opacidade no escurecimento (não chegar a quase preto). **Resto do Hero está aprovado:** o fade surgindo conforme o scroll está certo, o texto está ótimo, e o leve "segurar" (pin) durante a rolagem inicial também está bom — não mexer nisso.
+
+### 14.3 Peça 3D interativa — ainda muito distante do Lusion (reforça 11.2)
+
+Comparação ao vivo lado a lado com o Lusion (mesma referência da 11.2): *"as peças são muito maiores, o quadro é muito maior, o efeito do mouse aqui é muito mais bonito... esse efeito de física das peças aqui tá perfeito, não tem referência melhor."*
+- **Peças precisam ser muito maiores**, e o quadro/container onde a peça 3D fica também precisa ser muito maior (ocupando mais espaço na tela).
+- **O efeito de rastro (trail) que a implementação atual deixa não é necessário** — remover.
+- **A física de interação do mouse do Lusion é a referência definitiva** — nenhuma referência melhor que essa, usar exatamente esse comportamento (já detalhado na 11.2: atrator central + repulsão individual por peça + drift/rotação independente).
+- Veredito: tanto o **look dev** (aparência/material/iluminação) quanto a **física** ainda estão muito distantes da referência — precisa de melhora significativa nos dois eixos, não só um ajuste fino.
+
+### 14.4 Marquee "Parcerias Criativas" — remover hover, virar loop contínuo sem interação
+
+Correção importante: Ericson não gosta do comportamento atual de travar/acender ao passar o mouse por cima. **Não precisa de NENHUM efeito de hover nessa seção.** Deve funcionar como um vídeo em loop fixo, passando continuamente da direita pra esquerda, sem nunca parar — nem quando o mouse passa por cima. Isso é especificamente sobre a faixa de logos "Parcerias Criativas" (seção 4) — não confundir com a seção "Clientes/Escopo" (seção 14.7 abaixo), que continua tendo interação de hover normalmente.
+
+### 14.5 Seção "Serviços" — shader errado, texto duplicando, contorno inconsistente, efeito ambiente novo confirmado
+
+Reforça e adiciona detalhes novos às seções 13.1/13.13/13.14/13.15/13.17:
+
+- **O shader de vidro (13.14) não foi aplicado.** O que aparece é uma barra branca sem relação com a referência enviada. Ericson desconfia que nem foi feito com Three.js. Reforçar a spec da 13.14 (objeto 3D real com `MeshPhysicalMaterial`/transmission).
+- **Texto da lista de serviços deve ficar centralizado**, já que o painel/box está centralizado — cada item (Launch Film, 3D Film, etc.) centralizado dentro do painel, não alinhado à esquerda.
+- **BUG: o efeito de distorção está duplicando** — aparece na posição do mouse E simultaneamente no meio da tela, sem o mouse estar lá. Possível tentativa errada de técnica de repetição/tiling do shader. Corrigir pra aparecer só uma vez, na posição real do cursor.
+- **NOVO — efeito ambiente/idle mesmo com o mouse parado, confirmado ao vivo por Ericson no Lusion:** *"o meu mouse tá parado, ele já tem um efeito sozinho nele mesmo, onde passa como se fosse uma luz, um reflexo em cima dele, revelando as letras."* Ou seja: além da distorção reativa ao movimento do mouse (13.1/13.17), existe uma **camada de animação ambiente independente** — um brilho/reflexo de luz que varre o texto lentamente por conta própria, revelando as letras, mesmo sem nenhuma interação. É uma camada adicional, não substitui a reação ao mouse.
+- **Contorno da letra:** reforça 13.15 — "muito mais delicado esse contorno". O efeito interno é cromático (cores se misturando), não "efeito de bolinhas" (o termo que Ericson usou pra descrever o que está errado no build atual).
+- **BUG específico de fonte:** no estado estático (sem efeito), as letras aparecem com traçado grosso e inconsistente — "a única letra que tem um contorno decente é o I", as outras letras estão malfeitas. Sugere um problema de renderização por caractere (pesos de fonte, SVG/path malformado, ou stroke-width aplicado de forma não uniforme). Revisar a implementação do stroke-only por letra.
+- Ericson também notou "muitas linhas" nas fontes do fundo, sem entender por quê, já que a forma deveria ser mais simples — mais um indício de que o contorno está sendo renderizado com ruído/complexidade desnecessária.
+
+### 14.6 Páginas individuais de projeto — subtítulo rosa ilegível
+
+A estrutura geral continua aprovada (hover ok, nomes ok). Mas o subtítulo/label acima do título (atualmente rosa) está com legibilidade ruim, tanto no celular quanto no desktop — especialmente porque tem um fade escuro no fundo. **Trocar a cor do subtítulo pra branco.**
+
+### 14.7 Seção "Clientes/Escopo" — pin do título, fade mais forte, logo em hover maior e centralizado (refina 11.4/12.6)
+
+Estrutura base aprovada — "já chegamos naquela estrutura que eu tinha comentado, que eu gostei." Ajustes:
+- **Pinar o título/frase de cabeçalho** da seção enquanto a lista de clientes rola por baixo — hoje o título sobe junto e desaparece; deve ficar fixo enquanto só a lista de nomes rola.
+- **Fade de baixo pra cima mais forte:** gradiente escuro de 100% de opacidade na base até 0% em aproximadamente 30% da altura da tela (mais intenso que o atual), criando a moldura escura onde o título fica fixo, com os nomes revelando conforme sobem por trás desse fade.
+- **Logo em hover:** aumentar pelo menos 50% do tamanho atual (está "tímido").
+- **CORREÇÃO DE MECÂNICA — logo maior e centralizado, não mais flutuando pequeno à esquerda:** ao passar o mouse sobre um nome, o logo da marca deve aparecer **centralizado no meio do espaço vazio**, bem maior (ocupando uma área generosa, não um ícone pequeno) — o espaço está "muito vazio, tímido". Isso ajusta a mecânica documentada na 11.4 (que tinha o logo flutuando à esquerda, estilo Valkiria) — Ericson agora quer o logo em destaque central e grande no hover, não pequeno lateral.
+
+### 14.8 "A Forja" — CORREÇÃO 03/08/2026: layout é o esboço da 13.8, não uma reestruturação nova
+
+**Correção importante:** a primeira versão desta seção (escrita a partir da transcrição do vídeo) interpretou a fala do Ericson como um pedido de reestruturação nova (foto grande em cima, galeria embaixo, sem foto pequena junto ao nome). **Isso estava errado.** Ericson reenviou o esboço original (o mesmo da seção 13.8) e confirmou: *"a Forja é isso aqui, eu fiz e já mandei bem antes."* Ou seja, o layout definitivo continua sendo exatamente o da 13.6/13.8 — **não é uma reestruturação, é a implementação atual que ainda não bateu com esse esboço**, que já era a referência há dois rounds. Recapitulando o esboço (pra não haver mais dúvida):
+- **Bloco "IMAGEM GALERIA"** (roxo no esboço): domina o lado esquerdo da composição, ocupando quase todo o espaço, colado bem perto de onde o texto começa (sem vão vazio) — a peça visual dominante.
+- **"MINHA FOTO"** (azul no esboço): é o avatar pequeno e circular, posicionado bem próximo do início do bloco de texto, ao lado do nome "Ericson Borba" (seta amarela no esboço aponta do avatar pro nome) — continua pequeno, NÃO é uma foto grande.
+- **Bloco de texto** (laranja no esboço): coluna da direita com cargo, nome, bio e tags — como já está, sem mudança de conteúdo.
+- **Banner** (verde no esboço, topo): a imagem da marreta — já aprovado como está (ver abaixo).
+
+**Bugs que continuam válidos da leitura da transcrição (não dependiam da interpretação de layout, continuam de pé):**
+- **Remover o título "A Forja" dentro da seção** — já existe no banner acima, é redundante repetir.
+- **A foto (avatar pequeno) está cortada de forma errada** — bug de enquadramento a corrigir.
+- **BUG do cursor "Ver galeria" (13.10):** a pílula de cursor customizado não acompanha a posição real do mouse depois que a página rola — aparece deslocado (ex.: mouse na parte de baixo da imagem, mas a pílula aparece lá em cima). Precisa recalcular a posição em tempo real, sem ficar preso a uma posição antiga/fixa depois do primeiro hover.
+- **Timing de revelação errado:** rolando mais pra baixo ainda revela elementos que já deveriam ter aparecido no início — sequência de reveal desalinhada com o scroll.
+- **Banner (imagem da marreta no topo): APROVADO, manter como está** — "gostei do tamanho, gostei do quanto tá revelando aqui, tá legal, pode manter." (Os pedidos de aumento de banner das 11.7/12.8/13.8 foram atendidos — não mexer mais nisso.)
+- Efeito de pin/reveal geral funciona mas é "muito simples" — melhorar quando possível, prioridade menor que os bugs acima.
+
+**Lição pra próximas transcrições sem frame de vídeo disponível:** quando a descrição em texto de um layout complexo ficar ambígua (principalmente reaproveitando referências visuais já enviadas antes), a leitura mais segura é assumir que ele está pedindo pra bater com o esboço/imagem já registrado, não propondo algo novo do zero — e confirmar antes de escrever uma reestruturação grande no documento.
+
+### 14.9 FOOH — ticker: separador errado, fonte deveria ser cheia (não tracejada), vídeos pequenos demais
+
+- **Separador do ticker:** o texto original "* FAKE OUT OF HOME *" usava asteriscos como marcação informal de ênfase, não pra serem replicados literalmente. **Trocar por um ponto simples no meio entre as repetições** (ex.: "FAKE OUT OF HOME · FAKE OUT OF HOME · FAKE OUT OF HOME"), sem os asteriscos duplicados.
+- **BUG/correção de estilo: a fonte do ticker está tracejada/outline — deveria ser fonte CHEIA (preenchida), não contorno.** Isso é diferente do efeito de "Serviços" (que É stroke-only) — aqui no ticker do FOOH o texto precisa ser sólido/preenchido.
+- **Tamanho:** está pequeno demais — aumentar bastante, podendo ocupar o equivalente a duas linhas de altura. Não precisa mostrar a palavra inteira por linha (pode cortar nas bordas), o importante é a escala grande.
+- **Espaço vazio no meio da faixa de ticker não faz sentido** — revisar preenchimento vertical (provavelmente as várias linhas empilhadas da 13.11 ainda não estão preenchendo a área toda).
+- **O movimento/efeito de "carrossel" de passagem do texto está aprovado, manter.**
+- **Vídeos do coverflow (12.10/13.11) estão muito pequenos** — hoje ocupam só uns 10% do espaço que deveriam. Precisam ocupar bem mais altura (quase do topo até a base da área disponível).
+- **Remover o texto rosa sobre cada vídeo** ("FOOH" escrito em cada preview) — ilegível (rosa sobre fundo escuro) e redundante, já que o ticker de fundo já deixa claro que é conteúdo FOOH em todo o layout.
+
+### 14.10 Grid de projetos — efeito de troca de imagem quebra o flow da página
+
+**BUG crítico:** ao trocar de imagem em algum ponto do grid/carrossel de projetos, a página faz um "pulo"/movimento pra baixo abrupto que corta o fluxo de rolagem — feio e desconfortável. A troca de imagem em si (uma pra outra) está aprovada; é especificamente o deslocamento vertical da página durante a troca que está errado. Corrigir removendo esse movimento (trocar as imagens no lugar, sem deslocar o layout da página) ou redesenhar a transição.
+- **Curadoria de conteúdo (não é bug de efeito):** há imagens no grid que são CGI puro sem relação com o que deveria estar ali — revisar a seleção de imagens depois que os efeitos estiverem certos.
+
+### 14.11 CTA "Iniciar projeto" — mesma quebra de página
+
+Reforça o padrão da 14.10: nessa seção também há uma quebra de página feia que interrompe o fluxo do scroll. Hover do botão está OK mas poderia ter um efeito mais bonito (baixa prioridade).
+
+### 14.12 Rodapé — partículas insuficientes + BUG CRÍTICO de scroll-jank
+
+- **Densidade de partículas muito baixa** — hoje está longe de comunicar o efeito. Deveria preencher **pelo menos metade** da área do rodapé (contido dentro dos limites do container, não solto pela página).
+- **Reforço da física individual, reconfirmado ao vivo no Lusion:** distância mínima entre partículas, física própria por partícula, hover do mouse cria movimento individual fluido/líquido — mesma spec da 13.4, agora com o detalhe extra da distância mínima entre peças.
+- **⚠️ BUG CRÍTICO NOVO:** a página fica "pulando" (scroll jump) sozinha, pra cima e pra baixo, com o mouse **completamente parado, sem nenhuma interação** — Ericson percebeu isso acontecendo ao vivo durante a gravação, perto da área do rodapé/partículas. Provável causa: layout thrashing entre o container de partículas e o cálculo de altura/scroll da página (ex.: partículas mudando de tamanho do container em loop, disparando recálculo de layout continuamente) — **prioridade alta, esse tipo de bug quebra a confiança no site inteiro.**
+- Efeito de "voltar ao topo" preenchendo a tela com essas mesmas partículas continua sendo o objetivo (13.4) — Ericson relativizou: "se for impossível não precisa fazer", ou seja, é desejável mas não bloqueador se a implementação for inviável.
+
+### 14.13 Páginas de Serviços — trocar transição de fade por efeito de pixel + nova ideia de título watermark
+
+- **Transição entre páginas de Serviços:** hoje é um fade simples — Ericson não gosta ("efeito muito simples, não tem nada de agradável, é universal e não agrada muito"). **Trocar pelo efeito de pixel/desintegração** já aprovado e usado no "voltar ao topo" (11.9/13.2) — reforça o padrão de reusar esse efeito como o "selo de qualidade" do site em transições.
+- **Nova ideia pro título de cada página de serviço:** em vez de (ou além de) manter o título pequeno à esquerda, deixá-lo **gigante, em baixa opacidade (~10%), no fundo, atrás do vídeo de exemplo** — mesmo princípio estético do texto watermark de "Serviços" (13.1) e do ticker de FOOH (13.11), agora aplicado ao título de cada página individual de serviço (ex.: "Pós-produção" gigante e apagado atrás do vídeo).
+- Densidade de partículas no rodapé das páginas de Serviços também está baixa — mesmo problema da 14.12, confirmado aqui também.
+- Nav entre páginas de Serviços (provavelmente prev/next) está aprovado: "ficou legal, eu gostei disso aqui pra gente ir de uma página pra outra."
+- **Nota de prioridade do próprio Ericson:** o conteúdo/exemplos de cada página de serviço ainda não estão finalizados — isso é tarefa futura. Prioridade agora é fechar os EFEITOS de cada página, não o conteúdo.
+
+### 14.14 Página "Projetos" — aprovada estruturalmente, falta scroll reversível
+
+Estrutura da página hub de projetos (galeria com vídeo preenchendo cada card, clique leva pra página individual) está aprovada — "isso tá bem legal, eu gostei do vídeo preenchido aqui no topo." Único ponto pendente: **ao rolar de volta pra cima, não tem nenhum efeito de reversão** — reforça a exigência já registrada na 11.13/13.3 (scroll reversível) especificamente aqui, ainda não implementada nessa página.
+
+### 14.15 Página "Galeria" — redesenhar como mosaico com tamanho original + lightbox de zoom
+
+Revisão da spec da galeria (seção 1/13.3):
+- **Remover os nomes das marcas** de cada imagem — não são necessários aqui.
+- **Trocar o grid padronizado por um mosaico usando o tamanho/proporção original de cada imagem** (não cortar/forçar todas pro mesmo tamanho) — visual mais diversificado e orgânico, preenchendo praticamente a tela toda.
+- **Adicionar lightbox: ao clicar numa imagem, ela dá zoom/abre em visualização única** — funcionalidade que não existe hoje (atualmente não há nenhuma visualização ampliada por imagem).
+
+### 14.16 NOVO — proteção contra download de imagens e vídeos em todo o site
+
+Ericson percebeu que, em todas as páginas, dá pra baixar as imagens/vídeos livremente. Ele quer aplicar as proteções padrão que a maioria dos sites usa (não precisa ser DRM real, só as barreiras usuais): bloquear clique-direito/"salvar imagem como" e arrastar-para-salvar em imagens e vídeos do site inteiro (ex.: `oncontextmenu` desabilitado nas mídias, `draggable="false"`, sem impedir funcionalidades normais de navegação). Aplica a todas as páginas com mídia — grid de projetos, páginas individuais, Serviços, Galeria.
+
+### 14.17 Contexto — veredito geral do Ericson
+
+Fechando a rodada, ele resumiu: *"o site tá bem distante do que eu quero, mas eu acredito que a gente vai conseguir chegar lá... com uma explicação assim passo a passo eu acho que a gente vai conseguir chegar lá."* Não é desânimo com a direção — é reconhecimento de que ainda tem bastante trabalho de execução pela frente, e que o processo de feedback detalhado (como esse) é o caminho certo pra fechar a distância.
+
+### 14.18 "A Forja" — CORREÇÃO 03/08/2026: "MINHA FOTO" é retangular e maior, não avatar circular
+
+A transcrição em texto do esboço (13.8/14.8) registrou "MINHA FOTO" como "avatar pequeno e circular colado ao nome" — **isso estava errado.** Ericson enviou a imagem real do esboço (não só a transcrição), e nela "MINHA FOTO" é um **retângulo**, bem maior que um avatar de 72px, posicionado no **topo da coluna de texto**, acima do bloco cargo/nome — não uma bolinha inline ao lado do nome. Corrigido no build (commit `3202122`). Lição repetida da 14.8: quando só o texto transcrito de um esboço está disponível (sem a imagem em si), tratar como provisório até a imagem real confirmar.
