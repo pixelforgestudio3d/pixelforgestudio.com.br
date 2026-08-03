@@ -245,7 +245,7 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .forja-banner img{width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block}
 .forja-banner-fade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.32) 48%,rgba(0,0,0,0) 100%)}
 .forja-banner-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(2.4rem,6vw,4.5rem);font-weight:500;letter-spacing:.02em;margin:0}
-.aw{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;padding:2.5rem 1.5rem 2rem}
+.aw{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(1rem,2vw,1.75rem);align-items:center;padding:2.5rem 1.5rem 2rem}
 .forja-media-col{display:flex;flex-direction:column}
 .forja-gallery-frame{position:relative;display:block;width:100%;aspect-ratio:4/3;border:.5px solid var(--borderh);background:var(--card);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.65)}
 .fg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateY(36px) rotate(6deg) scale(.94);transition:opacity .55s ease,transform .55s cubic-bezier(.22,1,.36,1);box-shadow:0 20px 40px rgba(0,0,0,.5)}
@@ -258,7 +258,13 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 body.forja-gallery-hover #pf-cursor{opacity:0}
 .forja-text-col{text-align:left}
 .forja-name-row{display:flex;align-items:center;gap:1.25rem;margin-bottom:1.2rem}
-.forja-photo{width:72px;height:72px;object-fit:cover;border-radius:50%;border:.5px solid var(--borderh);flex-shrink:0}
+/* 14.8 — a foto fonte é quadrada (1:1), igual à proporção do avatar,
+   então object-fit:cover sozinho não cortava nada: mostrava a foto
+   inteira encolhida, com muito fundo vazio acima da cabeça e ombro/peito
+   sobrando embaixo. Zoom via transform no wrapper resolve sem pedir
+   nova imagem. */
+.forja-photo{width:72px;height:72px;border-radius:50%;border:.5px solid var(--borderh);flex-shrink:0;overflow:hidden}
+.forja-photo img{width:100%;height:100%;object-fit:cover;transform:scale(1.55);transform-origin:center 30%}
 .forja-name-row h2{margin-bottom:0}
 .al{width:40px;height:2px;background:var(--grad);margin-bottom:1.5rem}
 .sk{display:flex;flex-wrap:wrap;gap:8px;margin-top:2rem}
@@ -300,9 +306,15 @@ footer>div{position:relative;z-index:1}
 .top-pixel-canvas.on{opacity:1}
 
 /* REVEAL */
-.rv{opacity:0;transform:translateY(28px);transition:opacity .65s,transform .65s}
-.rv.on{opacity:1;transform:none}
-.rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}.rv.d3{transition-delay:.3s}
+.rv,.rv-pin{opacity:0;transform:translateY(28px);transition:opacity .65s,transform .65s}
+.rv.on,.rv-pin.on{opacity:1;transform:none}
+.rv.d1,.rv-pin.d1{transition-delay:.1s}.rv.d2,.rv-pin.d2{transition-delay:.2s}.rv.d3,.rv-pin.d3{transition-delay:.3s}
+/* 14.8 — .rv-pin: mesma animação do .rv, mas SEM o IntersectionObserver
+   genérico. Dentro de uma seção pinada (pin:true), o viewport fica
+   congelado enquanto o scroll "virtual" avança — conteúdo perto do fim
+   da seção pode nunca cruzar o threshold de interseção individual
+   durante o pin inteiro, revelando só quando o pin solta (tarde demais).
+   Revelado explicitamente no onEnter do ScrollTrigger da seção. */
 
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:var(--black)}
@@ -629,19 +641,18 @@ footer>div{position:relative;z-index:1}
     </div>
     <div class="forja-gallery-cursor" id="forjaGalleryCursor">Ver galeria</div>
     <div class="forja-text-col">
-      <div class="st2 rv">A Forja</div>
-      <div class="al rv"></div>
-      <div class="forja-name-row rv d1">
-        <img class="forja-photo" src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba">
+      <div class="al rv-pin"></div>
+      <div class="forja-name-row rv-pin d1">
+        <div class="forja-photo"><img src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba"></div>
         <div>
           <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem">CEO & Diretor Criativo</p>
           <h2 style="margin-bottom:0">Ericson<br>Borba</h2>
         </div>
       </div>
-      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lideramos um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
-      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv d3">Nosso arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini. Controle absoluto sobre cada detalhe, do primeiro frame ao render final. A IA entra quando acelera esse processo, nunca no lugar dele.</p>
-      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85" class="rv d3">Nossa expertise na publicidade global garante que a complexidade técnica esteja sempre a serviço de uma narrativa visual impecável e estratégica.</p>
-      <div class="sk rv d3">
+      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv-pin d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lideramos um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
+      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv-pin d3">Nosso arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini. Controle absoluto sobre cada detalhe, do primeiro frame ao render final. A IA entra quando acelera esse processo, nunca no lugar dele.</p>
+      <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85" class="rv-pin d3">Nossa expertise na publicidade global garante que a complexidade técnica esteja sempre a serviço de uma narrativa visual impecável e estratégica.</p>
+      <div class="sk rv-pin d3">
         <span class="ski">Cinema 4D</span><span class="ski">Octane</span><span class="ski">RedShift</span>
         <span class="ski">Houdini</span><span class="ski">Z-Brush</span><span class="ski">Substance</span>
         <span class="ski">Unreal Engine</span><span class="ski">After Effects</span><span class="ski">AI + CGI</span>
@@ -1781,6 +1792,14 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
     const fade=document.getElementById('forjaGalleryFade');
     if(!section||!imgs.length)return;
     const n=imgs.length;
+    // 14.8 — os elementos do texto usam .rv-pin (não .rv): dentro da
+    // seção pinada, o viewport congela e conteúdo perto do fim (ex.: a
+    // linha de tags) podia nunca cruzar o threshold de interseção
+    // individual até o pin soltar — revelava tarde demais. Revela tudo
+    // junto assim que o pin começa (a seção já está 100% visível nesse
+    // momento, é exatamente isso que pin:true garante), reversível ao
+    // rolar de volta pra cima (11.13).
+    const pinRevealEls=section.querySelectorAll('.rv-pin');
     ScrollTrigger.create({
       trigger:section,
       start:'top top',
@@ -1788,6 +1807,8 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
       pin:true,
       scrub:.6,
       anticipatePin:1,
+      onEnter(){pinRevealEls.forEach(el=>el.classList.add('on'));},
+      onLeaveBack(){pinRevealEls.forEach(el=>el.classList.remove('on'));},
       onUpdate(self){
         const raw=self.progress*n;
         const idx=Math.min(n-1,Math.floor(raw));
