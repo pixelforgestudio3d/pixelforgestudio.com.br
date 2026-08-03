@@ -247,7 +247,7 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .forja-banner-title{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(2.4rem,6vw,4.5rem);font-weight:500;letter-spacing:.02em;margin:0}
 .aw{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(1rem,2vw,1.75rem);align-items:center;padding:2.5rem 1.5rem 2rem}
 .forja-media-col{display:flex;flex-direction:column}
-.forja-gallery-frame{position:relative;display:block;width:100%;aspect-ratio:4/3;border:.5px solid var(--borderh);background:var(--card);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.65)}
+.forja-gallery-frame{position:relative;display:block;width:100%;aspect-ratio:16/9;border:.5px solid var(--borderh);background:var(--card);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.65)}
 .fg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:translateY(36px) rotate(6deg) scale(.94);transition:opacity .55s ease,transform .55s cubic-bezier(.22,1,.36,1);box-shadow:0 20px 40px rgba(0,0,0,.5)}
 .fg-img.prev{opacity:.35;transform:translateY(14px) rotate(-3deg) scale(.97);z-index:1}
 .fg-img.on{opacity:1;transform:translateY(0) rotate(0deg) scale(1);z-index:2}
@@ -257,13 +257,13 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .forja-gallery-cursor.on{opacity:1}
 body.forja-gallery-hover #pf-cursor{opacity:0}
 .forja-text-col{text-align:left}
-/* 14.8 (esboço real enviado por Ericson) — "MINHA FOTO" não é um
-   avatar circular pequeno colado ao nome: é um retângulo, maior, no
-   TOPO da coluna de texto, acima do bloco nome/cargo. A leitura
-   anterior (baseada só na transcrição em texto) estava errada. */
-.forja-photo{width:clamp(150px,16vw,210px);aspect-ratio:4/5;border-radius:6px;border:.5px solid var(--borderh);overflow:hidden;margin-bottom:1.5rem;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+/* 14.8/14.18 (ajuste 2 sobre o esboço) — "MINHA FOTO" fica ao lado do
+   nome (não acima da coluna inteira), retangular, e sobrepõe a borda
+   direita da imagem da galeria com uma margem pra fora — daí a margin
+   negativa puxando por cima do gap/borda do quadro da galeria. */
+.forja-name-row{display:flex;align-items:center;gap:1.25rem;margin-bottom:1.2rem;position:relative}
+.forja-photo{width:clamp(90px,9vw,120px);aspect-ratio:4/5;border-radius:6px;border:.5px solid var(--borderh);overflow:hidden;flex-shrink:0;margin-left:clamp(-90px,-6vw,-56px);position:relative;z-index:2;box-shadow:0 20px 40px rgba(0,0,0,.6)}
 .forja-photo img{width:100%;height:100%;object-fit:cover;transform:scale(1.12);transform-origin:center 25%}
-.forja-name-row{margin-bottom:1.2rem}
 .forja-name-row h2{margin-bottom:0}
 .al{width:40px;height:2px;background:var(--grad);margin-bottom:1.5rem}
 .sk{display:flex;flex-wrap:wrap;gap:8px;margin-top:2rem}
@@ -641,10 +641,12 @@ footer>div{position:relative;z-index:1}
     <div class="forja-gallery-cursor" id="forjaGalleryCursor">Ver galeria</div>
     <div class="forja-text-col">
       <div class="al rv-pin"></div>
-      <div class="forja-photo rv-pin d1"><img src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba"></div>
       <div class="forja-name-row rv-pin d1">
-        <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem">CEO & Diretor Criativo</p>
-        <h2 style="margin-bottom:0">Ericson<br>Borba</h2>
+        <div class="forja-photo"><img src="assets/perfil/FOTO PRINCIPAL VF.png" alt="Ericson Borba"></div>
+        <div>
+          <p style="font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem">CEO & Diretor Criativo</p>
+          <h2 style="margin-bottom:0">Ericson<br>Borba</h2>
+        </div>
       </div>
       <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv-pin d2">Na PixelForge, a premissa é literal: forjar cada pixel até atingir a singularidade. Lideramos um processo onde a direção de arte soberana guia a tecnologia, e não o contrário.</p>
       <p style="font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;margin-bottom:1rem" class="rv-pin d3">Nosso arsenal inclui Cinema 4D com Octane Render e simulações físicas reais no Houdini. Controle absoluto sobre cada detalhe, do primeiro frame ao render final. A IA entra quando acelera esse processo, nunca no lugar dele.</p>
