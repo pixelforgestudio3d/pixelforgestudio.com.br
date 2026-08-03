@@ -1009,8 +1009,15 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     wrap.addEventListener('mouseleave',()=>{tx=0;ty=0;});
   }
 
+  // 13.14 rodava o render (com transmission — o material mais caro do
+  // Three.js) pra sempre, mesmo com a seção fora da tela, competindo por
+  // frame budget com o resto do site o tempo todo. Pausa quando some da viewport.
+  let svcGlassVisible=true;
+  new IntersectionObserver(entries=>{entries.forEach(en=>{svcGlassVisible=en.isIntersecting;});},{threshold:0}).observe(wrap);
+
   function animate(){
     requestAnimationFrame(animate);
+    if(!svcGlassVisible)return;
     cx+=(tx-cx)*.06;cy+=(ty-cy)*.06;
     glass.rotation.y=cx*.18;
     glass.rotation.x=-cy*.14;
@@ -1515,7 +1522,15 @@ document.querySelectorAll('.nd').forEach(nd=>{
     ctx.restore();
   }
 
+  // este loop rodava pra sempre desde o load, mesmo com a seção fora da
+  // tela — clearRect + até 2 composições destination-in + até 20 radial
+  // gradients por frame, o tempo todo, competindo com o resto do site.
+  // Pausa quando a seção some da viewport.
+  let svcVisible=true;
+  new IntersectionObserver(entries=>{entries.forEach(en=>{svcVisible=en.isIntersecting;});},{threshold:0}).observe(section);
+
   function draw(){
+    if(!svcVisible){requestAnimationFrame(draw);return;}
     const now=performance.now();
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,cw,ch);
