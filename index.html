@@ -134,15 +134,12 @@ h1 .split-char{will-change:transform,opacity}
 
 @keyframes p{0%,100%{opacity:.3}50%{opacity:1}}
 
-/* PEÇA 3D INTERATIVA */
-.pf3d{position:relative;height:58vh;background:#000;overflow:hidden;border-top:.5px solid var(--border);border-bottom:.5px solid var(--border)}
-.pf3d canvas{display:block;width:100%;height:100%}
-
 /* MARQUEE */
 .mw{background:var(--dark);border-top:.5px solid var(--border);border-bottom:.5px solid var(--border);padding:3rem 0;overflow:hidden}
 .ml{text-align:center;font-size:11px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;margin-bottom:2rem}
+/* feedback direto: "sem este efeito de hover, ele fica ali em loop sem
+   cessar" — removida a pausa no hover, o carrossel roda contínuo. */
 .mt{display:flex;width:max-content;animation:mq 55s linear infinite}
-.mt:hover{animation-play-state:paused}
 .mi{padding:0 3.5rem;border-right:.5px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem}
 .mi img{height:clamp(36px,5.5vw,56px);max-width:clamp(130px,19vw,190px);opacity:.6;transition:opacity .3s;object-fit:contain}
 .mn{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);opacity:.5;transition:opacity .3s;white-space:nowrap}
@@ -414,7 +411,6 @@ footer>div{position:relative;z-index:1}
   .hero,.sec,.cs{padding-left:1.5rem;padding-right:1.5rem;}
   .hero{height:100svh;}
   .hscr{display:none;}
-  .pf3d{height:55vh;}
   .svl-item{padding:1.3rem 1.5rem;}
   .pg{grid-template-columns:1fr;gap:4px;}
   .pi.w7,.pi.w5,.pi.w6,.pi.w4{grid-column:span 1;}
@@ -564,10 +560,6 @@ footer>div{position:relative;z-index:1}
   <div class="hb">
     <div class="hscr" id="heroScr"><div class="sb"></div><span class="st">Scroll</span></div>
   </div>
-</section>
-
-<section class="pf3d" id="pf3d">
-  <canvas id="pf3dCanvas"></canvas>
 </section>
 
 <div class="mw">
@@ -828,349 +820,6 @@ footer>div{position:relative;z-index:1}
     "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
   }
 }
-</script>
-
-<!-- ============================================================
-     PEÇA 3D INTERATIVA — ATRATOR + REPULSÃO (ref. Lusion)
-     ============================================================ -->
-<script type="module">
-import * as THREE from 'three';
-
-(function initPF3D(){
-  const section=document.getElementById('pf3d');
-  const canvas=document.getElementById('pf3dCanvas');
-  if(!section||!canvas)return;
-
-  const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(45,section.clientWidth/Math.max(section.clientHeight,1),0.1,100);
-  camera.position.set(0,0,9);
-
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.setSize(section.clientWidth,section.clientHeight);
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=1.1;
-
-  // pedido direto ("vamos arrumar o shader com os exemplos que mandei") —
-  // mesma técnica já aplicada no vidro de Serviços (referência oficial
-  // webgl_loader_gltf_transmission/dispersion, ambas WebGL puro, sem
-  // WebGPU): RoomEnvironment neutro trocado por um ambiente equirect
-  // com os gradientes da marca, pra peça de vidro refletir cor de
-  // verdade em vez de cinza genérico.
-  const envCanvas=document.createElement('canvas');
-  envCanvas.width=512;envCanvas.height=256;
-  const envCtx=envCanvas.getContext('2d');
-  const envGrad=envCtx.createLinearGradient(0,0,512,256);
-  envGrad.addColorStop(0,'#0d0620');
-  envGrad.addColorStop(.35,'#3D17e1');
-  envGrad.addColorStop(.65,'#8017e2');
-  envGrad.addColorStop(1,'#f433bb');
-  envCtx.fillStyle=envGrad;
-  envCtx.fillRect(0,0,512,256);
-  envCtx.fillStyle='rgba(255,255,255,.95)';
-  envCtx.beginPath();envCtx.ellipse(256,55,110,32,0,0,Math.PI*2);envCtx.fill();
-  const envTex=new THREE.CanvasTexture(envCanvas);
-  envTex.mapping=THREE.EquirectangularReflectionMapping;
-  envTex.colorSpace=THREE.SRGBColorSpace;
-
-  const pmrem=new THREE.PMREMGenerator(renderer);
-  scene.environment=pmrem.fromEquirectangular(envTex).texture;
-  envTex.dispose();
-
-  scene.add(new THREE.AmbientLight(0xffffff,.5));
-  const key=new THREE.DirectionalLight(0xffffff,1.5);key.position.set(4,6,6);scene.add(key);
-  const rim=new THREE.DirectionalLight(0xda2c80,1.4);rim.position.set(-5,-3,-4);scene.add(rim);
-  const fillLight=new THREE.PointLight(0x8017e2,1.4,20);fillLight.position.set(0,0,5);scene.add(fillLight);
-
-  // pedido direto ("ta muito ruim... vamos direto para os pássaros") — a
-  // física de pool de bolinhas trocada de novo (ref. webgpu_compute_birds.
-  // html), reimplementada do zero em WebGL puro como boids clássico
-  // (Craig Reynolds: separação + alinhamento + coesão), sem gravidade nem
-  // chão — é o próprio algoritmo de flocking que naturalmente não sofre do
-  // "tremor" da física anterior (não existe estado de repouso em contato
-  // com uma superfície, então não tem o loop de bounce residual que nunca
-  // zera). Testado numericamente antes de entrar no arquivo: 1800 frames
-  // simulados, sem NaN, velocidade sempre dentro do limite, sem colapso
-  // nem explosão do grupo.
-  // ajuste 2 (feedback direto: "MUITO MENOR e MUITO MAIS QUANTIDADE...
-  // a box de limite tem que ser MAIOR que a box visível, como se tivesse
-  // por trás das outras seções... colisão falha onde um entra dentro do
-  // outro") — peças bem menores, quantidade bem maior, limites bem além
-  // do frustum visível (uma parte do bando fica sempre fora de quadro,
-  // como se o "aquário" continuasse atrás do resto do site), e uma
-  // correção de sobreposição só de POSIÇÃO (sem trocar velocidade) por
-  // cima da separação do boids — a separação sozinha é uma força suave,
-  // não garante zero sobreposição com muita peça densa; essa segunda
-  // passada garante. Position-only não reintroduz o bug de tremor
-  // anterior (esse vinha de reaplicar IMPULSO/velocidade todo frame).
-  const PIECE_COUNT=140;
-  const MAX_SPEED=0.05;
-  const MAX_FORCE=0.0026;
-  const NEIGHBOR_RADIUS=3.2;
-  const SEPARATION_RADIUS=0.55;
-  const SEPARATION_WEIGHT=1.7;
-  const ALIGNMENT_WEIGHT=1.0;
-  const COHESION_WEIGHT=0.85;
-  // margem menor que antes (era 0.8): com o limite agora 1.8x maior que
-  // o frustum visível, 0.8 desse limite deixava o bando inteiro sumir de
-  // quadro por muito tempo (sem força nenhuma trazendo de volta até bem
-  // longe). 0.55 puxa de volta perto de onde a tela realmente termina —
-  // peças isoladas ainda escapam do quadro nas bordas (é o efeito
-  // pedido), mas o CENTRO do bando não passa muito tempo fora de vista.
-  const BOUNDS_MARGIN=0.55;
-  const BOUNDS_WEIGHT=2.4;
-  const MOUSE_REPEL_RADIUS=2.4;
-  const MOUSE_REPEL_WEIGHT=2.8;
-
-  // limites bem maiores que o frustum visível da câmera (multiplicador
-  // >1) — o bando tem espaço de sobra pra voar, inclusive saindo de
-  // quadro nas bordas, em vez de ficar preso numa caixa pequena e
-  // artificial do tamanho exato da tela.
-  let boundsX=10,boundsY=4.5,boundsZ=5;
-  function updateBounds(){
-    const halfH=camera.position.z*Math.tan((camera.fov*Math.PI/180)/2);
-    const halfW=halfH*camera.aspect;
-    boundsY=halfH*1.8;
-    boundsX=halfW*1.8;
-    boundsZ=5;
-  }
-  updateBounds();
-
-  // pedido direto ("coloque os próprios passarinhos com animação no lugar
-  // das marretas... pra testar como ficaria") — troca a peça (fragmento
-  // do isotipo) por um pássaro construído na hora, com corpo + duas asas
-  // que batem de verdade (pivot rotacionando, sem shader/vertex
-  // animation — mais simples e robusto). Sem GLTF/DRACO pra carregar,
-  // então some o loading assíncrono também.
-  const pieces=[];
-  const birdMat=new THREE.MeshStandardMaterial({color:0xf2f2f5,metalness:.15,roughness:.55,emissive:0x3d17e1,emissiveIntensity:.18,side:THREE.DoubleSide});
-  const birdMatAlt=new THREE.MeshStandardMaterial({color:0xd9b8ff,metalness:.15,roughness:.5,emissive:0x8017e2,emissiveIntensity:.22,side:THREE.DoubleSide});
-
-  function makeWingGeometry(){
-    // triangulo simples achatado — a "asa"
-    const geo=new THREE.BufferGeometry();
-    const v=new Float32Array([0,0,0, 1,0,-0.25, 0,0,-0.55]);
-    geo.setAttribute('position',new THREE.BufferAttribute(v,3));
-    geo.setIndex([0,1,2]);
-    geo.computeVertexNormals();
-    return geo;
-  }
-  function makeBodyGeometry(){
-    // corpo fino e comprido, apontando pra +Z (bico) — eixo usado como
-    // "frente" na orientação pela direção do voo, mais abaixo.
-    const geo=new THREE.ConeGeometry(0.09,0.55,4);
-    geo.rotateX(Math.PI/2);
-    return geo;
-  }
-  const wingGeo=makeWingGeometry();
-  const bodyGeo=makeBodyGeometry();
-
-  function createBird(mat){
-    const group=new THREE.Group();
-    const body=new THREE.Mesh(bodyGeo,mat);
-    group.add(body);
-
-    const wingL=new THREE.Group();
-    wingL.add(new THREE.Mesh(wingGeo,mat));
-    group.add(wingL);
-
-    const wingR=new THREE.Group();
-    wingR.scale.x=-1;
-    wingR.add(new THREE.Mesh(wingGeo,mat));
-    group.add(wingR);
-
-    group.userData.wingL=wingL;
-    group.userData.wingR=wingR;
-    return group;
-  }
-
-  for(let i=0;i<PIECE_COUNT;i++){
-    const mat=Math.random()<0.6?birdMat:birdMatAlt;
-    const bird=createBird(mat);
-    // ajuste 2 (feedback direto: "MUITO MENOR") + tamanho de pássaro
-    // pequeno de verdade, com variação individual leve.
-    const s=0.34+Math.random()*0.22;
-    bird.scale.setScalar(s);
-    bird.position.set(
-      (Math.random()*2-1)*boundsX*0.6,
-      (Math.random()*2-1)*boundsY*0.6,
-      (Math.random()*2-1)*boundsZ*0.6
-    );
-    const dir=new THREE.Vector3(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1).normalize();
-    bird.userData.velocity=dir.multiplyScalar(MAX_SPEED*0.5);
-    bird.userData.accel=new THREE.Vector3();
-    bird.userData.radius=s*0.5;
-    bird.userData.flapPhase=Math.random()*Math.PI*2;
-    bird.userData.flapSpeed=7+Math.random()*3;
-    scene.add(bird);
-    pieces.push(bird);
-  }
-
-  const raycaster=new THREE.Raycaster();
-  const pointerNDC=new THREE.Vector2(-10,-10);
-  const interactionPlane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
-  const mouseWorld=new THREE.Vector3();
-  let hasPointer=false;
-
-  function setPointer(clientX,clientY){
-    const rect=canvas.getBoundingClientRect();
-    pointerNDC.x=((clientX-rect.left)/rect.width)*2-1;
-    pointerNDC.y=-(((clientY-rect.top)/rect.height)*2-1);
-    hasPointer=true;
-  }
-  canvas.addEventListener('pointermove',e=>setPointer(e.clientX,e.clientY));
-  canvas.addEventListener('pointerleave',()=>{hasPointer=false;});
-
-  let visible=true;
-  const io=new IntersectionObserver(entries=>{entries.forEach(en=>{visible=en.isIntersecting;});},{threshold:0});
-  io.observe(section);
-
-  const clock=new THREE.Clock();
-  const diff=new THREE.Vector3();
-  const sep=new THREE.Vector3();
-  const ali=new THREE.Vector3();
-  const coh=new THREE.Vector3();
-  const boundsForce=new THREE.Vector3();
-  const forwardAxis=new THREE.Vector3(0,0,1);
-  const targetQuat=new THREE.Quaternion();
-  const velNorm=new THREE.Vector3();
-
-  // boids clássico — cada peça olha só pras vizinhas dentro de
-  // NEIGHBOR_RADIUS e reage a 3 regras (Craig Reynolds, 1987):
-  // separação (não colidir), alinhamento (seguir a direção média do
-  // grupo) e coesão (ir em direção ao centro do grupo próximo). Soma
-  // das 3 + uma força suave de volta pros limites da seção + repulsão
-  // do mouse = o "voo" do bando inteiro emerge sozinho, sem coreografia
-  // manual nenhuma.
-  function computeFlock(){
-    for(let i=0;i<pieces.length;i++){
-      const p=pieces[i];
-      sep.set(0,0,0);let sepCount=0;
-      ali.set(0,0,0);let aliCount=0;
-      coh.set(0,0,0);let cohCount=0;
-      for(let j=0;j<pieces.length;j++){
-        if(i===j)continue;
-        const o=pieces[j];
-        diff.copy(p.position).sub(o.position);
-        const d=diff.length();
-        if(d<NEIGHBOR_RADIUS&&d>0.0001){
-          if(d<SEPARATION_RADIUS){sep.addScaledVector(diff,1/(d*d));sepCount++;}
-          ali.add(o.userData.velocity);aliCount++;
-          coh.add(o.position);cohCount++;
-        }
-      }
-      const accel=p.userData.accel;
-      accel.set(0,0,0);
-      if(sepCount>0){
-        sep.divideScalar(sepCount).setLength(MAX_SPEED).sub(p.userData.velocity).clampLength(0,MAX_FORCE);
-        accel.addScaledVector(sep,SEPARATION_WEIGHT);
-      }
-      if(aliCount>0){
-        ali.divideScalar(aliCount).setLength(MAX_SPEED).sub(p.userData.velocity).clampLength(0,MAX_FORCE);
-        accel.addScaledVector(ali,ALIGNMENT_WEIGHT);
-      }
-      if(cohCount>0){
-        coh.divideScalar(cohCount).sub(p.position).setLength(MAX_SPEED).sub(p.userData.velocity).clampLength(0,MAX_FORCE);
-        accel.addScaledVector(coh,COHESION_WEIGHT);
-      }
-      boundsForce.set(0,0,0);
-      if(p.position.x>boundsX*BOUNDS_MARGIN)boundsForce.x=-(p.position.x-boundsX*BOUNDS_MARGIN);
-      else if(p.position.x<-boundsX*BOUNDS_MARGIN)boundsForce.x=-(p.position.x+boundsX*BOUNDS_MARGIN);
-      if(p.position.y>boundsY*BOUNDS_MARGIN)boundsForce.y=-(p.position.y-boundsY*BOUNDS_MARGIN);
-      else if(p.position.y<-boundsY*BOUNDS_MARGIN)boundsForce.y=-(p.position.y+boundsY*BOUNDS_MARGIN);
-      if(p.position.z>boundsZ*BOUNDS_MARGIN)boundsForce.z=-(p.position.z-boundsZ*BOUNDS_MARGIN);
-      else if(p.position.z<-boundsZ*BOUNDS_MARGIN)boundsForce.z=-(p.position.z+boundsZ*BOUNDS_MARGIN);
-      if(boundsForce.lengthSq()>0){
-        boundsForce.clampLength(0,MAX_FORCE*3);
-        accel.addScaledVector(boundsForce,BOUNDS_WEIGHT);
-      }
-      if(hasPointer){
-        diff.copy(p.position).sub(mouseWorld);
-        const d=diff.length();
-        if(d<MOUSE_REPEL_RADIUS&&d>0.0001){
-          const strength=1-d/MOUSE_REPEL_RADIUS;
-          accel.addScaledVector(diff.normalize(),strength*MAX_FORCE*MOUSE_REPEL_WEIGHT);
-        }
-      }
-    }
-  }
-
-  // ajuste 2 (feedback direto: "colisão falha onde um entra dentro do
-  // outro") — a separação do boids acima é uma força suave (só influencia
-  // a aceleração, não garante nada); com muito mais peça e mais densa,
-  // sobreposição visível ficava comum. Esta segunda passada corrige só a
-  // POSIÇÃO de pares sobrepostos (sem tocar em velocidade/impulso) —
-  // garante zero interpenetração visível sem reintroduzir o bug de
-  // tremor da física anterior (aquele vinha de aplicar impulso de
-  // velocidade repetidamente; aqui não há impulso nenhum).
-  function resolveOverlap(){
-    for(let i=0;i<pieces.length;i++){
-      const a=pieces[i];
-      for(let j=i+1;j<pieces.length;j++){
-        const b=pieces[j];
-        diff.copy(b.position).sub(a.position);
-        const d=diff.length();
-        const minDist=a.userData.radius+b.userData.radius;
-        if(d<minDist&&d>0.0001){
-          const overlap=(minDist-d)*0.5;
-          diff.divideScalar(d);
-          a.position.addScaledVector(diff,-overlap);
-          b.position.addScaledVector(diff,overlap);
-        }
-      }
-    }
-  }
-
-  function animate(){
-    requestAnimationFrame(animate);
-    if(!visible)return;
-    const dt=Math.min(clock.getDelta(),0.05);
-    const dtScale=dt*60;
-
-    if(hasPointer){
-      raycaster.setFromCamera(pointerNDC,camera);
-      raycaster.ray.intersectPlane(interactionPlane,mouseWorld);
-    }
-
-    computeFlock();
-
-    for(const p of pieces){
-      p.userData.velocity.addScaledVector(p.userData.accel,dtScale);
-      p.userData.velocity.clampLength(0,MAX_SPEED);
-      p.position.addScaledVector(p.userData.velocity,dtScale);
-    }
-
-    resolveOverlap();
-
-    const elapsed=clock.getElapsedTime();
-    for(const p of pieces){
-      // pássaro de verdade tem frente bem definida (bico = +Z do corpo)
-      // — vira suave na direção do voo (fazia sentido "ficar de pé" pro
-      // fragmento abstrato de antes, não faz sentido nenhum aqui).
-      if(p.userData.velocity.lengthSq()>0.0000001){
-        velNorm.copy(p.userData.velocity).normalize();
-        targetQuat.setFromUnitVectors(forwardAxis,velNorm);
-        p.quaternion.slerp(targetQuat,0.12);
-      }
-      const flap=Math.sin(elapsed*p.userData.flapSpeed+p.userData.flapPhase)*0.9;
-      p.userData.wingL.rotation.z=flap;
-      p.userData.wingR.rotation.z=flap;
-    }
-
-    renderer.render(scene,camera);
-  }
-  animate();
-
-  function handleResize(){
-    const w=section.clientWidth,h=section.clientHeight;
-    if(!w||!h)return;
-    camera.aspect=w/h;camera.updateProjectionMatrix();
-    renderer.setSize(w,h);
-    updateBounds();
-  }
-  window.addEventListener('resize',handleResize);
-})();
 </script>
 
 <!-- ============================================================
@@ -1586,20 +1235,21 @@ function initCursor(){
 // ============================================================
 (function(){
   const navEl=document.getElementById('nav');
-  const pf3dEl=document.getElementById('pf3d');
+  const nextSectionEl=document.querySelector('.mw');
   if(!navEl)return;
   // ajuste (feedback direto: "o nav só fica 100% preto ao encostar na
-  // segunda seção, que são as marretas com a física") — antes t chegava
-  // a 1 depois de só 120px de scroll, bem dentro do Hero ainda. Agora o
-  // preto total é calculado pra bater exatamente no ponto em que a base
-  // do nav toca o topo de #pf3d, com um fade curto logo antes (suave,
-  // não corte abrupto), em vez de um valor fixo de pixels.
+  // segunda seção") — antes t chegava a 1 depois de só 120px de scroll,
+  // bem dentro do Hero ainda. Agora o preto total é calculado pra bater
+  // exatamente no ponto em que a base do nav toca o topo da próxima
+  // seção (o mural de Parcerias Criativas, já que a peça 3D das marretas
+  // foi removida — "vamos deletar essa seção"), com um fade curto logo
+  // antes (suave, não corte abrupto), em vez de um valor fixo de pixels.
   let touchY=800;
   function recalcTouchY(){
-    if(!pf3dEl)return;
+    if(!nextSectionEl)return;
     const navHeight=navEl.getBoundingClientRect().height||80;
-    const pf3dTop=pf3dEl.getBoundingClientRect().top+window.scrollY;
-    touchY=Math.max(1,pf3dTop-navHeight);
+    const nextTop=nextSectionEl.getBoundingClientRect().top+window.scrollY;
+    touchY=Math.max(1,nextTop-navHeight);
   }
   let ticking=false;
   function update(){
