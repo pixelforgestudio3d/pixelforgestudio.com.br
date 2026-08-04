@@ -890,14 +890,26 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
   const gltfLoader=new GLTFLoader();
   gltfLoader.setDRACOLoader(dracoLoader);
 
+  // pedido direto ("vamos ajustar o shader e a física com os exemplos que
+  // mandei" -> referência escolhida: webgpu_postprocessing_ssgi_ballpool.
+  // html) — comportamento NOVO trocado de "flutua ao redor de um ponto de
+  // origem" pra "pool de bolinhas": gravidade real, chão e paredes que
+  // delimitam a seção, colisão elástica entre peças (já existia, mantida)
+  // e o mouse empurra as peças como quem mexe a mão dentro de uma piscina
+  // de bolinhas. WebGPU/TSL do exemplo original não é usado — reimplementado
+  // do zero em WebGL puro (Three.js MeshStandardMaterial/PhysicalMaterial
+  // já usados na seção), só a IDEIA da física é a mesma.
   const PIECE_COUNT=26;
-  const HOME_PULL=0.018;
-  const DRIFT_STRENGTH=0.0009;
-  const DAMPING=0.94;
-  const REPEL_RADIUS=2.1;
-  const REPEL_STRENGTH=0.16;
+  const GRAVITY=-0.052;
+  const DAMPING=0.986;
+  const FLOOR_BOUNCE=0.42;
+  const WALL_BOUNCE=0.5;
+  const FLOOR_FRICTION=0.9;
+  const SPIN_DAMPING=0.992;
+  const REPEL_RADIUS=2.3;
+  const REPEL_STRENGTH=0.26;
   const COLLISION_PUSH=0.5;
-  const COLLISION_BOUNCE=0.35;
+  const COLLISION_BOUNCE=0.4;
 
   // Área de dispersão em unidades de mundo, recalculada a partir do
   // frustum da câmera pra peças ocuparem toda a largura da seção
@@ -932,14 +944,19 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
       const mesh=new THREE.Mesh(sourceMesh.geometry,mat);
       const s=baseScale*(0.65+Math.random()*0.6);
       mesh.scale.setScalar(s);
-      const home=new THREE.Vector3((Math.random()*2-1)*boundsX,(Math.random()*2-1)*boundsY,(Math.random()*2-1)*boundsZ);
-      mesh.position.copy(home);
+      // pool de bolinhas: peças começam espalhadas ACIMA da seção, em
+      // alturas escalonadas, e caem por gravidade até assentar no chão —
+      // efeito de "despejar" na piscina ao carregar a página, em vez de
+      // já aparecer flutuando no lugar final.
+      mesh.position.set(
+        (Math.random()*2-1)*boundsX,
+        boundsY+Math.random()*boundsY*3+i*0.15,
+        (Math.random()*2-1)*boundsZ
+      );
       mesh.rotation.set(Math.random()*Math.PI*2,Math.random()*Math.PI*2,Math.random()*Math.PI*2);
       mesh.userData.velocity=new THREE.Vector3();
-      mesh.userData.spin=new THREE.Vector3((Math.random()-.5)*.006,(Math.random()-.5)*.006,(Math.random()-.5)*.006);
+      mesh.userData.spin=new THREE.Vector3((Math.random()-.5)*.03,(Math.random()-.5)*.03,(Math.random()-.5)*.03);
       mesh.userData.radius=baseRadius*s*0.85;
-      mesh.userData.home=home;
-      mesh.userData.phase=Math.random()*Math.PI*2;
       scene.add(mesh);
       pieces.push(mesh);
     }
@@ -965,7 +982,6 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
   io.observe(section);
 
   const clock=new THREE.Clock();
-  const toCenter=new THREE.Vector3();
   const toPiece=new THREE.Vector3();
   const collDelta=new THREE.Vector3();
   const collNormal=new THREE.Vector3();
@@ -999,12 +1015,29 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
     }
   }
 
+  // chão + paredes do "pote" da piscina de bolinhas — mesmos limites já
+  // usados pra espalhar as peças pela largura da seção (updateBounds).
+  function resolveWalls(){
+    for(const p of pieces){
+      const r=p.userData.radius;
+      if(p.position.y-r<-boundsY){
+        p.position.y=-boundsY+r;
+        if(p.userData.velocity.y<0)p.userData.velocity.y*=-FLOOR_BOUNCE;
+        p.userData.velocity.x*=FLOOR_FRICTION;
+        p.userData.velocity.z*=FLOOR_FRICTION;
+      }
+      if(p.position.x-r<-boundsX){p.position.x=-boundsX+r;p.userData.velocity.x*=-WALL_BOUNCE;}
+      else if(p.position.x+r>boundsX){p.position.x=boundsX-r;p.userData.velocity.x*=-WALL_BOUNCE;}
+      if(p.position.z-r<-boundsZ){p.position.z=-boundsZ+r;p.userData.velocity.z*=-WALL_BOUNCE;}
+      else if(p.position.z+r>boundsZ){p.position.z=boundsZ-r;p.userData.velocity.z*=-WALL_BOUNCE;}
+    }
+  }
+
   function animate(){
     requestAnimationFrame(animate);
     if(!visible)return;
     const dt=Math.min(clock.getDelta(),0.05);
     const dtScale=dt*60;
-    const elapsed=clock.getElapsedTime();
 
     if(hasPointer){
       raycaster.setFromCamera(pointerNDC,camera);
@@ -1012,15 +1045,12 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
     }
 
     for(const p of pieces){
-      // peça flutua ao redor da própria posição de origem (espalhada
-      // pela largura da seção), nunca colapsa pra um ponto central único
-      toCenter.copy(p.userData.home).sub(p.position);
-      p.userData.velocity.addScaledVector(toCenter,HOME_PULL*dtScale);
-      p.userData.velocity.x+=Math.sin(elapsed*.35+p.userData.phase)*DRIFT_STRENGTH*dtScale;
-      p.userData.velocity.y+=Math.cos(elapsed*.28+p.userData.phase*1.7)*DRIFT_STRENGTH*dtScale;
-      p.userData.velocity.z+=Math.sin(elapsed*.22+p.userData.phase*2.3)*DRIFT_STRENGTH*.6*dtScale;
+      // gravidade real — pool de bolinhas, não mais flutuação ao redor
+      // de um ponto fixo (comportamento anterior, trocado a pedido).
+      p.userData.velocity.y+=GRAVITY*dtScale;
 
       if(hasPointer){
+        // mouse mexe nas peças como uma mão dentro da piscina de bolinhas
         toPiece.copy(p.position).sub(mouseWorld);
         const dist=toPiece.length();
         if(dist<REPEL_RADIUS&&dist>0.0001){
@@ -1031,10 +1061,12 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
     }
 
     resolveCollisions();
+    resolveWalls();
 
     for(const p of pieces){
       p.userData.velocity.multiplyScalar(Math.pow(DAMPING,dtScale));
       p.position.addScaledVector(p.userData.velocity,dtScale);
+      p.userData.spin.multiplyScalar(Math.pow(SPIN_DAMPING,dtScale));
       p.rotation.x+=p.userData.spin.x*dtScale;
       p.rotation.y+=p.userData.spin.y*dtScale;
       p.rotation.z+=p.userData.spin.z*dtScale;
