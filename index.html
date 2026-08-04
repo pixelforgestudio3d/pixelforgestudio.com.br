@@ -1807,7 +1807,14 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // mouse bem maiores; e a colisão entre partículas ganha troca de
   // velocidade de verdade (antes só separava posição — sem "bounce"
   // nenhum, parecia morto).
-  const SIZE=15,GRAVITY=.42,FRICTION=.988,NUDGE_RADIUS=140,BOUNCE=.55;
+  // ajuste 2 (feedback direto: "ainda tem muito pouco... distância
+  // mínima entre uma e outra pq elas não ficam empilhadas") — densidade
+  // alvo subiu, e a colisão ganhou GAP mínimo real (MIN_GAP, positivo,
+  // em vez do fator .92 que deixava sobrepor) + várias passadas de
+  // resolução por frame, senão pilhas grandes nunca "assentam" direito
+  // com só uma passada (sobra sobreposição residual entre A-B depois
+  // de corrigir A-C).
+  const SIZE=15,GRAVITY=.42,FRICTION=.988,NUDGE_RADIUS=140,BOUNCE=.55,MIN_GAP=3,COLLISION_PASSES=4;
   let N=46;
   let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
   let particles=[];
@@ -1820,10 +1827,10 @@ document.querySelectorAll('.nd').forEach(nd=>{
     canvas.width=w*dpr;canvas.height=h*dpr;
     canvas.style.width=w+'px';canvas.style.height=h+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    // densidade alvo: partículas cobrindo ~50% da área do rodapé
-    // (contando cada peça como um quadrado de lado SIZE), com teto
-    // pra não pesar demais em rodapés muito largos.
-    N=Math.max(60,Math.min(260,Math.round((w*h*0.5)/(SIZE*SIZE))));
+    // densidade alvo subiu de novo (ajuste 2: "ainda tem muito pouco")
+    // — de ~50% pra ~85% de cobertura teórica da área do rodapé, teto
+    // maior pra sustentar isso em rodapés largos.
+    N=Math.max(90,Math.min(420,Math.round((w*h*0.85)/(SIZE*SIZE))));
   }
   function seed(){
     particles=Array.from({length:N},()=>({
@@ -1860,25 +1867,35 @@ document.querySelectorAll('.nd').forEach(nd=>{
         p.vy+=(dy/dist)*force-force*.5;
       }
     });
-    for(let i=0;i<particles.length;i++){
-      for(let j=i+1;j<particles.length;j++){
-        const a=particles[i],b=particles[j];
-        const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
-        const minDist=(a.size+b.size)/2*.92;
-        if(dist<minDist&&dist>.001){
-          const nx=dx/dist,ny=dy/dist;
-          const overlap=(minDist-dist)/2;
-          a.x-=nx*overlap;a.y-=ny*overlap;
-          b.x+=nx*overlap;b.y+=ny*overlap;
-          // troca de velocidade ao longo da normal (impulso elástico
-          // simplificado) — sem isso as peças só se separavam na
-          // posição, nunca "batiam" de verdade uma na outra.
-          const rvx=b.vx-a.vx,rvy=b.vy-a.vy;
-          const velAlongNormal=rvx*nx+rvy*ny;
-          if(velAlongNormal<0){
-            const impulse=-velAlongNormal*BOUNCE;
-            a.vx-=nx*impulse;a.vy-=ny*impulse;
-            b.vx+=nx*impulse;b.vy+=ny*impulse;
+    // várias passadas por frame: com muita peça empilhada, resolver
+    // A-B pode reabrir sobreposição com C que já tinha sido corrigida
+    // nesse mesmo frame — repetir converge pra uma pilha estável em
+    // vez de tremer/afundar uma na outra.
+    for(let pass=0;pass<COLLISION_PASSES;pass++){
+      for(let i=0;i<particles.length;i++){
+        for(let j=i+1;j<particles.length;j++){
+          const a=particles[i],b=particles[j];
+          const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
+          // MIN_GAP positivo garante espaço real entre peças (pedido
+          // direto) — antes um fator .92 deixava elas se sobreporem.
+          const minDist=(a.size+b.size)/2+MIN_GAP;
+          if(dist<minDist&&dist>.001){
+            const nx=dx/dist,ny=dy/dist;
+            const overlap=(minDist-dist)/2;
+            a.x-=nx*overlap;a.y-=ny*overlap;
+            b.x+=nx*overlap;b.y+=ny*overlap;
+            if(pass===0){
+              // troca de velocidade ao longo da normal (impulso elástico
+              // simplificado) só na 1ª passada — sem isso as peças só se
+              // separavam na posição, nunca "batiam" de verdade.
+              const rvx=b.vx-a.vx,rvy=b.vy-a.vy;
+              const velAlongNormal=rvx*nx+rvy*ny;
+              if(velAlongNormal<0){
+                const impulse=-velAlongNormal*BOUNCE;
+                a.vx-=nx*impulse;a.vy-=ny*impulse;
+                b.vx+=nx*impulse;b.vy+=ny*impulse;
+              }
+            }
           }
         }
       }
