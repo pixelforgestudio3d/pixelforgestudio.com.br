@@ -1443,14 +1443,45 @@ document.querySelectorAll('.nd').forEach(nd=>{
     const font=`800 ${fontSize}px 'Space Grotesk',sans-serif`;
     const ls='-1px';
 
+    // 14.5 — ctx.strokeText() traça o contorno CRU do glyph: em fonte bold
+    // (800), letras com curvas/contra-formas (S, E, R, O...) têm sub-paths
+    // que se cruzam, e o canvas "dobra" o traço nesses pontos — só o "I"
+    // (uma barra simples, sem curva) saía limpo. Troca por uma técnica que
+    // não depende de tracejar caminho nenhum: preenche o glyph inteiro,
+    // depois apaga (destination-out) uma cópia ligeiramente menor do MESMO
+    // preenchimento (escalada a partir do centro) — sobra um anel uniforme
+    // ao redor de cada letra, consistente em qualquer curva.
+    function fillTextRing(targetCtx,insetScale,fillStyle){
+      const full=document.createElement('canvas');
+      full.width=targetCtx.canvas.width;full.height=targetCtx.canvas.height;
+      const fctx=full.getContext('2d');
+      fctx.setTransform(dpr,0,0,dpr,0,0);
+      fctx.font=font;fctx.textAlign='center';fctx.textBaseline='middle';
+      try{fctx.letterSpacing=ls;}catch(e){}
+      fctx.fillStyle=fillStyle;
+      fctx.fillText(TEXT,cw/2,ch/2);
+
+      const inset=document.createElement('canvas');
+      inset.width=full.width;inset.height=full.height;
+      const ictx=inset.getContext('2d');
+      ictx.setTransform(dpr,0,0,dpr,0,0);
+      ictx.translate(cw/2,ch/2);ictx.scale(insetScale,insetScale);ictx.translate(-cw/2,-ch/2);
+      ictx.font=font;ictx.textAlign='center';ictx.textBaseline='middle';
+      try{ictx.letterSpacing=ls;}catch(e){}
+      ictx.fillStyle='#fff';
+      ictx.fillText(TEXT,cw/2,ch/2);
+
+      fctx.setTransform(1,0,0,1,0,0);
+      fctx.globalCompositeOperation='destination-out';
+      fctx.drawImage(inset,0,0);
+
+      targetCtx.setTransform(1,0,0,1,0,0);
+      targetCtx.drawImage(full,0,0);
+    }
+
     // base sempre visível: contorno fino, cinza escuro, quase invisível (13.15)
     const sctx=strokeLayer.getContext('2d');
-    sctx.setTransform(dpr,0,0,dpr,0,0);
-    sctx.font=font;sctx.textAlign='center';sctx.textBaseline='middle';
-    try{sctx.letterSpacing=ls;}catch(e){}
-    sctx.lineWidth=1.1;
-    sctx.strokeStyle='rgba(125,125,140,.22)';
-    sctx.strokeText(TEXT,cw/2,ch/2);
+    fillTextRing(sctx,0.994,'rgba(125,125,140,.22)');
 
     // máscara sólida ESTÁTICA (nunca se move/deforma) — usada só pra clip do interior
     const mctx=fillMask.getContext('2d');
@@ -1464,12 +1495,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
     // máscara de borda ESTÁTICA — faixa fina ao longo do contorno, onde o
     // brilho fica mais forte (13.15: "cor mais viva se concentra na borda")
     const ectx=edgeMask.getContext('2d');
-    ectx.setTransform(dpr,0,0,dpr,0,0);
-    ectx.font=font;ectx.textAlign='center';ectx.textBaseline='middle';
-    try{ectx.letterSpacing=ls;}catch(e){}
-    ectx.lineWidth=Math.max(5,fontSize*0.05);
-    ectx.strokeStyle='#fff';
-    ectx.strokeText(TEXT,cw/2,ch/2);
+    fillTextRing(ectx,0.965,'#fff');
   }
   buildLayers();
   window.addEventListener('resize',buildLayers);
