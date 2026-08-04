@@ -70,7 +70,17 @@ body{background:var(--black);color:var(--white);font-family:'Space Grotesk',sans
 nav{position:fixed;top:0;left:0;right:0;z-index:200;height:80px;padding:0 2.5rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0) 100%);}
 nav::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:.5px solid var(--border);opacity:var(--nav-t,0);pointer-events:none}
 .nl{display:flex;align-items:center;gap:10px;text-decoration:none}
-.nls{display:flex;align-items:center;gap:2rem}
+/* BUG (feedback direto: "o nav está escondendo o botão de contato") —
+   nav::before (o fundo preto) é position:absolute com z-index:auto, o
+   que o coloca na camada de empilhamento de "descendentes posicionados",
+   ACIMA de qualquer filho estático no fluxo normal. .nd (dropdowns) já
+   é position:relative, então fica na mesma camada de ::before e continua
+   visível — mas .nls (e o link .nc dentro dele) era estático, caía numa
+   camada mais baixa, e o fundo preto pintava por cima, sumindo com o
+   botão inteiro (clicável ainda, via pointer-events:none no ::before,
+   só invisível). position:relative aqui basta pra entrar na mesma camada.
+   */
+.nls{display:flex;align-items:center;gap:2rem;position:relative}
 .nls a{font-size:12px;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s;text-transform:uppercase}
 .nls a:hover{color:var(--white)}
 .nc{padding:10px 24px;background:var(--grad);color:var(--white)!important;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;transition:opacity .2s}
@@ -501,7 +511,7 @@ footer>div{position:relative;z-index:1}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="nd-menu">
-        <a href="projetos.html">Ver todos</a>
+        <a href="projetos.html">Ver Projetos</a>
         <a href="galeria.html">Galeria</a>
       </div>
     </div>
@@ -536,7 +546,7 @@ footer>div{position:relative;z-index:1}
   <div class="mm-group">
     <div class="mm-label">Projetos</div>
     <div class="mm-links">
-      <a href="projetos.html">Ver todos</a>
+      <a href="projetos.html">Ver Projetos</a>
       <a href="galeria.html">Galeria</a>
     </div>
   </div>
@@ -1458,13 +1468,30 @@ function initCursor(){
 // ============================================================
 (function(){
   const navEl=document.getElementById('nav');
+  const pf3dEl=document.getElementById('pf3d');
   if(!navEl)return;
+  // ajuste (feedback direto: "o nav só fica 100% preto ao encostar na
+  // segunda seção, que são as marretas com a física") — antes t chegava
+  // a 1 depois de só 120px de scroll, bem dentro do Hero ainda. Agora o
+  // preto total é calculado pra bater exatamente no ponto em que a base
+  // do nav toca o topo de #pf3d, com um fade curto logo antes (suave,
+  // não corte abrupto), em vez de um valor fixo de pixels.
+  let touchY=800;
+  function recalcTouchY(){
+    if(!pf3dEl)return;
+    const navHeight=navEl.getBoundingClientRect().height||80;
+    const pf3dTop=pf3dEl.getBoundingClientRect().top+window.scrollY;
+    touchY=Math.max(1,pf3dTop-navHeight);
+  }
   let ticking=false;
   function update(){
-    const t=Math.min(1,Math.max(0,window.scrollY/120));
+    const FADE_RANGE=160;
+    const t=Math.min(1,Math.max(0,(window.scrollY-(touchY-FADE_RANGE))/FADE_RANGE));
     navEl.style.setProperty('--nav-t',t.toFixed(3));
     ticking=false;
   }
+  recalcTouchY();
+  window.addEventListener('resize',()=>{recalcTouchY();update();});
   window.addEventListener('scroll',()=>{
     if(!ticking){ticking=true;requestAnimationFrame(update);}
   });
