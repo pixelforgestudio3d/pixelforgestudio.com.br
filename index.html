@@ -1070,11 +1070,17 @@ import * as THREE from 'three';
   causticTex.wrapS=causticTex.wrapT=THREE.RepeatWrapping;
   causticTex.repeat.set(2.2,2.2);
 
+  // dispersão cromática (pedido direto, referência oficial
+  // webgl_loader_gltf_dispersion.html / KHR_materials_dispersion) —
+  // MeshPhysicalMaterial suporta nativamente via a propriedade
+  // "dispersion". Box fica só a peça física passiva que refrata as
+  // letras atrás — sem nenhum movimento próprio (rotação por mouse
+  // removida a pedido: "na box não precisa ter movimento nenhum").
   const glassMat=new THREE.MeshPhysicalMaterial({
     color:0xffffff,metalness:0,roughness:.06,transmission:1,
     thickness:.7,ior:1.45,clearcoat:1,clearcoatRoughness:.08,
-    envMapIntensity:1.1,
-    emissive:0xb066ff,emissiveMap:causticTex,emissiveIntensity:.55
+    envMapIntensity:1.1,dispersion:5,
+    emissive:0xb066ff,emissiveMap:causticTex,emissiveIntensity:.4
   });
   const glass=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),glassMat);
   scene.add(glass);
@@ -1090,17 +1096,6 @@ import * as THREE from 'three';
   layout();
   window.addEventListener('resize',layout);
 
-  let tx=0,ty=0,cx=0,cy=0;
-  const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-  if(hoverCapable){
-    wrap.addEventListener('mousemove',e=>{
-      const r=wrap.getBoundingClientRect();
-      tx=((e.clientX-r.left)/r.width-.5)*2;
-      ty=((e.clientY-r.top)/r.height-.5)*2;
-    });
-    wrap.addEventListener('mouseleave',()=>{tx=0;ty=0;});
-  }
-
   // 13.14 rodava o render (com transmission — o material mais caro do
   // Three.js) pra sempre, mesmo com a seção fora da tela, competindo por
   // frame budget com o resto do site o tempo todo. Pausa quando some da viewport.
@@ -1111,12 +1106,8 @@ import * as THREE from 'three';
   function animate(){
     requestAnimationFrame(animate);
     if(!svcGlassVisible)return;
-    cx+=(tx-cx)*.06;cy+=(ty-cy)*.06;
-    glass.rotation.y=cx*.18;
-    glass.rotation.x=-cy*.14;
-    // cáustica: dois deslocamentos em velocidades/direções diferentes
-    // pra não parecer um padrão só deslizando reto — mais parecido com
-    // luz tremulando através de líquido/vidro.
+    // pedido direto: "na box não precisa ter movimento nenhum" — sem
+    // rotação por mouse, só a caustica anima (o vidro em si é estático).
     const t=causticClock.getElapsedTime();
     causticTex.offset.set(t*0.015,Math.sin(t*0.11)*0.05);
     renderer.render(scene,camera);
@@ -1601,7 +1592,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
         vx=dx/dt*7;vy=dy/dt*7;
         if(speed>0.15){
           ripples.push({x:mx,y:my,birth:now,strength:Math.min(1,speed/2.2),seed:Math.random()});
-          if(ripples.length>20)ripples.shift();
+          if(ripples.length>60)ripples.shift();
         }
       }
       driftX=mx;driftY=my;hasMoved=true;
@@ -1611,10 +1602,14 @@ document.querySelectorAll('.nd').forEach(nd=>{
   }
 
   function drawRipple(lctx,rp,now){
-    const life=900;
+    // ajuste 3 (pedido direto: "o efeito tem que ser LÍQUIDO e se
+    // propagar MUITO MAIS") — vida e raio bem maiores: cada toque no
+    // mouse agora se espalha por boa parte da palavra, não fica
+    // contido perto de onde o cursor passou.
+    const life=2400;
     const p=(now-rp.birth)/life;
     if(p>=1)return false;
-    const radius=10+p*140;
+    const radius=14+p*420;
     const alpha=rp.strength*(1-p)*0.95;
     if(alpha<=0.012)return true;
     // ajuste 2 — o centro vazio (transparente) fazia cada ripple parecer
@@ -1670,7 +1665,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
       vx*=0.92;vy*=0.92;
       if(Math.random()<0.5){
         ripples.push({x:driftX,y:driftY,birth:now,strength:Math.min(.55,Math.hypot(vx,vy)/6),seed:Math.random()});
-        if(ripples.length>20)ripples.shift();
+        if(ripples.length>60)ripples.shift();
       }
     }
 
@@ -1707,7 +1702,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
     const period=7000;
     const t=(now%period)/period;
     const sweepX=-0.25*cw+t*1.5*cw;
-    const bandHalf=cw*0.09;
+    const bandHalf=cw*0.16;
     // ajuste 2 — trocado de branco pra azul/rosa da marca (pedido direto)
     const grad=ictx.createLinearGradient(sweepX-bandHalf,0,sweepX+bandHalf,0);
     grad.addColorStop(0,'rgba(61,139,255,0)');
