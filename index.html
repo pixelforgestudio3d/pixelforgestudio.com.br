@@ -141,28 +141,36 @@ h1 .split-char{will-change:transform,opacity}
 
 /* CLIENTES / ESCOPO — mecânica Valkiria exata (11.4), refinada 14.7 */
 .cle{padding:7rem 2.5rem 8rem;position:relative}
-/* 14.7 — cabeçalho fica fixo (sticky) enquanto a lista rola por baixo;
-   antes subia junto com a lista e desaparecia. Fundo sólido criava um
-   corte duro onde encontrava a lista rolando por baixo (ajuste 2,
-   feedback direto: "travado sem um fade bom") — trocado por gradiente
-   que dissolve suavemente em vez de caixa opaca com borda visível. */
-.cle-head{text-align:center;position:sticky;top:90px;z-index:2;padding-bottom:3.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,var(--black) 55%,rgba(0,0,0,0) 100%)}
+/* 14.7 (ajuste 3, feedback direto) — o gradiente anterior segurava
+   sólido até 55% e só desvanecia depois — como o título inteiro cabia
+   dentro desse trecho sólido, na prática parecia que não tinha fade
+   nenhum (ficava idêntico a um fundo preto liso). Agora é contínuo: 100%
+   no topo do título até 0% exatamente na base dele, sem plateau. */
+.cle-head{text-align:center;position:sticky;top:90px;z-index:2;padding-bottom:1.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,rgba(0,0,0,0) 100%)}
 .cle-head .st2{justify-content:center}
 .cle-head h2{margin-bottom:0}
 .cle-list{max-width:640px;margin:0 auto;position:relative;z-index:1}
-.cli-row{position:relative;display:flex;align-items:baseline;justify-content:space-between;gap:1.5rem;padding:.7rem 0;cursor:pointer}
+/* 14.7 (ajuste 3) — só o escopo (tags) fica alinhado à linha do nome
+   agora (o logo virou elemento fixo à esquerda, independente). Trocado
+   align-items de baseline pra center: baseline alinhava o TEXTO mas
+   deixava as pills de tag (com padding/borda) visualmente descentradas
+   em relação ao nome. */
+.cli-row{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:.7rem 0;cursor:pointer}
 .cli-name{display:inline-block;font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;color:var(--white);transition:opacity .2s,transform .35s cubic-bezier(.22,1,.36,1);transform-origin:left center;white-space:nowrap}
 .cli-row:hover .cli-name,.cli-row.on .cli-name{opacity:1!important;transform:scale(1.1)}
 .cli-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;opacity:0;transition:opacity .3s}
 .cli-row:hover .cli-tags,.cli-row.on .cli-tags{opacity:1}
 .clt{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);border:.5px solid var(--borderh);padding:5px 12px;white-space:nowrap}
-/* 14.7 (ajuste 2, feedback direto do Ericson) — o logo compartilhado
-   centralizado ficou "travado" (aparência persistente) e a posição
-   certa é à ESQUERDA, não no meio da tela. Revertido pro mecanismo
-   per-row com :hover puro em CSS (sem estado JS compartilhado que
-   pode ficar preso) — só maior que o original (100px -> 190px). */
-.cli-logo{position:absolute;left:-230px;top:50%;transform:translateY(-50%);width:190px;max-height:110px;object-fit:contain;opacity:0;transition:opacity .3s;pointer-events:none;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
-.cli-row:hover .cli-logo,.cli-row.on .cli-logo{opacity:1}
+/* 14.7 (ajuste 3, feedback direto) — não é mais por hover: "como a
+   seção está fixa o logo pode sempre estar aparecendo fixo ali". Um
+   logo grande, fixo, centralizado horizontalmente no espaço vazio da
+   ESQUERDA (não no meio da tela), trocando (crossfade) conforme a
+   marca mais próxima do centro vertical da tela (mesma lógica de
+   distância já usada na "roleta" de opacidade) — não precisa mais de
+   hover pra aparecer. */
+.cle-logo-wrap{position:fixed;top:0;left:0;width:min(26vw,340px);height:100vh;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1}
+.cle-logo-display{max-width:82%;max-height:220px;object-fit:contain;opacity:0;transition:opacity .4s ease;filter:drop-shadow(0 20px 50px rgba(0,0,0,.6))}
+.cle-logo-display.show{opacity:1}
 /* 14.7 — fade de baixo pra cima mais forte: 100% opaco na base até 0%
    em ~30vh, moldura escura por trás de onde os nomes emergem ao rolar.
    position:fixed + gate por IntersectionObserver (visível só durante
@@ -645,6 +653,7 @@ footer>div{position:relative;z-index:1}
     <div class="st2 rv">— Clientes &amp; Escopo</div>
     <h2 class="rv d1">Marcas que já confiaram <span class="g">na Forja.</span></h2>
   </div>
+  <div class="cle-logo-wrap" id="cleLogoWrap"><img class="cle-logo-display" id="cleLogoDisplay" alt=""></div>
   <div class="cle-list" id="cleList"></div>
 </section>
 <div class="cle-fade" id="cleFade"></div>
@@ -2135,10 +2144,18 @@ const cleListEl=document.getElementById('cleList');
 const cliRows=CLIENTS.map(c=>{
   const row=document.createElement('div');row.className='cli-row';
   const tagsHtml=c.scope.map(t=>`<span class="clt">${t}</span>`).join('');
-  row.innerHTML=`<img class="cli-logo" src="${c.logo}" alt="${c.name}"><span class="cli-name">${c.name}</span><span class="cli-tags">${tagsHtml}</span>`;
+  row.innerHTML=`<span class="cli-name">${c.name}</span><span class="cli-tags">${tagsHtml}</span>`;
+  row.dataset.logo=c.logo;row.dataset.name=c.name;
   cleListEl.appendChild(row);
   return row;
 });
+
+// 14.7 (ajuste 3) — logo fixo à esquerda não depende mais de hover:
+// mostra sempre a marca mais próxima do centro vertical da tela,
+// reaproveitando a mesma distância já calculada pra "roleta" de
+// opacidade (11.4), com crossfade suave a cada troca.
+const cleLogoDisplay=document.getElementById('cleLogoDisplay');
+let cleActiveLogo=null;
 
 // opacidade por posição na tela — efeito "roleta" (11.4)
 let cleTicking=false;
@@ -2147,6 +2164,7 @@ function updateClienteOpacity(){
   const center=vh/2;
   const band=vh*0.15;
   const fadeRange=vh*0.55;
+  let closestRow=null,closestDist=Infinity;
   cliRows.forEach(row=>{
     const nameEl=row.querySelector('.cli-name');
     const r=row.getBoundingClientRect();
@@ -2155,8 +2173,40 @@ function updateClienteOpacity(){
     let t;
     if(dist<=band)t=1;else t=Math.max(0,1-(dist-band)/(fadeRange-band));
     nameEl.style.opacity=(0.2+t*0.8).toFixed(2);
+    if(dist<closestDist){closestDist=dist;closestRow=row;}
   });
+  if(closestRow&&closestRow.dataset.logo!==cleActiveLogo){
+    cleActiveLogo=closestRow.dataset.logo;
+    cleLogoDisplay.classList.remove('show');
+    clearTimeout(cleLogoDisplay._t);
+    cleLogoDisplay._t=setTimeout(()=>{
+      cleLogoDisplay.src=cleActiveLogo;
+      cleLogoDisplay.alt=closestRow.dataset.name;
+      cleLogoDisplay.classList.add('show');
+    },180);
+  }
 }
+
+// 14.7 (ajuste 3) — "equilibrar o tamanho dos logos, tem alguns muito
+// maiores que outros": max-width/max-height sozinhos deixam um logo
+// largo-e-baixo (ex.: Rodonaves) minúsculo comparado a um quadrado
+// (ex.: Positivo). Normaliza pela ÁREA visual (largura×altura), não só
+// pelo teto de cada eixo — mantém a proporção de cada logo, mas o peso
+// visual entre marcas diferentes fica parecido.
+cleLogoDisplay.addEventListener('load',()=>{
+  const nw=cleLogoDisplay.naturalWidth,nh=cleLogoDisplay.naturalHeight;
+  if(!nw||!nh)return;
+  const targetArea=190*190;
+  let w=Math.sqrt(targetArea*(nw/nh));
+  let h=w*(nh/nw);
+  const maxW=280,maxH=220,minW=120,minH=70;
+  if(w>maxW){h*=maxW/w;w=maxW;}
+  if(h>maxH){w*=maxH/h;h=maxH;}
+  if(w<minW){h*=minW/w;w=minW;}
+  if(h<minH){w*=minH/h;h=minH;}
+  cleLogoDisplay.style.width=w+'px';
+  cleLogoDisplay.style.height=h+'px';
+});
 window.addEventListener('scroll',()=>{
   if(!cleTicking){cleTicking=true;requestAnimationFrame(()=>{updateClienteOpacity();cleTicking=false;});}
 },{passive:true});
