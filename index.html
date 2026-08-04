@@ -180,11 +180,17 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .svc-inner .st2{justify-content:center}
 .svc-glass-wrap{position:relative;max-width:760px;margin:0 auto}
 #svcGlassCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.svl{position:relative;z-index:1;background:rgba(255,255,255,.01);border:.5px solid var(--borderh);border-radius:6px;overflow:hidden;text-align:left}
-.svl-item{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1.7rem 2.2rem;color:var(--white);text-decoration:none;border-bottom:.5px solid var(--border);transition:padding-left .35s ease,background .3s}
+/* 14.5 — texto da lista centralizado, já que o painel/vidro em volta
+   está centralizado (era alinhado à esquerda). O hover que crescia
+   padding-left não fazia mais sentido com o texto centralizado
+   (deslocava o bloco pro lado em vez de só reagir) — trocado por leve
+   escala, mantendo cor/seta de hover. */
+.svl{position:relative;z-index:1;background:rgba(255,255,255,.01);border:.5px solid var(--borderh);border-radius:6px;overflow:hidden;text-align:center}
+.svl-item{display:flex;align-items:center;justify-content:center;gap:1.5rem;padding:1.7rem 2.2rem;color:var(--white);text-decoration:none;border-bottom:.5px solid var(--border);transition:background .3s}
 .svl-item:last-child{border-bottom:none}
-.svl-item:hover{padding-left:2.8rem;background:rgba(255,255,255,.03)}
-.svl-name{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:500;letter-spacing:-.01em;display:inline-block}
+.svl-item:hover{background:rgba(255,255,255,.03)}
+.svl-item:hover .svl-name{transform:scale(1.04)}
+.svl-name{font-size:clamp(1.4rem,3vw,2.2rem);font-weight:500;letter-spacing:-.01em;display:inline-block;transition:transform .3s,color .3s}
 .svl-item:hover .svl-name{color:var(--pink)}
 .svl-arrow{opacity:0;transform:translateX(-10px);transition:opacity .3s,transform .3s;color:var(--pink);flex-shrink:0}
 .svl-item:hover .svl-arrow{opacity:1;transform:translateX(0)}
@@ -1404,6 +1410,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
   const fillMask=document.createElement('canvas');
   const edgeMask=document.createElement('canvas');
   const liquidCanvas=document.createElement('canvas');
+  const idleCanvas=document.createElement('canvas');
   const tmpCanvas=document.createElement('canvas');
   let cw=0,ch=0,dpr=Math.min(window.devicePixelRatio||1,1.5);
   let mx=-9999,my=-9999,driftX=0,driftY=0,vx=0,vy=0,hasMoved=false;
@@ -1435,7 +1442,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
     const r=canvas.getBoundingClientRect();
     cw=Math.max(1,Math.round(r.width));
     ch=Math.max(1,Math.round(r.height));
-    [canvas,strokeLayer,fillMask,edgeMask,liquidCanvas,tmpCanvas].forEach(c=>{
+    [canvas,strokeLayer,fillMask,edgeMask,liquidCanvas,idleCanvas,tmpCanvas].forEach(c=>{
       c.width=cw*dpr;c.height=ch*dpr;
       c.style.width=cw+'px';c.style.height=ch+'px';
     });
@@ -1599,7 +1606,33 @@ document.querySelectorAll('.nd').forEach(nd=>{
       // borda: cor mais viva/saturada, concentrada no contorno (13.15)
       drawMasked(liquidCanvas,edgeMask,1);
     }
+
+    // 14.5 — NOVO: camada de brilho ambiente/idle, independente do mouse
+    // ("meu mouse tá parado, ele já tem um efeito sozinho... como se
+    // fosse uma luz, um reflexo em cima dele, revelando as letras").
+    // Uma faixa de luz varre o texto devagar, sempre, em loop — soma
+    // com a reação ao mouse, nunca a substitui.
+    drawIdleSweep(now);
+
     requestAnimationFrame(draw);
+  }
+
+  function drawIdleSweep(now){
+    const ictx=idleCanvas.getContext('2d');
+    ictx.setTransform(dpr,0,0,dpr,0,0);
+    ictx.clearRect(0,0,cw,ch);
+    const period=7000;
+    const t=(now%period)/period;
+    const sweepX=-0.25*cw+t*1.5*cw;
+    const bandHalf=cw*0.09;
+    const grad=ictx.createLinearGradient(sweepX-bandHalf,0,sweepX+bandHalf,0);
+    grad.addColorStop(0,'rgba(255,255,255,0)');
+    grad.addColorStop(.5,'rgba(255,255,255,.9)');
+    grad.addColorStop(1,'rgba(255,255,255,0)');
+    ictx.fillStyle=grad;
+    ictx.fillRect(0,0,cw,ch);
+    drawMasked(idleCanvas,edgeMask,.5);
+    drawMasked(idleCanvas,fillMask,.16);
   }
   draw();
 })();
