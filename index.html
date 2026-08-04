@@ -1800,7 +1800,15 @@ document.querySelectorAll('.nd').forEach(nd=>{
   if(!footer||!canvas)return;
   const ctx=canvas.getContext('2d');
   const COLORS=['#2931a1','#6031b2','#8017e2','#dc1065','#f433bb','#ff5ad2'];
-  const SIZE=14,N=46,GRAVITY=.35,FRICTION=.985,NUDGE_RADIUS=70;
+  // 14.12 (feedback direto: "meia dúzia de partículas com interação
+  // fraca") — reforço geral: N deixa de ser fixo (46 ficava esparso em
+  // rodapés largos, longe de "preencher pelo menos metade do
+  // container") e passa a escalar pela ÁREA do rodapé; raio/força do
+  // mouse bem maiores; e a colisão entre partículas ganha troca de
+  // velocidade de verdade (antes só separava posição — sem "bounce"
+  // nenhum, parecia morto).
+  const SIZE=15,GRAVITY=.42,FRICTION=.988,NUDGE_RADIUS=140,BOUNCE=.55;
+  let N=46;
   let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
   let particles=[];
   let mx=-9999,my=-9999;
@@ -1812,18 +1820,22 @@ document.querySelectorAll('.nd').forEach(nd=>{
     canvas.width=w*dpr;canvas.height=h*dpr;
     canvas.style.width=w+'px';canvas.style.height=h+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
+    // densidade alvo: partículas cobrindo ~50% da área do rodapé
+    // (contando cada peça como um quadrado de lado SIZE), com teto
+    // pra não pesar demais em rodapés muito largos.
+    N=Math.max(60,Math.min(260,Math.round((w*h*0.5)/(SIZE*SIZE))));
   }
   function seed(){
     particles=Array.from({length:N},()=>({
       x:Math.random()*w,
-      y:-Math.random()*h*.7-20,
-      vx:0,vy:0,
-      size:SIZE*(.7+Math.random()*.6),
+      y:-Math.random()*h*1.4-20,
+      vx:(Math.random()-.5)*1.5,vy:0,
+      size:SIZE*(.65+Math.random()*.7),
       color:COLORS[Math.floor(Math.random()*COLORS.length)]
     }));
   }
   resize();seed();
-  window.addEventListener('resize',()=>{resize();});
+  window.addEventListener('resize',()=>{resize();seed();});
 
   if(hoverCapable){
     footer.addEventListener('mousemove',e=>{
@@ -1838,32 +1850,43 @@ document.querySelectorAll('.nd').forEach(nd=>{
       p.vy+=GRAVITY;
       p.x+=p.vx;p.y+=p.vy;
       p.vx*=FRICTION;
-      if(p.y+p.size/2>h){p.y=h-p.size/2;p.vy*=-.28;if(Math.abs(p.vy)<.6)p.vy=0;}
-      if(p.x-p.size/2<0){p.x=p.size/2;p.vx*=-.4;}
-      if(p.x+p.size/2>w){p.x=w-p.size/2;p.vx*=-.4;}
+      if(p.y+p.size/2>h){p.y=h-p.size/2;p.vy*=-.32;if(Math.abs(p.vy)<.6)p.vy=0;}
+      if(p.x-p.size/2<0){p.x=p.size/2;p.vx*=-.5;}
+      if(p.x+p.size/2>w){p.x=w-p.size/2;p.vx*=-.5;}
       const dx=p.x-mx,dy=p.y-my,dist=Math.hypot(dx,dy);
       if(dist<NUDGE_RADIUS&&dist>.01){
-        const force=(1-dist/NUDGE_RADIUS)*2.2;
+        const force=(1-dist/NUDGE_RADIUS)*7;
         p.vx+=(dx/dist)*force;
-        p.vy+=(dy/dist)*force-force*.4;
+        p.vy+=(dy/dist)*force-force*.5;
       }
     });
     for(let i=0;i<particles.length;i++){
       for(let j=i+1;j<particles.length;j++){
         const a=particles[i],b=particles[j];
         const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
-        const minDist=(a.size+b.size)/2*.9;
+        const minDist=(a.size+b.size)/2*.92;
         if(dist<minDist&&dist>.001){
-          const overlap=(minDist-dist)/2,nx=dx/dist,ny=dy/dist;
+          const nx=dx/dist,ny=dy/dist;
+          const overlap=(minDist-dist)/2;
           a.x-=nx*overlap;a.y-=ny*overlap;
           b.x+=nx*overlap;b.y+=ny*overlap;
+          // troca de velocidade ao longo da normal (impulso elástico
+          // simplificado) — sem isso as peças só se separavam na
+          // posição, nunca "batiam" de verdade uma na outra.
+          const rvx=b.vx-a.vx,rvy=b.vy-a.vy;
+          const velAlongNormal=rvx*nx+rvy*ny;
+          if(velAlongNormal<0){
+            const impulse=-velAlongNormal*BOUNCE;
+            a.vx-=nx*impulse;a.vy-=ny*impulse;
+            b.vx+=nx*impulse;b.vy+=ny*impulse;
+          }
         }
       }
     }
   }
   function draw(){
     ctx.clearRect(0,0,w,h);
-    ctx.globalAlpha=.85;
+    ctx.globalAlpha=.88;
     particles.forEach(p=>{ctx.fillStyle=p.color;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);});
     ctx.globalAlpha=1;
   }
