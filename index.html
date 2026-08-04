@@ -1502,8 +1502,72 @@ document.querySelectorAll('.nd').forEach(nd=>{
   let cw=0,ch=0,dpr=Math.min(window.devicePixelRatio||1,1.5);
   let mx=-9999,my=-9999,driftX=0,driftY=0,vx=0,vy=0,hasMoved=false;
   let lastMX=null,lastMY=null,lastT=null;
-  const ripples=[];
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  // ajuste 3 — trocado o sistema de "ripples" (blobs radiais isolados)
+  // por uma simulação de onda de verdade: grade baixa resolução, cada
+  // célula = média dos 4 vizinhos menos a altura anterior, amortecida
+  // por viscosidade — é o algoritmo clássico de tanque de ondas (o
+  // mesmo princípio por trás da referência oficial de water simulation
+  // que o Ericson mandou, só que aqui roda em CPU/Canvas 2D, sem
+  // precisar de WebGPU). Perturbação injetada na posição do mouse se
+  // propaga célula a célula pela grade inteira — "propagar muito mais"
+  // sai de graça do próprio algoritmo, não precisa de raio gigante.
+  const WAVE_COLS=72,WAVE_ROWS=30,WAVE_VISCOSITY=0.988;
+  let waveCur=new Float32Array(WAVE_COLS*WAVE_ROWS);
+  let wavePrev=new Float32Array(WAVE_COLS*WAVE_ROWS);
+  let waveNext=new Float32Array(WAVE_COLS*WAVE_ROWS);
+  const waveIdx=(x,y)=>y*WAVE_COLS+x;
+  const waveCanvas=document.createElement('canvas');
+  waveCanvas.width=WAVE_COLS;waveCanvas.height=WAVE_ROWS;
+  const waveCtx=waveCanvas.getContext('2d');
+  const waveImg=waveCtx.createImageData(WAVE_COLS,WAVE_ROWS);
+
+  function stepWave(){
+    for(let y=0;y<WAVE_ROWS;y++){
+      for(let x=0;x<WAVE_COLS;x++){
+        const i=waveIdx(x,y);
+        const n=waveCur[waveIdx(x,y>0?y-1:y)];
+        const s=waveCur[waveIdx(x,y<WAVE_ROWS-1?y+1:y)];
+        const e=waveCur[waveIdx(x<WAVE_COLS-1?x+1:x,y)];
+        const w=waveCur[waveIdx(x>0?x-1:x,y)];
+        waveNext[i]=((n+s+e+w)*0.5-wavePrev[i])*WAVE_VISCOSITY;
+      }
+    }
+    const tmp=wavePrev;wavePrev=waveCur;waveCur=waveNext;waveNext=tmp;
+  }
+
+  function injectWave(px,py,amount){
+    // px,py em coordenadas de canvas (0..cw, 0..ch) -> célula da grade
+    const gx=Math.round((px/cw)*(WAVE_COLS-1));
+    const gy=Math.round((py/ch)*(WAVE_ROWS-1));
+    if(gx<0||gx>=WAVE_COLS||gy<0||gy>=WAVE_ROWS)return;
+    waveCur[waveIdx(gx,gy)]+=amount;
+    if(gx>0)waveCur[waveIdx(gx-1,gy)]+=amount*0.5;
+    if(gx<WAVE_COLS-1)waveCur[waveIdx(gx+1,gy)]+=amount*0.5;
+    if(gy>0)waveCur[waveIdx(gx,gy-1)]+=amount*0.5;
+    if(gy<WAVE_ROWS-1)waveCur[waveIdx(gx,gy+1)]+=amount*0.5;
+  }
+
+  // renderiza o campo de altura como cor (azul = crista, rosa = vale)
+  // numa tela minúscula (resolução da grade), depois estica pra tela
+  // real com suavização — é o que faz a grade baixa resolução parecer
+  // um gradiente líquido contínuo em vez de blocos.
+  function drawWaveField(){
+    const data=waveImg.data;
+    for(let i=0;i<WAVE_COLS*WAVE_ROWS;i++){
+      const h=Math.max(-1,Math.min(1,waveCur[i]*3.2));
+      const j=i*4;
+      if(h>=0){
+        // crista: azul da marca
+        data[j]=61;data[j+1]=139;data[j+2]=255;data[j+3]=Math.round(h*235);
+      }else{
+        // vale: rosa da marca
+        data[j]=244;data[j+1]=51;data[j+2]=187;data[j+3]=Math.round(-h*235);
+      }
+    }
+    waveCtx.putImageData(waveImg,0,0);
+  }
 
   function hexToRgba(hex,a){
     const n=parseInt(hex.slice(1),16);
@@ -1573,9 +1637,10 @@ document.querySelectorAll('.nd').forEach(nd=>{
       targetCtx.drawImage(full,0,0);
     }
 
-    // base sempre visível: contorno fino, cinza escuro, quase invisível (13.15)
+    // ajuste 3 (pedido direto: "bem fininho ao redor da palavra, no
+    // máximo 1pt") — inset ainda mais próximo de 1 = anel mais fino.
     const sctx=strokeLayer.getContext('2d');
-    fillTextRing(sctx,0.994,'rgba(125,125,140,.22)');
+    fillTextRing(sctx,0.997,'rgba(125,125,140,.26)');
 
     // máscara sólida ESTÁTICA (nunca se move/deforma) — usada só pra clip do interior
     const mctx=fillMask.getContext('2d');
@@ -1605,38 +1670,13 @@ document.querySelectorAll('.nd').forEach(nd=>{
         const speed=Math.hypot(dx,dy)/dt;
         vx=dx/dt*7;vy=dy/dt*7;
         if(speed>0.15){
-          ripples.push({x:mx,y:my,birth:now,strength:Math.min(1,speed/2.2),seed:Math.random()});
-          if(ripples.length>60)ripples.shift();
+          injectWave(mx,my,Math.min(1,speed/2.2)*0.6);
         }
       }
       driftX=mx;driftY=my;hasMoved=true;
       lastMX=mx;lastMY=my;lastT=now;
     });
     section.addEventListener('mouseleave',()=>{lastMX=null;});
-  }
-
-  function drawRipple(lctx,rp,now){
-    // ajuste 3 (pedido direto: "o efeito tem que ser LÍQUIDO e se
-    // propagar MUITO MAIS") — vida e raio bem maiores: cada toque no
-    // mouse agora se espalha por boa parte da palavra, não fica
-    // contido perto de onde o cursor passou.
-    const life=2400;
-    const p=(now-rp.birth)/life;
-    if(p>=1)return false;
-    const radius=14+p*420;
-    const alpha=rp.strength*(1-p)*0.95;
-    if(alpha<=0.012)return true;
-    // ajuste 2 — o centro vazio (transparente) fazia cada ripple parecer
-    // um anel/"bolinha" isolada em vez de fluido. Centro sólido azul
-    // desvanecendo pra rosa nas bordas lê como gota líquida, não anel;
-    // várias sobrepostas (mouse em movimento) se fundem num fluxo só.
-    const grad=lctx.createRadialGradient(rp.x,rp.y,0,rp.x,rp.y,radius);
-    grad.addColorStop(0,hexToRgba(CHANNELS[0],alpha));
-    grad.addColorStop(.6,hexToRgba(CHANNELS[1],alpha*.85));
-    grad.addColorStop(1,'rgba(244,51,187,0)');
-    lctx.fillStyle=grad;
-    lctx.beginPath();lctx.arc(rp.x,rp.y,radius,0,Math.PI*2);lctx.fill();
-    return true;
   }
 
   // desenha `source` clipado por `mask` (destination-in) dentro de um canvas
@@ -1673,25 +1713,21 @@ document.querySelectorAll('.nd').forEach(nd=>{
     ctx.drawImage(strokeLayer,0,0,strokeLayer.width,strokeLayer.height,0,0,cw,ch);
 
     // 13.17 — momentum: mesmo sem input novo, o "dedo na água" continua
-    // empurrando e gerando ondulações residuais até desacelerar de vez
+    // empurrando (injeta na simulação de onda, que já propaga sozinha)
     if(hasMoved&&(Math.abs(vx)>0.05||Math.abs(vy)>0.05)){
       driftX+=vx;driftY+=vy;
       vx*=0.92;vy*=0.92;
-      if(Math.random()<0.5){
-        ripples.push({x:driftX,y:driftY,birth:now,strength:Math.min(.55,Math.hypot(vx,vy)/6),seed:Math.random()});
-        if(ripples.length>60)ripples.shift();
-      }
+      injectWave(driftX,driftY,Math.min(.4,Math.hypot(vx,vy)/6)*0.4);
     }
 
-    if(hoverCapable&&ripples.length){
+    if(hoverCapable){
+      stepWave();
+      drawWaveField();
       const lctx=liquidCanvas.getContext('2d');
-      lctx.setTransform(dpr,0,0,dpr,0,0);
-      lctx.clearRect(0,0,cw,ch);
-      lctx.globalCompositeOperation='lighter';
-      for(let i=ripples.length-1;i>=0;i--){
-        if(!drawRipple(lctx,ripples[i],now))ripples.splice(i,1);
-      }
-      lctx.globalCompositeOperation='source-over';
+      lctx.setTransform(1,0,0,1,0,0);
+      lctx.clearRect(0,0,liquidCanvas.width,liquidCanvas.height);
+      lctx.imageSmoothingEnabled=true;
+      lctx.drawImage(waveCanvas,0,0,WAVE_COLS,WAVE_ROWS,0,0,liquidCanvas.width,liquidCanvas.height);
 
       // interior: versão mais escura/opaca (13.15)
       drawMasked(liquidCanvas,fillMask,.38);
@@ -1725,8 +1761,10 @@ document.querySelectorAll('.nd').forEach(nd=>{
     grad.addColorStop(1,'rgba(244,51,187,0)');
     ictx.fillStyle=grad;
     ictx.fillRect(0,0,cw,ch);
-    drawMasked(idleCanvas,edgeMask,.5);
-    drawMasked(idleCanvas,fillMask,.16);
+    // ajuste 3 (pedido direto: "o efeito fixo passa somente no
+    // stroke") — removida a passada em fillMask (preenchia o interior
+    // da letra); o brilho ambiente agora só percorre o contorno.
+    drawMasked(idleCanvas,edgeMask,.6);
   }
   draw();
 })();
