@@ -269,7 +269,12 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
    Serviços, mas aqui tem que ser diferente: sólida) e o tamanho quase
    triplica (~equivalente a 2 linhas de altura). */
 .fooh-ticker-line{position:relative;white-space:nowrap;font-size:clamp(7rem,17vw,13rem);font-weight:800;letter-spacing:.01em;text-transform:uppercase;color:rgba(255,255,255,.08);opacity:1;will-change:transform}
-.fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center}
+/* BUG (feedback direto: "texto pode estar mais perto do meio e os
+   exemplos") — .iacgi-split (seção irmã, logo abaixo) sempre teve
+   max-width:1100px;margin:0 auto pra centralizar; esta faltava, então
+   em telas largas o grid esticava borda a borda e texto/coverflow
+   ficavam grudados nas pontas em vez de perto do centro. */
+.fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;max-width:1300px;margin:0 auto}
 .fooh-text{max-width:480px}
 /* preview do coverflow tem que ocupar pelo menos 80% da tela (pedido
    direto) — de uma faixa de 340-540px pra quase a altura toda do
@@ -805,7 +810,6 @@ footer>div{position:relative;z-index:1}
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 (function initPF3D(){
   const section=document.getElementById('pf3d');
@@ -823,8 +827,31 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=1.1;
 
+  // pedido direto ("vamos arrumar o shader com os exemplos que mandei") —
+  // mesma técnica já aplicada no vidro de Serviços (referência oficial
+  // webgl_loader_gltf_transmission/dispersion, ambas WebGL puro, sem
+  // WebGPU): RoomEnvironment neutro trocado por um ambiente equirect
+  // com os gradientes da marca, pra peça de vidro refletir cor de
+  // verdade em vez de cinza genérico.
+  const envCanvas=document.createElement('canvas');
+  envCanvas.width=512;envCanvas.height=256;
+  const envCtx=envCanvas.getContext('2d');
+  const envGrad=envCtx.createLinearGradient(0,0,512,256);
+  envGrad.addColorStop(0,'#0d0620');
+  envGrad.addColorStop(.35,'#3D17e1');
+  envGrad.addColorStop(.65,'#8017e2');
+  envGrad.addColorStop(1,'#f433bb');
+  envCtx.fillStyle=envGrad;
+  envCtx.fillRect(0,0,512,256);
+  envCtx.fillStyle='rgba(255,255,255,.95)';
+  envCtx.beginPath();envCtx.ellipse(256,55,110,32,0,0,Math.PI*2);envCtx.fill();
+  const envTex=new THREE.CanvasTexture(envCanvas);
+  envTex.mapping=THREE.EquirectangularReflectionMapping;
+  envTex.colorSpace=THREE.SRGBColorSpace;
+
   const pmrem=new THREE.PMREMGenerator(renderer);
-  scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+  scene.environment=pmrem.fromEquirectangular(envTex).texture;
+  envTex.dispose();
 
   scene.add(new THREE.AmbientLight(0xffffff,.5));
   const key=new THREE.DirectionalLight(0xffffff,1.5);key.position.set(4,6,6);scene.add(key);
@@ -860,7 +887,10 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
   const pieces=[];
   const metalMat=new THREE.MeshStandardMaterial({color:0xf2f2f5,metalness:.95,roughness:.18,emissive:0x1a0630,emissiveIntensity:.25});
-  const glassMat=new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.05,transmission:1,thickness:.6,ior:1.5,emissive:0x3d17e1,emissiveIntensity:.12});
+  // dispersão cromática nativa (KHR_materials_dispersion, mesma referência
+  // oficial usada em Serviços) — separa a luz em cores ao atravessar o
+  // caco de vidro, igual ao pedido pra caixa de SERVIÇOS.
+  const glassMat=new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.05,transmission:1,thickness:.6,ior:1.5,clearcoat:1,clearcoatRoughness:.1,dispersion:4,envMapIntensity:1.15,emissive:0x3d17e1,emissiveIntensity:.12});
 
   gltfLoader.load('assets/3D/Isotipo_PixelForge_otm.glb',(gltf)=>{
     let sourceMesh=null;
@@ -1553,17 +1583,21 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // numa tela minúscula (resolução da grade), depois estica pra tela
   // real com suavização — é o que faz a grade baixa resolução parecer
   // um gradiente líquido contínuo em vez de blocos.
+  // ajuste 4 (feedback direto: "ainda está muito forte... parece que
+  // está GIGANTE, precisa ser suave") — ganho e teto de alpha reduzidos
+  // (a grade em si já propaga bastante sozinha; o exagero estava na
+  // conversão altura->cor, não na simulação).
   function drawWaveField(){
     const data=waveImg.data;
     for(let i=0;i<WAVE_COLS*WAVE_ROWS;i++){
-      const h=Math.max(-1,Math.min(1,waveCur[i]*3.2));
+      const h=Math.max(-1,Math.min(1,waveCur[i]*1.8));
       const j=i*4;
       if(h>=0){
         // crista: azul da marca
-        data[j]=61;data[j+1]=139;data[j+2]=255;data[j+3]=Math.round(h*235);
+        data[j]=61;data[j+1]=139;data[j+2]=255;data[j+3]=Math.round(h*140);
       }else{
         // vale: rosa da marca
-        data[j]=244;data[j+1]=51;data[j+2]=187;data[j+3]=Math.round(-h*235);
+        data[j]=244;data[j+1]=51;data[j+2]=187;data[j+3]=Math.round(-h*140);
       }
     }
     waveCtx.putImageData(waveImg,0,0);
@@ -1670,7 +1704,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
         const speed=Math.hypot(dx,dy)/dt;
         vx=dx/dt*7;vy=dy/dt*7;
         if(speed>0.15){
-          injectWave(mx,my,Math.min(1,speed/2.2)*0.6);
+          injectWave(mx,my,Math.min(1,speed/2.2)*0.28);
         }
       }
       driftX=mx;driftY=my;hasMoved=true;
@@ -1717,7 +1751,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
     if(hasMoved&&(Math.abs(vx)>0.05||Math.abs(vy)>0.05)){
       driftX+=vx;driftY+=vy;
       vx*=0.92;vy*=0.92;
-      injectWave(driftX,driftY,Math.min(.4,Math.hypot(vx,vy)/6)*0.4);
+      injectWave(driftX,driftY,Math.min(.4,Math.hypot(vx,vy)/6)*0.18);
     }
 
     if(hoverCapable){
@@ -1729,10 +1763,12 @@ document.querySelectorAll('.nd').forEach(nd=>{
       lctx.imageSmoothingEnabled=true;
       lctx.drawImage(waveCanvas,0,0,WAVE_COLS,WAVE_ROWS,0,0,liquidCanvas.width,liquidCanvas.height);
 
+      // ajuste 4 (feedback direto: "muito forte... precisa ser suave") —
+      // alphas de composição reduzidos, mesmo efeito, presença mais sutil.
       // interior: versão mais escura/opaca (13.15)
-      drawMasked(liquidCanvas,fillMask,.38);
+      drawMasked(liquidCanvas,fillMask,.2);
       // borda: cor mais viva/saturada, concentrada no contorno (13.15)
-      drawMasked(liquidCanvas,edgeMask,1);
+      drawMasked(liquidCanvas,edgeMask,.6);
     }
 
     // 14.5 — NOVO: camada de brilho ambiente/idle, independente do mouse
@@ -1861,7 +1897,10 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // resolução por frame, senão pilhas grandes nunca "assentam" direito
   // com só uma passada (sobra sobreposição residual entre A-B depois
   // de corrigir A-C).
-  const SIZE=15,GRAVITY=.42,FRICTION=.988,NUDGE_RADIUS=140,BOUNCE=.55,MIN_GAP=3,COLLISION_PASSES=4;
+  // ajuste 3 (pedido direto: "um pouco mais de distância entre as
+  // partículas, forçando mais a distância pra física funcionar melhor")
+  // — MIN_GAP maior força mais espaço real entre peças vizinhas.
+  const SIZE=15,GRAVITY=.42,FRICTION=.988,NUDGE_RADIUS=140,BOUNCE=.55,MIN_GAP=9,COLLISION_PASSES=4;
   let N=46;
   let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
   let particles=[];
@@ -2335,10 +2374,19 @@ cleLogoDisplay.addEventListener('load',()=>{
   let w=Math.sqrt(targetArea*(nw/nh));
   let h=w*(nh/nw);
   const maxW=280,maxH=220,minW=120,minH=70;
-  if(w>maxW){h*=maxW/w;w=maxW;}
-  if(h>maxH){w*=maxH/h;h=maxH;}
-  if(w<minW){h*=minW/w;w=minW;}
-  if(h<minH){w*=minH/h;h=minH;}
+  // BUG (causa provável de "logo saindo fora do lugar"): clamps em
+  // sequência (max, depois min) podiam se atropelar — um logo muito
+  // largo-e-baixo passava pelo teto de largura, depois o piso de altura
+  // reescalava a largura pra CIMA de novo, estourando o container (ex.:
+  // nw/nh=20 virava w=1400 depois de "corrigido"). O teto do container
+  // tem que ganhar sempre; o piso mínimo só se aplica quando cabe nos
+  // dois eixos ao mesmo tempo — pra proporções extremas, é impossível
+  // satisfazer min E max nos dois eixos preservando a proporção, então
+  // o teto (nunca vazar da caixa) tem prioridade sobre o piso.
+  const scale=Math.min(1,maxW/w,maxH/h);
+  w*=scale;h*=scale;
+  if(w<minW&&h*(minW/w)<=maxH){h*=minW/w;w=minW;}
+  else if(h<minH&&w*(minH/h)<=maxW){w*=minH/h;h=minH;}
   cleLogoDisplay.style.width=w+'px';
   cleLogoDisplay.style.height=h+'px';
 });
