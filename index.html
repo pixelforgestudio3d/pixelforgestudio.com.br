@@ -142,8 +142,11 @@ h1 .split-char{will-change:transform,opacity}
 /* CLIENTES / ESCOPO — mecânica Valkiria exata (11.4), refinada 14.7 */
 .cle{padding:7rem 2.5rem 8rem;position:relative}
 /* 14.7 — cabeçalho fica fixo (sticky) enquanto a lista rola por baixo;
-   antes subia junto com a lista e desaparecia. */
-.cle-head{text-align:center;margin-bottom:4.5rem;position:sticky;top:110px;z-index:2;background:var(--black)}
+   antes subia junto com a lista e desaparecia. Fundo sólido criava um
+   corte duro onde encontrava a lista rolando por baixo (ajuste 2,
+   feedback direto: "travado sem um fade bom") — trocado por gradiente
+   que dissolve suavemente em vez de caixa opaca com borda visível. */
+.cle-head{text-align:center;position:sticky;top:90px;z-index:2;padding-bottom:3.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,var(--black) 55%,rgba(0,0,0,0) 100%)}
 .cle-head .st2{justify-content:center}
 .cle-head h2{margin-bottom:0}
 .cle-list{max-width:640px;margin:0 auto;position:relative;z-index:1}
@@ -153,12 +156,13 @@ h1 .split-char{will-change:transform,opacity}
 .cli-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;opacity:0;transition:opacity .3s}
 .cli-row:hover .cli-tags,.cli-row.on .cli-tags{opacity:1}
 .clt{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);border:.5px solid var(--borderh);padding:5px 12px;white-space:nowrap}
-/* 14.7 — CORREÇÃO DE MECÂNICA: logo não flutua mais pequeno colado à
-   esquerda de cada linha (11.4/Valkiria) — um único logo compartilhado,
-   bem maior, centralizado no espaço vazio ao redor da lista estreita,
-   trocando de imagem conforme o nome em hover/tap. */
-.cle-logo-display{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.92);width:min(320px,26vw);max-height:180px;object-fit:contain;opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s ease;filter:drop-shadow(0 20px 50px rgba(0,0,0,.6));z-index:3}
-.cle-logo-display.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+/* 14.7 (ajuste 2, feedback direto do Ericson) — o logo compartilhado
+   centralizado ficou "travado" (aparência persistente) e a posição
+   certa é à ESQUERDA, não no meio da tela. Revertido pro mecanismo
+   per-row com :hover puro em CSS (sem estado JS compartilhado que
+   pode ficar preso) — só maior que o original (100px -> 190px). */
+.cli-logo{position:absolute;left:-230px;top:50%;transform:translateY(-50%);width:190px;max-height:110px;object-fit:contain;opacity:0;transition:opacity .3s;pointer-events:none;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
+.cli-row:hover .cli-logo,.cli-row.on .cli-logo{opacity:1}
 /* 14.7 — fade de baixo pra cima mais forte: 100% opaco na base até 0%
    em ~30vh, moldura escura por trás de onde os nomes emergem ao rolar.
    position:fixed + gate por IntersectionObserver (visível só durante
@@ -168,7 +172,7 @@ h1 .split-char{will-change:transform,opacity}
 @media(max-width:768px){
   .cle{padding:4rem 1.5rem 5rem}
   .cle-head{position:static}
-  .cle-logo-display{display:none}
+  .cli-logo{display:none}
   .cli-name{font-size:1.2rem}
   .cli-row{flex-wrap:wrap}
 }
@@ -642,7 +646,6 @@ footer>div{position:relative;z-index:1}
     <h2 class="rv d1">Marcas que já confiaram <span class="g">na Forja.</span></h2>
   </div>
   <div class="cle-list" id="cleList"></div>
-  <img class="cle-logo-display" id="cleLogoDisplay" alt="">
 </section>
 <div class="cle-fade" id="cleFade"></div>
 
@@ -1009,30 +1012,33 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   // corrigido no Bloco A); em vez disso, um fundo ESTÁTICO com os
   // gradientes da marca — dá o que o vidro precisa pra dobrar/refratar
   // de verdade, sem nunca reproduzir o texto reativo do mouse.
+  // ajuste 2 (feedback direto) — o fundo acima ficou opaco/saturado
+  // demais: cobria a área toda do painel, bloqueando a transparência
+  // real do canvas (alpha:true) e escondendo o watermark SERVIÇOS que
+  // devia aparecer grande atrás/através do vidro. "Quero algo
+  // transparente mesmo" — reduzido pra um brilho bem sutil (alpha baixo
+  // no material, cores mais fracas), só o suficiente pra dar ao
+  // transmission algo pra refratar sem tampar o texto atrás.
   const bgCanvas=document.createElement('canvas');
   bgCanvas.width=256;bgCanvas.height=256;
   const bgCtx=bgCanvas.getContext('2d');
-  bgCtx.fillStyle='#060608';bgCtx.fillRect(0,0,256,256);
   bgCtx.globalCompositeOperation='lighter';
   const blob1=bgCtx.createRadialGradient(70,90,0,70,90,190);
-  blob1.addColorStop(0,'#8017e2');blob1.addColorStop(1,'rgba(128,23,226,0)');
+  blob1.addColorStop(0,'rgba(128,23,226,.55)');blob1.addColorStop(1,'rgba(128,23,226,0)');
   bgCtx.fillStyle=blob1;bgCtx.fillRect(0,0,256,256);
   const blob2=bgCtx.createRadialGradient(195,175,0,195,175,170);
-  blob2.addColorStop(0,'#f433bb');blob2.addColorStop(1,'rgba(244,51,187,0)');
+  blob2.addColorStop(0,'rgba(244,51,187,.5)');blob2.addColorStop(1,'rgba(244,51,187,0)');
   bgCtx.fillStyle=blob2;bgCtx.fillRect(0,0,256,256);
-  const blob3=bgCtx.createRadialGradient(150,40,0,150,40,140);
-  blob3.addColorStop(0,'#3D17e1');blob3.addColorStop(1,'rgba(61,23,225,0)');
-  bgCtx.fillStyle=blob3;bgCtx.fillRect(0,0,256,256);
   const bgTex=new THREE.CanvasTexture(bgCanvas);
   bgTex.colorSpace=THREE.SRGBColorSpace;
-  const bgPlane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:bgTex}));
+  const bgPlane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:bgTex,transparent:true,opacity:.4}));
   bgPlane.position.z=-4;
   scene.add(bgPlane);
 
   const glassMat=new THREE.MeshPhysicalMaterial({
     color:0xffffff,metalness:0,roughness:.06,transmission:1,
-    thickness:1.6,ior:1.5,clearcoat:1,clearcoatRoughness:.08,
-    envMapIntensity:1.35
+    thickness:.7,ior:1.45,clearcoat:1,clearcoatRoughness:.08,
+    envMapIntensity:1.1
   });
   const glass=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),glassMat);
   scene.add(glass);
@@ -1438,7 +1444,9 @@ document.querySelectorAll('.nd').forEach(nd=>{
   if(!section||!wrap||!canvas)return;
   const ctx=canvas.getContext('2d');
   const TEXT='SERVIÇOS';
-  const CHANNELS=['#f433bb','#2931a1','#8017e2','#dc1065','#3D17e1'];
+  // ajuste 2 (feedback direto): "colorida azul e rosa, efeito líquido e
+  // não bolinhas" — reduzido pra só as duas cores pedidas.
+  const CHANNELS=['#3d8bff','#f433bb'];
   const strokeLayer=document.createElement('canvas');
   const fillMask=document.createElement('canvas');
   const edgeMask=document.createElement('canvas');
@@ -1568,13 +1576,14 @@ document.querySelectorAll('.nd').forEach(nd=>{
     const radius=10+p*140;
     const alpha=rp.strength*(1-p)*0.95;
     if(alpha<=0.012)return true;
-    const c1=CHANNELS[Math.floor(rp.seed*CHANNELS.length)%CHANNELS.length];
-    const c2=CHANNELS[Math.floor(rp.seed*CHANNELS.length+2)%CHANNELS.length];
-    const grad=lctx.createRadialGradient(rp.x,rp.y,Math.max(0,radius-30),rp.x,rp.y,radius);
-    grad.addColorStop(0,'rgba(0,0,0,0)');
-    grad.addColorStop(.55,hexToRgba(c1,alpha*.95));
-    grad.addColorStop(.8,hexToRgba(c2,alpha*.7));
-    grad.addColorStop(1,'rgba(0,0,0,0)');
+    // ajuste 2 — o centro vazio (transparente) fazia cada ripple parecer
+    // um anel/"bolinha" isolada em vez de fluido. Centro sólido azul
+    // desvanecendo pra rosa nas bordas lê como gota líquida, não anel;
+    // várias sobrepostas (mouse em movimento) se fundem num fluxo só.
+    const grad=lctx.createRadialGradient(rp.x,rp.y,0,rp.x,rp.y,radius);
+    grad.addColorStop(0,hexToRgba(CHANNELS[0],alpha));
+    grad.addColorStop(.6,hexToRgba(CHANNELS[1],alpha*.85));
+    grad.addColorStop(1,'rgba(244,51,187,0)');
     lctx.fillStyle=grad;
     lctx.beginPath();lctx.arc(rp.x,rp.y,radius,0,Math.PI*2);lctx.fill();
     return true;
@@ -1658,10 +1667,12 @@ document.querySelectorAll('.nd').forEach(nd=>{
     const t=(now%period)/period;
     const sweepX=-0.25*cw+t*1.5*cw;
     const bandHalf=cw*0.09;
+    // ajuste 2 — trocado de branco pra azul/rosa da marca (pedido direto)
     const grad=ictx.createLinearGradient(sweepX-bandHalf,0,sweepX+bandHalf,0);
-    grad.addColorStop(0,'rgba(255,255,255,0)');
-    grad.addColorStop(.5,'rgba(255,255,255,.9)');
-    grad.addColorStop(1,'rgba(255,255,255,0)');
+    grad.addColorStop(0,'rgba(61,139,255,0)');
+    grad.addColorStop(.45,hexToRgba(CHANNELS[0],.85));
+    grad.addColorStop(.55,hexToRgba(CHANNELS[1],.85));
+    grad.addColorStop(1,'rgba(244,51,187,0)');
     ictx.fillStyle=grad;
     ictx.fillRect(0,0,cw,ch);
     drawMasked(idleCanvas,edgeMask,.5);
@@ -2124,22 +2135,10 @@ const cleListEl=document.getElementById('cleList');
 const cliRows=CLIENTS.map(c=>{
   const row=document.createElement('div');row.className='cli-row';
   const tagsHtml=c.scope.map(t=>`<span class="clt">${t}</span>`).join('');
-  row.innerHTML=`<span class="cli-name">${c.name}</span><span class="cli-tags">${tagsHtml}</span>`;
-  row.dataset.logo=c.logo;row.dataset.name=c.name;
+  row.innerHTML=`<img class="cli-logo" src="${c.logo}" alt="${c.name}"><span class="cli-name">${c.name}</span><span class="cli-tags">${tagsHtml}</span>`;
   cleListEl.appendChild(row);
   return row;
 });
-
-// 14.7 — logo compartilhado, grande, centralizado no espaço vazio da
-// tela (era pequeno flutuando à esquerda de cada linha, "muito vazio,
-// tímido"). Um único elemento troca de imagem conforme a linha ativa.
-const cleLogoDisplay=document.getElementById('cleLogoDisplay');
-function showCleLogo(row){
-  cleLogoDisplay.src=row.dataset.logo;
-  cleLogoDisplay.alt=row.dataset.name;
-  cleLogoDisplay.classList.add('show');
-}
-function hideCleLogo(){cleLogoDisplay.classList.remove('show');}
 
 // opacidade por posição na tela — efeito "roleta" (11.4)
 let cleTicking=false;
@@ -2164,20 +2163,14 @@ window.addEventListener('scroll',()=>{
 window.addEventListener('resize',updateClienteOpacity);
 updateClienteOpacity();
 
-// hover (ou tap no mobile) — nome cresce, tags aparecem, logo grande centralizado
+// hover (ou tap no mobile) — logo aparece à esquerda, tags à direita, na mesma linha
 const cleHoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-if(cleHoverCapable){
-  cliRows.forEach(row=>{
-    row.addEventListener('mouseenter',()=>showCleLogo(row));
-    row.addEventListener('mouseleave',hideCleLogo);
-  });
-}else{
+if(!cleHoverCapable){
   cliRows.forEach(row=>{
     row.addEventListener('click',()=>{
       const wasOn=row.classList.contains('on');
       cliRows.forEach(r=>r.classList.remove('on'));
-      if(!wasOn){row.classList.add('on');showCleLogo(row);}
-      else hideCleLogo();
+      if(!wasOn)row.classList.add('on');
     });
   });
 }
