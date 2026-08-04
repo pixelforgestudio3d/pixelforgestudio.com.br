@@ -2066,6 +2066,19 @@ document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
 (function(){
   if(!window.gsap||!window.ScrollTrigger||!window.SplitText)return;
   gsap.registerPlugin(ScrollTrigger,SplitText);
+  // BUG (feedback direto: "rolar a primeira vez, subir e voltar pra
+  // baixo fica bugado, bem no começo") — em navegador mobile, mostrar/
+  // esconder a barra de endereço ao rolar MUDA window.innerHeight e
+  // dispara um evento 'resize' de verdade, mesmo sem nada ter mudado de
+  // tamanho de verdade. O listener de resize mais abaixo chama
+  // ScrollTrigger.refresh() nesse evento — recalculando a altura do
+  // spacer do pin do Hero NO MEIO da rolagem, o que aparece como uma
+  // "tarja" (o spacer ganhando/perdendo altura de repente) empurrando
+  // o conteúdo. ignoreMobileResize é a opção oficial do GSAP pra isso:
+  // ignora resize disparado só por essa troca da barra de endereço em
+  // touch device, sem afetar resize de verdade (rotação, redimensionar
+  // janela).
+  ScrollTrigger.config({ignoreMobileResize:true});
 
   window.setupHeroPin=function(){
     const split=new SplitText('#heroH1',{type:'chars,words',wordsClass:'split-word',charsClass:'split-char'});
