@@ -141,6 +141,19 @@ h1 .split-char{will-change:transform,opacity}
 
 /* CLIENTES / ESCOPO — mecânica Valkiria exata (11.4), refinada 14.7 */
 .cle{padding:7rem 2.5rem 8rem;position:relative}
+/* BUG real (feedback direto: "logo tá saindo fora do lugar, tem nome
+   vazando no lugar errado") — .cle-list é centralizado no VIEWPORT
+   inteiro (max-width:640px;margin:0 auto), sem relação nenhuma com a
+   coluna fixa do logo (left:0;width:min(26vw,340px)). Em qualquer tela
+   com menos de ~1172px de largura (a maioria dos notebooks, tablets,
+   janela não-maximizada), a borda esquerda da lista centralizada cai
+   POR BAIXO do logo fixo — o logo grande acaba sobrepondo o nome da
+   marca. Reserva o espaço da coluna do logo no padding da seção inteira
+   pra lista nunca ficar por baixo dele.
+   */
+@media(min-width:769px){
+  .cle{padding-left:calc(min(26vw,340px) + 3rem)}
+}
 /* 14.7 (ajuste 3, feedback direto) — o gradiente anterior segurava
    sólido até 55% e só desvanecia depois — como o título inteiro cabia
    dentro desse trecho sólido, na prática parecia que não tinha fade
@@ -190,6 +203,10 @@ h1 .split-char{will-change:transform,opacity}
   .cli-logo{display:none}
   .cli-name{font-size:1.2rem}
   .cli-row{flex-wrap:wrap}
+  /* sem espaço sobrando pra uma coluna fixa de logo numa tela estreita
+     (é exatamente essa sobreposição que causava o bug acima) — esconde
+     em vez de encolher até virar ilegível/continuar colidindo. */
+  .cle-logo-wrap{display:none}
 }
 
 /* GRAD LINE */
