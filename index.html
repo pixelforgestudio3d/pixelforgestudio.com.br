@@ -835,8 +835,6 @@ footer>div{position:relative;z-index:1}
      ============================================================ -->
 <script type="module">
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 (function initPF3D(){
   const section=document.getElementById('pf3d');
@@ -885,11 +883,6 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
   const rim=new THREE.DirectionalLight(0xda2c80,1.4);rim.position.set(-5,-3,-4);scene.add(rim);
   const fillLight=new THREE.PointLight(0x8017e2,1.4,20);fillLight.position.set(0,0,5);scene.add(fillLight);
 
-  const dracoLoader=new DRACOLoader();
-  dracoLoader.setDecoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/draco/');
-  const gltfLoader=new GLTFLoader();
-  gltfLoader.setDRACOLoader(dracoLoader);
-
   // pedido direto ("ta muito ruim... vamos direto para os pássaros") — a
   // física de pool de bolinhas trocada de novo (ref. webgpu_compute_birds.
   // html), reimplementada do zero em WebGL puro como boids clássico
@@ -900,71 +893,119 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
   // zera). Testado numericamente antes de entrar no arquivo: 1800 frames
   // simulados, sem NaN, velocidade sempre dentro do limite, sem colapso
   // nem explosão do grupo.
-  const PIECE_COUNT=26;
+  // ajuste 2 (feedback direto: "MUITO MENOR e MUITO MAIS QUANTIDADE...
+  // a box de limite tem que ser MAIOR que a box visível, como se tivesse
+  // por trás das outras seções... colisão falha onde um entra dentro do
+  // outro") — peças bem menores, quantidade bem maior, limites bem além
+  // do frustum visível (uma parte do bando fica sempre fora de quadro,
+  // como se o "aquário" continuasse atrás do resto do site), e uma
+  // correção de sobreposição só de POSIÇÃO (sem trocar velocidade) por
+  // cima da separação do boids — a separação sozinha é uma força suave,
+  // não garante zero sobreposição com muita peça densa; essa segunda
+  // passada garante. Position-only não reintroduz o bug de tremor
+  // anterior (esse vinha de reaplicar IMPULSO/velocidade todo frame).
+  const PIECE_COUNT=140;
   const MAX_SPEED=0.05;
   const MAX_FORCE=0.0026;
-  const NEIGHBOR_RADIUS=2.6;
-  const SEPARATION_RADIUS=1.1;
+  const NEIGHBOR_RADIUS=3.2;
+  const SEPARATION_RADIUS=0.55;
   const SEPARATION_WEIGHT=1.7;
   const ALIGNMENT_WEIGHT=1.0;
   const COHESION_WEIGHT=0.85;
-  const BOUNDS_MARGIN=0.8;
+  // margem menor que antes (era 0.8): com o limite agora 1.8x maior que
+  // o frustum visível, 0.8 desse limite deixava o bando inteiro sumir de
+  // quadro por muito tempo (sem força nenhuma trazendo de volta até bem
+  // longe). 0.55 puxa de volta perto de onde a tela realmente termina —
+  // peças isoladas ainda escapam do quadro nas bordas (é o efeito
+  // pedido), mas o CENTRO do bando não passa muito tempo fora de vista.
+  const BOUNDS_MARGIN=0.55;
   const BOUNDS_WEIGHT=2.4;
   const MOUSE_REPEL_RADIUS=2.4;
   const MOUSE_REPEL_WEIGHT=2.8;
-  const TURN_LERP=0.08;
 
-  // Área de dispersão em unidades de mundo, recalculada a partir do
-  // frustum da câmera pra peças ocuparem toda a largura da seção
-  // (11.2: nunca uma "bola única" concentrada no centro).
-  let boundsX=6,boundsY=2.4,boundsZ=2;
+  // limites bem maiores que o frustum visível da câmera (multiplicador
+  // >1) — o bando tem espaço de sobra pra voar, inclusive saindo de
+  // quadro nas bordas, em vez de ficar preso numa caixa pequena e
+  // artificial do tamanho exato da tela.
+  let boundsX=10,boundsY=4.5,boundsZ=5;
   function updateBounds(){
     const halfH=camera.position.z*Math.tan((camera.fov*Math.PI/180)/2);
     const halfW=halfH*camera.aspect;
-    boundsY=halfH*0.62;
-    boundsX=halfW*0.62;
-    boundsZ=2;
+    boundsY=halfH*1.8;
+    boundsX=halfW*1.8;
+    boundsZ=5;
   }
   updateBounds();
 
+  // pedido direto ("coloque os próprios passarinhos com animação no lugar
+  // das marretas... pra testar como ficaria") — troca a peça (fragmento
+  // do isotipo) por um pássaro construído na hora, com corpo + duas asas
+  // que batem de verdade (pivot rotacionando, sem shader/vertex
+  // animation — mais simples e robusto). Sem GLTF/DRACO pra carregar,
+  // então some o loading assíncrono também.
   const pieces=[];
-  const metalMat=new THREE.MeshStandardMaterial({color:0xf2f2f5,metalness:.95,roughness:.18,emissive:0x1a0630,emissiveIntensity:.25});
-  // dispersão cromática nativa (KHR_materials_dispersion, mesma referência
-  // oficial usada em Serviços) — separa a luz em cores ao atravessar o
-  // caco de vidro, igual ao pedido pra caixa de SERVIÇOS.
-  const glassMat=new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.05,transmission:1,thickness:.6,ior:1.5,clearcoat:1,clearcoatRoughness:.1,dispersion:4,envMapIntensity:1.15,emissive:0x3d17e1,emissiveIntensity:.12});
+  const birdMat=new THREE.MeshStandardMaterial({color:0xf2f2f5,metalness:.15,roughness:.55,emissive:0x3d17e1,emissiveIntensity:.18,side:THREE.DoubleSide});
+  const birdMatAlt=new THREE.MeshStandardMaterial({color:0xd9b8ff,metalness:.15,roughness:.5,emissive:0x8017e2,emissiveIntensity:.22,side:THREE.DoubleSide});
 
-  gltfLoader.load('assets/3D/Isotipo_PixelForge_otm.glb',(gltf)=>{
-    let sourceMesh=null;
-    gltf.scene.traverse(o=>{if(!sourceMesh&&o.isMesh)sourceMesh=o;});
-    if(!sourceMesh)return;
-    sourceMesh.geometry.computeBoundingSphere();
-    const baseScale=0.9/(sourceMesh.geometry.boundingSphere.radius||1);
-    const baseRadius=sourceMesh.geometry.boundingSphere.radius;
+  function makeWingGeometry(){
+    // triangulo simples achatado — a "asa"
+    const geo=new THREE.BufferGeometry();
+    const v=new Float32Array([0,0,0, 1,0,-0.25, 0,0,-0.55]);
+    geo.setAttribute('position',new THREE.BufferAttribute(v,3));
+    geo.setIndex([0,1,2]);
+    geo.computeVertexNormals();
+    return geo;
+  }
+  function makeBodyGeometry(){
+    // corpo fino e comprido, apontando pra +Z (bico) — eixo usado como
+    // "frente" na orientação pela direção do voo, mais abaixo.
+    const geo=new THREE.ConeGeometry(0.09,0.55,4);
+    geo.rotateX(Math.PI/2);
+    return geo;
+  }
+  const wingGeo=makeWingGeometry();
+  const bodyGeo=makeBodyGeometry();
 
-    for(let i=0;i<PIECE_COUNT;i++){
-      const mat=Math.random()<0.62?metalMat:glassMat;
-      const mesh=new THREE.Mesh(sourceMesh.geometry,mat);
-      const s=baseScale*(0.65+Math.random()*0.6);
-      mesh.scale.setScalar(s);
-      // bando: nasce espalhado dentro dos limites (não precisa cair de
-      // lugar nenhum, ao contrário da piscina de bolinhas) já com uma
-      // velocidade inicial em direção aleatória — o grupo converge num
-      // "bando" coerente sozinho nos primeiros segundos, por conta só das
-      // regras de separação/alinhamento/coesão.
-      mesh.position.set(
-        (Math.random()*2-1)*boundsX*0.6,
-        (Math.random()*2-1)*boundsY*0.6,
-        (Math.random()*2-1)*boundsZ*0.6
-      );
-      const dir=new THREE.Vector3(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1).normalize();
-      mesh.userData.velocity=dir.multiplyScalar(MAX_SPEED*0.5);
-      mesh.userData.accel=new THREE.Vector3();
-      mesh.userData.radius=baseRadius*s*0.85;
-      scene.add(mesh);
-      pieces.push(mesh);
-    }
-  });
+  function createBird(mat){
+    const group=new THREE.Group();
+    const body=new THREE.Mesh(bodyGeo,mat);
+    group.add(body);
+
+    const wingL=new THREE.Group();
+    wingL.add(new THREE.Mesh(wingGeo,mat));
+    group.add(wingL);
+
+    const wingR=new THREE.Group();
+    wingR.scale.x=-1;
+    wingR.add(new THREE.Mesh(wingGeo,mat));
+    group.add(wingR);
+
+    group.userData.wingL=wingL;
+    group.userData.wingR=wingR;
+    return group;
+  }
+
+  for(let i=0;i<PIECE_COUNT;i++){
+    const mat=Math.random()<0.6?birdMat:birdMatAlt;
+    const bird=createBird(mat);
+    // ajuste 2 (feedback direto: "MUITO MENOR") + tamanho de pássaro
+    // pequeno de verdade, com variação individual leve.
+    const s=0.34+Math.random()*0.22;
+    bird.scale.setScalar(s);
+    bird.position.set(
+      (Math.random()*2-1)*boundsX*0.6,
+      (Math.random()*2-1)*boundsY*0.6,
+      (Math.random()*2-1)*boundsZ*0.6
+    );
+    const dir=new THREE.Vector3(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1).normalize();
+    bird.userData.velocity=dir.multiplyScalar(MAX_SPEED*0.5);
+    bird.userData.accel=new THREE.Vector3();
+    bird.userData.radius=s*0.5;
+    bird.userData.flapPhase=Math.random()*Math.PI*2;
+    bird.userData.flapSpeed=7+Math.random()*3;
+    scene.add(bird);
+    pieces.push(bird);
+  }
 
   const raycaster=new THREE.Raycaster();
   const pointerNDC=new THREE.Vector2(-10,-10);
@@ -1055,6 +1096,32 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
     }
   }
 
+  // ajuste 2 (feedback direto: "colisão falha onde um entra dentro do
+  // outro") — a separação do boids acima é uma força suave (só influencia
+  // a aceleração, não garante nada); com muito mais peça e mais densa,
+  // sobreposição visível ficava comum. Esta segunda passada corrige só a
+  // POSIÇÃO de pares sobrepostos (sem tocar em velocidade/impulso) —
+  // garante zero interpenetração visível sem reintroduzir o bug de
+  // tremor da física anterior (aquele vinha de aplicar impulso de
+  // velocidade repetidamente; aqui não há impulso nenhum).
+  function resolveOverlap(){
+    for(let i=0;i<pieces.length;i++){
+      const a=pieces[i];
+      for(let j=i+1;j<pieces.length;j++){
+        const b=pieces[j];
+        diff.copy(b.position).sub(a.position);
+        const d=diff.length();
+        const minDist=a.userData.radius+b.userData.radius;
+        if(d<minDist&&d>0.0001){
+          const overlap=(minDist-d)*0.5;
+          diff.divideScalar(d);
+          a.position.addScaledVector(diff,-overlap);
+          b.position.addScaledVector(diff,overlap);
+        }
+      }
+    }
+  }
+
   function animate(){
     requestAnimationFrame(animate);
     if(!visible)return;
@@ -1072,12 +1139,23 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
       p.userData.velocity.addScaledVector(p.userData.accel,dtScale);
       p.userData.velocity.clampLength(0,MAX_SPEED);
       p.position.addScaledVector(p.userData.velocity,dtScale);
-      // orienta a peça na direção do voo, suavizado (nunca vira de repente)
+    }
+
+    resolveOverlap();
+
+    const elapsed=clock.getElapsedTime();
+    for(const p of pieces){
+      // pássaro de verdade tem frente bem definida (bico = +Z do corpo)
+      // — vira suave na direção do voo (fazia sentido "ficar de pé" pro
+      // fragmento abstrato de antes, não faz sentido nenhum aqui).
       if(p.userData.velocity.lengthSq()>0.0000001){
         velNorm.copy(p.userData.velocity).normalize();
         targetQuat.setFromUnitVectors(forwardAxis,velNorm);
-        p.quaternion.slerp(targetQuat,TURN_LERP);
+        p.quaternion.slerp(targetQuat,0.12);
       }
+      const flap=Math.sin(elapsed*p.userData.flapSpeed+p.userData.flapPhase)*0.9;
+      p.userData.wingL.rotation.z=flap;
+      p.userData.wingR.rotation.z=flap;
     }
 
     renderer.render(scene,camera);
