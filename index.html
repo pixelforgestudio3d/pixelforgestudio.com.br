@@ -989,7 +989,6 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
      ============================================================ -->
 <script type="module">
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 (function initSvcGlass(){
   const wrap=document.getElementById('svcGlassWrap');
@@ -1008,46 +1007,74 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
 
+  // referência oficial do Three.js (exemplo webgl_loader_gltf_transmission):
+  // o "vidro" convincente vem de um ambiente RICO (lá, um HDR real) ligado
+  // a scene.environment — não de luz neutra genérica. RoomEnvironment (cinza
+  // neutro) trocado por um ambiente equirect próprio com os gradientes da
+  // marca: os REFLEXOS do vidro passam a carregar a cor, não só o que
+  // aparece atrás dele.
+  const envCanvas=document.createElement('canvas');
+  envCanvas.width=512;envCanvas.height=256;
+  const envCtx=envCanvas.getContext('2d');
+  const envGrad=envCtx.createLinearGradient(0,0,512,256);
+  envGrad.addColorStop(0,'#0d0620');
+  envGrad.addColorStop(.35,'#3D17e1');
+  envGrad.addColorStop(.65,'#8017e2');
+  envGrad.addColorStop(1,'#f433bb');
+  envCtx.fillStyle=envGrad;
+  envCtx.fillRect(0,0,512,256);
+  envCtx.fillStyle='rgba(255,255,255,.95)';
+  envCtx.beginPath();envCtx.ellipse(256,55,110,32,0,0,Math.PI*2);envCtx.fill();
+  const envTex=new THREE.CanvasTexture(envCanvas);
+  envTex.mapping=THREE.EquirectangularReflectionMapping;
+  envTex.colorSpace=THREE.SRGBColorSpace;
+
   const pmrem=new THREE.PMREMGenerator(renderer);
-  scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture;
+  scene.environment=pmrem.fromEquirectangular(envTex).texture;
+  envTex.dispose();
 
   scene.add(new THREE.AmbientLight(0xffffff,.6));
   const key=new THREE.DirectionalLight(0xffffff,1.3);key.position.set(3,5,6);scene.add(key);
   const rim=new THREE.DirectionalLight(0xda2c80,1.1);rim.position.set(-4,-2,-3);scene.add(rim);
 
-  // 14.5 (Bloco C) — sem NADA atrás pra refratar, transmission fica quase
-  // invisível/chapada (foi isso que virou "barra branca sem relação com
-  // a referência"). O plano antigo duplicava o watermark reativo (bug já
-  // corrigido no Bloco A); em vez disso, um fundo ESTÁTICO com os
-  // gradientes da marca — dá o que o vidro precisa pra dobrar/refratar
-  // de verdade, sem nunca reproduzir o texto reativo do mouse.
-  // ajuste 2 (feedback direto) — o fundo acima ficou opaco/saturado
-  // demais: cobria a área toda do painel, bloqueando a transparência
-  // real do canvas (alpha:true) e escondendo o watermark SERVIÇOS que
-  // devia aparecer grande atrás/através do vidro. "Quero algo
-  // transparente mesmo" — reduzido pra um brilho bem sutil (alpha baixo
-  // no material, cores mais fracas), só o suficiente pra dar ao
-  // transmission algo pra refratar sem tampar o texto atrás.
-  const bgCanvas=document.createElement('canvas');
-  bgCanvas.width=256;bgCanvas.height=256;
-  const bgCtx=bgCanvas.getContext('2d');
-  bgCtx.globalCompositeOperation='lighter';
-  const blob1=bgCtx.createRadialGradient(70,90,0,70,90,190);
-  blob1.addColorStop(0,'rgba(128,23,226,.55)');blob1.addColorStop(1,'rgba(128,23,226,0)');
-  bgCtx.fillStyle=blob1;bgCtx.fillRect(0,0,256,256);
-  const blob2=bgCtx.createRadialGradient(195,175,0,195,175,170);
-  blob2.addColorStop(0,'rgba(244,51,187,.5)');blob2.addColorStop(1,'rgba(244,51,187,0)');
-  bgCtx.fillStyle=blob2;bgCtx.fillRect(0,0,256,256);
-  const bgTex=new THREE.CanvasTexture(bgCanvas);
-  bgTex.colorSpace=THREE.SRGBColorSpace;
-  const bgPlane=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:bgTex,transparent:true,opacity:.4}));
-  bgPlane.position.z=-4;
-  scene.add(bgPlane);
+  // ajuste 3 — com o ambiente colorido acima alimentando reflexo de
+  // verdade, o plano de fundo pintado (usado nos ajustes 1/2) virou
+  // redundante e ainda concorria com "quero algo transparente mesmo":
+  // removido. O vidro agora é transparência real (mostra o watermark
+  // SERVIÇOS atrás, via alpha:true do canvas) + reflexo colorido da
+  // marca por cima, em vez de um fundo pintado tampando o texto.
+  //
+  // CÁUSTICA (pedido novo) — o exemplo oficial webgpu_caustics.html usa
+  // WebGPU + TSL (renderer/pipeline diferente do resto do site, sem
+  // suporte universal em todo navegador, e projeta luz sobre uma
+  // SUPERFÍCIE abaixo do objeto — não existe "chão" aqui, é um painel
+  // achatado sobre texto 2D). Versão possível em WebGL: um padrão de
+  // cáustica gerado por canvas, aplicado como emissiveMap animado no
+  // próprio vidro — mesma sensação de luz tremulando através do vidro,
+  // sem trocar o pipeline de renderização do site inteiro.
+  const causticCanvas=document.createElement('canvas');
+  causticCanvas.width=256;causticCanvas.height=256;
+  const causticCtx=causticCanvas.getContext('2d');
+  causticCtx.fillStyle='#000';causticCtx.fillRect(0,0,256,256);
+  causticCtx.globalCompositeOperation='lighter';
+  for(let i=0;i<26;i++){
+    const cx=Math.random()*256,cy=Math.random()*256,r=14+Math.random()*34;
+    const g=causticCtx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,'rgba(255,255,255,.65)');
+    g.addColorStop(.55,'rgba(255,255,255,.18)');
+    g.addColorStop(1,'rgba(255,255,255,0)');
+    causticCtx.fillStyle=g;
+    causticCtx.beginPath();causticCtx.arc(cx,cy,r,0,Math.PI*2);causticCtx.fill();
+  }
+  const causticTex=new THREE.CanvasTexture(causticCanvas);
+  causticTex.wrapS=causticTex.wrapT=THREE.RepeatWrapping;
+  causticTex.repeat.set(2.2,2.2);
 
   const glassMat=new THREE.MeshPhysicalMaterial({
     color:0xffffff,metalness:0,roughness:.06,transmission:1,
     thickness:.7,ior:1.45,clearcoat:1,clearcoatRoughness:.08,
-    envMapIntensity:1.1
+    envMapIntensity:1.1,
+    emissive:0xb066ff,emissiveMap:causticTex,emissiveIntensity:.55
   });
   const glass=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),glassMat);
   scene.add(glass);
@@ -1059,7 +1086,6 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     renderer.setSize(w,h);
     const depth=Math.min(w,h)*0.14;
     glass.scale.set(w*0.985,h*0.985,depth);
-    bgPlane.scale.set(w,h,1);
   }
   layout();
   window.addEventListener('resize',layout);
@@ -1081,12 +1107,18 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   let svcGlassVisible=true;
   new IntersectionObserver(entries=>{entries.forEach(en=>{svcGlassVisible=en.isIntersecting;});},{threshold:0}).observe(wrap);
 
+  const causticClock=new THREE.Clock();
   function animate(){
     requestAnimationFrame(animate);
     if(!svcGlassVisible)return;
     cx+=(tx-cx)*.06;cy+=(ty-cy)*.06;
     glass.rotation.y=cx*.18;
     glass.rotation.x=-cy*.14;
+    // cáustica: dois deslocamentos em velocidades/direções diferentes
+    // pra não parecer um padrão só deslizando reto — mais parecido com
+    // luz tremulando através de líquido/vidro.
+    const t=causticClock.getElapsedTime();
+    causticTex.offset.set(t*0.015,Math.sin(t*0.11)*0.05);
     renderer.render(scene,camera);
   }
   animate();
