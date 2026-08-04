@@ -168,7 +168,14 @@ h1 .split-char{will-change:transform,opacity}
    marca mais próxima do centro vertical da tela (mesma lógica de
    distância já usada na "roleta" de opacidade) — não precisa mais de
    hover pra aparecer. */
-.cle-logo-wrap{position:fixed;top:0;left:0;width:min(26vw,340px);height:100vh;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1}
+/* BUG (feedback direto) — sem gate de seção, o wrap position:fixed
+   continuava ativo em QUALQUER scroll depois de passar por Clientes
+   (a função de "linha mais próxima" sempre acha alguma linha, por mais
+   longe que esteja da tela, então o crossfade nunca desligava). Opacity
+   do WRAP inteiro agora depende de #clientes estar realmente visível
+   (IntersectionObserver), independente do crossfade entre marcas. */
+.cle-logo-wrap{position:fixed;top:0;left:0;width:min(26vw,340px);height:100vh;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0;transition:opacity .3s ease}
+.cle-logo-wrap.in-view{opacity:1}
 .cle-logo-display{max-width:82%;max-height:220px;object-fit:contain;opacity:0;transition:opacity .4s ease;filter:drop-shadow(0 20px 50px rgba(0,0,0,.6))}
 .cle-logo-display.show{opacity:1}
 /* 14.7 — fade de baixo pra cima mais forte: 100% opaco na base até 0%
@@ -1822,10 +1829,11 @@ document.querySelectorAll('.nd').forEach(nd=>{
     canvas.width=w*dpr;canvas.height=h*dpr;
     canvas.style.width=w+'px';canvas.style.height=h+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    // densidade alvo subiu de novo (ajuste 2: "ainda tem muito pouco")
-    // — de ~50% pra ~85% de cobertura teórica da área do rodapé, teto
-    // maior pra sustentar isso em rodapés largos.
-    N=Math.max(90,Math.min(420,Math.round((w*h*0.85)/(SIZE*SIZE))));
+    // ajuste 3 (pedido direto: "pelo menos o triplo") — multiplica o
+    // resultado inteiro por 3. Colisão é O(n²) × várias passadas, então
+    // o teto subiu mas não 3x linear (420->700) pra não pesar demais
+    // em telas muito largas; o piso triplicou de verdade (90->270).
+    N=Math.max(270,Math.min(700,Math.round((w*h*0.85)/(SIZE*SIZE))*3));
   }
   function seed(){
     particles=Array.from({length:N},()=>({
@@ -2223,6 +2231,17 @@ const cliRows=CLIENTS.map(c=>{
 // opacidade (11.4), com crossfade suave a cada troca.
 const cleLogoDisplay=document.getElementById('cleLogoDisplay');
 let cleActiveLogo=null;
+
+// BUG (feedback direto): sem isso, o wrap position:fixed continuava
+// "ligado" em qualquer parte do site depois de passar por Clientes —
+// a função de linha mais próxima sempre encontra alguma linha, não
+// importa a distância, então o crossfade nunca desligava sozinho.
+const cleLogoWrapEl=document.getElementById('cleLogoWrap');
+if(cleLogoWrapEl){
+  new IntersectionObserver(entries=>{
+    entries.forEach(en=>cleLogoWrapEl.classList.toggle('in-view',en.isIntersecting));
+  },{threshold:0}).observe(document.getElementById('clientes'));
+}
 
 // opacidade por posição na tela — efeito "roleta" (11.4)
 let cleTicking=false;
