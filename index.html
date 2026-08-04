@@ -264,16 +264,23 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
    fundo cobrindo a seção inteira, linhas alternando direção */
 .fooh-sec{position:relative;overflow:hidden;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
 .fooh-ticker-mural{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column;justify-content:space-evenly;pointer-events:none}
-.fooh-ticker-line{position:relative;white-space:nowrap;font-size:clamp(2.6rem,6vw,4.6rem);font-weight:800;letter-spacing:.01em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.09);opacity:.55;will-change:transform}
+/* Bloco E (14.9, nunca implementado antes + feedback direto) — fonte
+   passa de stroke-only pra CHEIA/preenchida (era igual ao efeito de
+   Serviços, mas aqui tem que ser diferente: sólida) e o tamanho quase
+   triplica (~equivalente a 2 linhas de altura). */
+.fooh-ticker-line{position:relative;white-space:nowrap;font-size:clamp(7rem,17vw,13rem);font-weight:800;letter-spacing:.01em;text-transform:uppercase;color:rgba(255,255,255,.08);opacity:1;will-change:transform}
 .fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center}
 .fooh-text{max-width:480px}
-.fooh-coverflow{position:relative;height:clamp(340px,42vw,540px);perspective:1400px}
-.fc-card{position:absolute;top:50%;left:50%;width:min(230px,58%);aspect-ratio:9/16;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);background:var(--card)}
+/* preview do coverflow tem que ocupar pelo menos 80% da tela (pedido
+   direto) — de uma faixa de 340-540px pra quase a altura toda do
+   viewport, e o card acompanha via % da altura do container (não mais
+   largura fixa em px). */
+.fooh-coverflow{position:relative;height:clamp(560px,80vh,920px);perspective:1400px}
+.fc-card{position:absolute;top:50%;left:50%;height:88%;width:auto;aspect-ratio:9/16;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);background:var(--card)}
 .fc-card video{width:100%;height:100%;object-fit:cover;display:block}
-.fc-card .fc-tag{position:absolute;bottom:1.2rem;left:1.2rem;font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:4px 10px;border:.5px solid rgba(244,51,187,.6);color:var(--pink);background:rgba(0,0,0,.65)}
 @media(max-width:900px){
   .fooh-split{grid-template-columns:1fr;gap:2rem;min-height:auto}
-  .fooh-coverflow{height:clamp(300px,80vw,420px)}
+  .fooh-coverflow{height:80vh}
 }
 
 /* A FORJA — layout definitivo 13.6 (substitui 12.8): galeria dominante
@@ -2075,23 +2082,27 @@ const foohVideos=[
 const foohCoverflow=document.getElementById('foohCoverflow');
 const foohCards=foohVideos.map(src=>{
   const div=document.createElement('div');div.className='fc-card';
-  div.innerHTML=`<video muted loop playsinline preload="metadata"><source src="${src}" type="video/mp4"></video><div class="fc-tag">FOOH</div>`;
+  // Bloco E: removido o texto rosa "FOOH" sobreposto em cada vídeo
+  // (feedback: ilegível e redundante, o ticker de fundo já deixa claro).
+  div.innerHTML=`<video muted loop playsinline preload="metadata"><source src="${src}" type="video/mp4"></video>`;
   foohCoverflow.appendChild(div);
   return div;
 });
 const foohVideoEls=foohCards.map(c=>c.querySelector('video'));
 
-// mural de ticker no fundo — várias linhas empilhadas, "* FAKE OUT OF HOME *"
-// colado sem espaço, alternando direção por linha (13.11)
+// mural de ticker no fundo — várias linhas empilhadas, alternando
+// direção por linha (13.11). Bloco E: os asteriscos do texto original
+// eram só ênfase informal, não pra replicar literalmente — trocado por
+// um ponto simples entre repetições.
 (function buildFoohTicker(){
   const mural=document.getElementById('foohTickerMural');
   if(!mural)return;
-  const PHRASE='* FAKE OUT OF HOME *';
+  const WORD='FAKE OUT OF HOME';
   const LINES=7;
   for(let i=0;i<LINES;i++){
     const line=document.createElement('div');
     line.className='fooh-ticker-line';
-    line.textContent=PHRASE.repeat(10);
+    line.textContent=Array(14).fill(WORD).join(' · ');
     mural.appendChild(line);
   }
 })();
