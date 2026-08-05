@@ -1244,6 +1244,16 @@ function initCursor(){
   // seção (o mural de Parcerias Criativas, já que a peça 3D das marretas
   // foi removida — "vamos deletar essa seção"), com um fade curto logo
   // antes (suave, não corte abrupto), em vez de um valor fixo de pixels.
+  //
+  // BUG (feedback direto: "ta ficando preto muito antes") — este cálculo
+  // rodava assim que o script carregava, MAS o pin do Hero (que INFLA a
+  // altura do documento em ~1300px via pin-spacer) só é montado bem
+  // depois, de forma assíncrona, pelo orquestrador de pins lá embaixo
+  // (espera fontes + load + 150ms). Nesse meio tempo, .mw ainda estava
+  // na posição NATURAL/sem pin — bem mais alto no documento — então
+  // touchY calculava um valor pequeno demais e o preto batia cedo
+  // demais. window.recalcNavTouch fica exposto pro orquestrador chamar
+  // de novo assim que o pin real (e o spacer certo) já existir.
   let touchY=800;
   function recalcTouchY(){
     if(!nextSectionEl)return;
@@ -1259,6 +1269,7 @@ function initCursor(){
     ticking=false;
   }
   recalcTouchY();
+  window.recalcNavTouch=()=>{recalcTouchY();update();};
   window.addEventListener('resize',()=>{recalcTouchY();update();});
   window.addEventListener('scroll',()=>{
     if(!ticking){ticking=true;requestAnimationFrame(update);}
@@ -1355,7 +1366,14 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // precisar de WebGPU). Perturbação injetada na posição do mouse se
   // propaga célula a célula pela grade inteira — "propagar muito mais"
   // sai de graça do próprio algoritmo, não precisa de raio gigante.
-  const WAVE_COLS=72,WAVE_ROWS=30,WAVE_VISCOSITY=0.988;
+  // ajuste 5 (feedback direto: "parece estar com um super zoom... mais
+  // detalhes, mais nitidez, mais ondas, mais curvas") — a grade de 72x30
+  // esticada pra um canvas de +-2500px de largura significa cada célula
+  // virando um blob de dezenas de pixels borrado (imageSmoothingEnabled
+  // suaviza ainda mais) — lê como "zoom gigante" em vez de líquido com
+  // detalhe. Grade bem mais densa = mais ondas/curvas cabendo ao mesmo
+  // tempo dentro da palavra, upscale por célula muito menor -> nítido.
+  const WAVE_COLS=220,WAVE_ROWS=92,WAVE_VISCOSITY=0.988;
   let waveCur=new Float32Array(WAVE_COLS*WAVE_ROWS);
   let wavePrev=new Float32Array(WAVE_COLS*WAVE_ROWS);
   let waveNext=new Float32Array(WAVE_COLS*WAVE_ROWS);
@@ -2260,6 +2278,11 @@ if(cleFadeEl){
       if(window.setupForjaPin)setupForjaPin();
       if(window.setupFoohPin)setupFoohPin();
       ScrollTrigger.refresh();
+      // BUG (feedback direto: "nav ta ficando preto muito antes") — o
+      // ponto de transição do nav depende da posição real de .mw, que só
+      // fica correta DEPOIS do pin do Hero existir (ele infla a altura
+      // do documento). Recalcula agora que o spacer certo já está no DOM.
+      if(window.recalcNavTouch)window.recalcNavTouch();
     },150);
   });
   window.addEventListener('resize',()=>ScrollTrigger.refresh());
