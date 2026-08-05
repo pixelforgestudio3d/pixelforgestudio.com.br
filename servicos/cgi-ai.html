@@ -138,6 +138,7 @@ footer>div{position:relative;z-index:1}
 .svp-media img,.svp-media video{width:100%;height:100%;object-fit:cover}
 .svp-body{max-width:640px;margin:0 auto;padding:4rem 2.5rem 0}
 .svp-body p{font-size:17px;color:var(--muted2);line-height:1.95}
+.svp-body p+p{margin-top:1.2rem}
 .svp-block{margin-top:3rem}
 .svp-block-label{font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:1.1rem}
 .svp-block ul,.svp-block ol{padding-left:1.2rem;color:var(--muted2);font-size:15px;line-height:1.85}
@@ -150,7 +151,14 @@ footer>div{position:relative;z-index:1}
    nome+vídeo tocando, card inteiro clicável). Não é um componente novo. */
 .pi{position:relative;overflow:hidden;background:var(--black);display:block;color:inherit;text-decoration:none}
 .pi video.pt{width:100%;height:100%;object-fit:cover;aspect-ratio:16/9;transition:transform .6s,filter .4s}
-.pi:hover video.pt{transform:scale(1.05);filter:brightness(.65)}
+/* BUG achado ao testar: essa página usa <img class="pt"> (não vídeo)
+   pros 4 exemplos, mas só existia regra pra video.pt — as imagens não
+   tinham nenhum width/height/object-fit aplicado. E os assets de
+   assets/cgi-ai/ são quadrados (4096x4096, mesmo formato do grid "IA
+   + CGI" da Home, .iai{aspect-ratio:1/1}) — 16:9 cortava quase tudo,
+   sobrando só uma faixa fina do centro da imagem. */
+.pi img.pt{width:100%;height:100%;object-fit:cover;aspect-ratio:1/1;transition:transform .6s,filter .4s}
+.pi:hover video.pt,.pi:hover img.pt{transform:scale(1.05);filter:brightness(.65)}
 .pov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,transparent 45%);opacity:0;transition:opacity .35s}
 .pi:hover .pov{opacity:1}
 .pc{font-size:11px;letter-spacing:.2em;color:var(--pink);text-transform:uppercase;margin-bottom:.4rem}
@@ -260,14 +268,50 @@ footer>div{position:relative;z-index:1}
 </section>
 <section class="svp-body">
   <p class="rv">3D garante controle: posição, câmera, ângulo, rótulo, shader base. IA acelera: gera imagem, textura e luz pra compor por cima e fechar um produto final completo e profissional.</p>
-  <!-- "O que entra" / "Como funciona" pulados por enquanto (03/08/2026):
-       a 5.7 fecha essa página como "já fechada na 5.6, sem mudança
-       aqui" e não escreve copy de entregáveis/processo pra CGI+AI
-       especificamente (só pras outras 5 páginas) — não inventei essa
-       copy. "Mais exemplos" também pulado: nenhum dos 6 clientes com
-       página própria em projects/ é descrito como peça CGI+AI (as
-       imagens de assets/cgi-ai/ que alimentam a seção "IA + CGI" da
-       Home não têm página de projeto individual pra linkar). -->
+  <p class="rv d1">A técnica trabalha em camadas. O CGI segura o que precisa de precisão: animação de câmera, movimento de produto, posicionamento de texto e rótulo, e a base de luz e sombra da cena. A IA entra depois, acelerando etapas que seriam manuais: geração de frames intermediários e aprimoramento de resolução e detalhe do render final. O resultado sai mais rápido sem abrir mão do controle que o CGI garante desde o início.</p>
+  <div class="svp-block rv d2">
+    <div class="svp-block-label">O que entra</div>
+    <ul>
+      <li>Animação, câmera e posicionamento controlados em CGI</li>
+      <li>Geração de frames complementares por IA</li>
+      <li>Aprimoramento de resolução e detalhe do render final via IA</li>
+      <li>Composição final unindo as duas camadas numa peça só</li>
+    </ul>
+  </div>
+  <div class="svp-block rv d3">
+    <div class="svp-block-label">Como funciona</div>
+    <ol>
+      <li>Modelagem, câmera e luz base em CGI, com controle total de posição, movimento e texto</li>
+      <li>Geração de frames intermediários por IA</li>
+      <li>Aprimoramento de render (resolução, detalhe, luz) via IA</li>
+      <li>Composição final e ajuste de cor</li>
+    </ol>
+  </div>
+</section>
+<section class="svp-examples">
+  <div class="svp-cross-label">Mais exemplos</div>
+  <!-- pedido direto: 4 imagens já catalogadas em assets/cgi-ai/.
+       Nenhuma tem projects/[cliente]/*.html ainda — mesmo tratamento
+       já combinado no 3D Film/Packshot/FOOH: <div class="pi"> sem
+       link em vez de <a>. -->
+  <div class="svp-examples-grid">
+    <div class="pi rv">
+      <img class="pt" src="../assets/cgi-ai/IMG OLERA 1.png" alt="">
+      <div class="pov"><div class="pc">Olera · 2025</div><div class="pn">Olera</div></div>
+    </div>
+    <div class="pi rv d1">
+      <img class="pt" src="../assets/cgi-ai/LUXY 02.png" alt="">
+      <div class="pov"><div class="pc">Luxy · 2025</div><div class="pn">Luxy</div></div>
+    </div>
+    <div class="pi rv d2">
+      <img class="pt" src="../assets/cgi-ai/SWEET CRUSH 01 v2.png" alt="">
+      <div class="pov"><div class="pc">Sweet Crush · 2025</div><div class="pn">Sweet Crush</div></div>
+    </div>
+    <div class="pi rv d3">
+      <img class="pt" src="../assets/cgi-ai/AMBIENTADA 3 MANSCAPED AI + CGI.jpg" alt="">
+      <div class="pov"><div class="pc">Manscaped · 2025</div><div class="pn">Manscaped</div></div>
+    </div>
+  </div>
 </section>
 <section class="svp-cross">
   <div class="svp-cross-label">Outros serviços</div>
