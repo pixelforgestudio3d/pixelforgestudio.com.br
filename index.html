@@ -762,7 +762,7 @@ footer>div{position:relative;z-index:1}
 
 <section class="sec forja" id="forja">
   <div class="forja-banner">
-    <img src="assets/NOVAS IMAGENS/Frame_Marreta_PixelForge3.png" alt="">
+    <img src="assets/forja/Capa Marreta.png" alt="">
     <div class="forja-banner-fade"></div>
     <h2 class="forja-banner-title">A FORJA</h2>
   </div>
@@ -770,10 +770,10 @@ footer>div{position:relative;z-index:1}
     <div class="forja-media-col">
       <a class="forja-gallery-frame" id="forjaGalleryFrame" href="galeria.html">
         <div id="forjaGallery">
-          <img class="fg-img on" src="assets/NOVAS IMAGENS/HERO 1 MANSCAPED.jpg" alt="Estudo — Manscaped">
-          <img class="fg-img" src="assets/NOVAS IMAGENS/HERO 2 MANSCAPED.jpg" alt="Estudo — Manscaped">
-          <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 1 V1 AFPM.png" alt="Estudo — AFPM">
-          <img class="fg-img" src="assets/NOVAS IMAGENS/STYLE FRAME 2 V2 AFPM.png" alt="Estudo — AFPM">
+          <img class="fg-img on" src="assets/forja/HERO 1 MANSCAPED.jpg" alt="Estudo — Manscaped">
+          <img class="fg-img" src="assets/forja/HERO 2 MANSCAPED.jpg" alt="Estudo — Manscaped">
+          <img class="fg-img" src="assets/forja/STYLE FRAME 3 V2 AFPM.png" alt="Estudo — AFPM">
+          <img class="fg-img" src="assets/forja/STYLE FRAME 2 V2 AFPM.png" alt="Estudo — AFPM">
         </div>
         <div class="forja-gallery-fade" id="forjaGalleryFade"></div>
       </a>
@@ -817,10 +817,10 @@ footer>div{position:relative;z-index:1}
 <section class="sec iacgi-sec" id="iacgi">
   <div class="iacgi-split">
     <div class="iacgi-media rv">
-      <div class="iai"><img src="assets/NOVAS IMAGENS/FRESH SKIN HUMANIZADA 01.png" alt="Composição CGI e IA"></div>
-      <div class="iai"><img src="assets/NOVAS IMAGENS/LUXY 01 HUMANIZADA v2.png" alt="Composição CGI e IA"></div>
-      <div class="iai"><img src="assets/NOVAS IMAGENS/PROVOKE 01 HUMANIZADA.png" alt="Composição CGI e IA"></div>
-      <div class="iai"><img src="assets/NOVAS IMAGENS/SWEET CRUSH 01 v2.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/cgi-ai/FRESH SKIN HUMANIZADA 01 AJUSTADA.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/cgi-ai/LUXY 01 HUMANIZADA v2.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/cgi-ai/PROVOKE 01 HUMANIZADA.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/cgi-ai/SWEET CRUSH 01 v2.png" alt="Composição CGI e IA"></div>
     </div>
     <div class="iacgi-text">
       <div class="st2 rv d1">IA + CGI</div>
@@ -2368,17 +2368,20 @@ const foohVideoEls=foohCards.map(c=>c.querySelector('video'));
   const slots=Array.from(media.querySelectorAll('.iai'));
   if(slots.length<4)return;
 
+  // ajuste (reorganização de pastas): AMBIENTADA/CLOSE/HERO/HUMANIZADA
+  // MANSCAPED e os STYLE FRAME AFPM saíram do banco — o usuário moveu
+  // esses arquivos pra assets/forja/ (não pertencem mais ao showcase
+  // de CGI+AI). Explodido 2 MANSCAPED.png ainda não foi movido pra
+  // nenhuma das duas pastas novas, então continua apontando pro local
+  // antigo até ser organizado.
   const BANK=[
-    'assets/NOVAS IMAGENS/FRESH SKIN 01.png','assets/NOVAS IMAGENS/FRESH SKIN 02.png',
-    'assets/NOVAS IMAGENS/FRESH SKIN HUMANIZADA 01.png','assets/NOVAS IMAGENS/LUXY 01 HUMANIZADA v2.png',
-    'assets/NOVAS IMAGENS/LUXY 02.png','assets/NOVAS IMAGENS/PROVOKE 01 HUMANIZADA.png',
-    'assets/NOVAS IMAGENS/PROVOKE 02.png','assets/NOVAS IMAGENS/SWEET CRUSH 01.png',
-    'assets/NOVAS IMAGENS/SWEET CRUSH 01 v2.png',
-    'assets/NOVAS IMAGENS/AMBIENTADA 2 MANSCAPED AI + CGI.jpg','assets/NOVAS IMAGENS/AMBIENTADA 3 MANSCAPED AI + CGI.jpg',
-    'assets/NOVAS IMAGENS/CLOSE 2 MANSCAPED.jpg','assets/NOVAS IMAGENS/CLOSE 3 v2 MANSCAPED.jpg',
-    'assets/NOVAS IMAGENS/HERO 1 MANSCAPED.jpg','assets/NOVAS IMAGENS/HERO 2 MANSCAPED.jpg','assets/NOVAS IMAGENS/HERO 3 MANSCAPED.jpg',
-    'assets/NOVAS IMAGENS/HUMANIZADA 3 MANSCAPED CGI + AI.jpg','assets/NOVAS IMAGENS/Explodido 2 MANSCAPED.png',
-    'assets/NOVAS IMAGENS/STYLE FRAME 1 V1 AFPM.png','assets/NOVAS IMAGENS/STYLE FRAME 2 V2 AFPM.png','assets/NOVAS IMAGENS/STYLE FRAME 3 V2 AFPM.png'
+    'assets/cgi-ai/FRESH SKIN 01.png','assets/cgi-ai/FRESH SKIN 02.png',
+    'assets/cgi-ai/FRESH SKIN HUMANIZADA 01 AJUSTADA.png','assets/cgi-ai/LUXY 01 HUMANIZADA v2.png',
+    'assets/cgi-ai/LUXY 02.png','assets/cgi-ai/PROVOKE 01 HUMANIZADA.png',
+    'assets/cgi-ai/PROVOKE 02.png','assets/cgi-ai/SWEET CRUSH 01.png',
+    'assets/cgi-ai/SWEET CRUSH 01 v2.png',
+    'assets/cgi-ai/AMBIENTADA 2 MANSCAPED AI + CGI.jpg','assets/cgi-ai/AMBIENTADA 3 MANSCAPED AI + CGI.jpg',
+    'assets/NOVAS IMAGENS/Explodido 2 MANSCAPED.png'
   ];
   let bankIdx=4;
 
