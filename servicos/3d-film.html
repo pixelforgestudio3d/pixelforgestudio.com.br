@@ -143,8 +143,14 @@ footer>div{position:relative;z-index:1}
 .svp-block ul,.svp-block ol{padding-left:1.2rem;color:var(--muted2);font-size:15px;line-height:1.85}
 .svp-block li{margin-bottom:.55rem}
 .svp-block li::marker{color:var(--pink)}
-.svp-examples{max-width:1100px;margin:0 auto;padding:5rem 2.5rem 6rem}
-.svp-examples-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px;background:rgba(255,255,255,.04)}
+/* ajuste (pedido direto: "como só tem duas pode ser maior,
+   padronize o espaço ocupado") — só essa página tem exatamente 2
+   exemplos (Positivo, Lupo); max-width maior + grid fixo em 2
+   colunas (em vez do auto-fit padrão das outras páginas) faz os 2
+   crescerem de propósito e sempre 50/50, em vez de depender do
+   comportamento do auto-fit pra um caso que só acontece aqui. */
+.svp-examples{max-width:1300px;margin:0 auto;padding:5rem 2.5rem 6rem}
+.svp-examples-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;background:rgba(255,255,255,.04)}
 /* card reaproveitado exatamente do grid de projetos da Home (5.1/5.7) —
    mesma classe .pi, mesmo comportamento (thumb sem texto, hover revela
    nome+vídeo tocando, card inteiro clicável). Não é um componente novo. */
@@ -277,23 +283,27 @@ footer>div{position:relative;z-index:1}
       <li>Entrega adaptada aos canais da campanha</li>
     </ol>
   </div>
-  <!-- ajuste (pedido direto): Positivo e Lupo entram como exemplos
-       novos, mas nenhum dos dois tem projects/[cliente]/*.html ainda
-       — combinado com o usuário deixar os cards sem link por enquanto
-       (em vez de inventar destino). Por isso .pi vira <div>, não <a>,
-       só aqui. Quando as páginas de projeto existirem, trocar pra <a
-       href="../projects/...">. -->
-  <div class="svp-examples">
-    <div class="svp-cross-label">Mais exemplos</div>
-    <div class="svp-examples-grid">
-      <div class="pi rv">
-        <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/grid/THUMB QUAD POSITIVO V2.mp4" type="video/mp4"></video>
-        <div class="pov"><div class="pc">Positivo · 2025</div><div class="pn">Positivo</div></div>
-      </div>
-      <div class="pi rv d1">
-        <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/NOVAS IMAGENS/Lupo_v10.mp4" type="video/mp4"></video>
-        <div class="pov"><div class="pc">Lupo · 2025</div><div class="pn">Lupo</div></div>
-      </div>
+
+</section>
+<!-- ajuste (pedido direto): Positivo e Lupo entram como exemplos
+     novos, mas nenhum dos dois tem projects/[cliente]/*.html ainda —
+     combinado com o usuário deixar os cards sem link por enquanto (em
+     vez de inventar destino). Por isso .pi vira <div>, não <a>, só
+     aqui. Quando as páginas de projeto existirem, trocar pra <a
+     href="../projects/...">. Seção própria (não dentro de .svp-body,
+     que tem max-width:640px) — bug real achado ao tentar aumentar o
+     tamanho dos cards: aninhado, o max-width:1300px do .svp-examples
+     nunca conseguia passar do teto de 640px do pai. -->
+<section class="svp-examples">
+  <div class="svp-cross-label">Mais exemplos</div>
+  <div class="svp-examples-grid">
+    <div class="pi rv">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/grid/THUMB QUAD POSITIVO V2.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">Positivo · 2025</div><div class="pn">Positivo</div></div>
+    </div>
+    <div class="pi rv d1">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/NOVAS IMAGENS/Lupo_v10.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">Lupo · 2025</div><div class="pn">Lupo</div></div>
     </div>
   </div>
 </section>
