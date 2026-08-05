@@ -557,13 +557,72 @@ document.querySelectorAll('.nd').forEach(nd=>{
   });
 })();
 
+// ============================================================
+// FOOTER — FÍSICA 2D DE PARTÍCULAS (13.4)
+// reaproveita a mesma paleta de cor do efeito "voltar ao topo",
+// mas é um sistema independente: peças caem com gravidade e se
+// empilham no rodapé, reagindo ao mouse com um leve empurrão.
+// ============================================================
 (function(){
   const footer=document.querySelector('footer');
   const canvas=document.getElementById('footerPhysicsCanvas');
   if(!footer||!canvas)return;
   const ctx=canvas.getContext('2d');
   const COLORS=['#2931a1','#6031b2','#8017e2','#dc1065','#f433bb','#ff5ad2'];
-  const SIZE=14,N=46,GRAVITY=.35,FRICTION=.985,NUDGE_RADIUS=70;
+  // 14.12 (feedback direto: "meia dúzia de partículas com interação
+  // fraca") — reforço geral: N deixa de ser fixo (46 ficava esparso em
+  // rodapés largos, longe de "preencher pelo menos metade do
+  // container") e passa a escalar pela ÁREA do rodapé; raio/força do
+  // mouse bem maiores; e a colisão entre partículas ganha troca de
+  // velocidade de verdade (antes só separava posição — sem "bounce"
+  // nenhum, parecia morto).
+  // ajuste 2 (feedback direto: "ainda tem muito pouco... distância
+  // mínima entre uma e outra pq elas não ficam empilhadas") — densidade
+  // alvo subiu, e a colisão ganhou GAP mínimo real (MIN_GAP, positivo,
+  // em vez do fator .92 que deixava sobrepor) + várias passadas de
+  // resolução por frame, senão pilhas grandes nunca "assentam" direito
+  // com só uma passada (sobra sobreposição residual entre A-B depois
+  // de corrigir A-C).
+  // ajuste 3 (pedido direto: "um pouco mais de distância entre as
+  // partículas, forçando mais a distância pra física funcionar melhor")
+  // — MIN_GAP maior força mais espaço real entre peças vizinhas.
+  // ajuste 4 (feedback direto: "o efeito ta instavel, fica tremendo")
+  // — BOUNCE=.55 devolvia mais energia na colisão do que cancelava
+  // (relVel pós-impulso = relVel*(1-2*BOUNCE); só em BOUNCE=.5 a colisão
+  // fica perfeitamente inelástica/"morta"). Com .55 sobrava um repique
+  // residual em toda colisão, e como a gravidade injeta energia de novo
+  // a cada frame, a pilha no fundo nunca parava de vibrar. Baixado pra
+  // .48 (levemente abaixo do ponto morto, absorve o resíduo em vez de
+  // devolver) + SLEEP zera velocidades minúsculas depois do impulso, já
+  // que o atrito multiplicativo (FRICTION) nunca chega a zero de verdade
+  // sozinho — sem isso o tremor residual nunca desaparecia de vez.
+  // ajuste 6 (feedback direto: "ainda tem uma leve instabilidade,
+  // diminua as particulas e aumente a distancia entre elas") — reverte
+  // o *3 do "ajuste 3" (que tinha ido na direção oposta) e sobe MIN_GAP
+  // bem mais. Menos peças coexistindo = menos pares em contato
+  // simultâneo brigando por espaço a cada frame = menos chance de
+  // resíduo de colisão sobrando por aí, e mais respiro entre elas dá
+  // menos ocasião de colisão pra começo de conversa.
+  // ajuste 7 (correção direta: "nao é a quantidade, é o tamanho, a
+  // quantidade tem que ser muito mais") — reverte o sentido do ajuste
+  // 6: quantidade não era o problema (e devia ser bem maior, não
+  // menor); o que precisa mudar é o TAMANHO da peça. SIZE cai bem
+  // (menos massa/momento por peça, e um tremor de 1px em cima de 8px
+  // é bem menos perceptível que em cima de 15px) e MIN_GAP acompanha
+  // proporcionalmente pra baixo (senão, com peça pequena, o mesmo gap
+  // de antes deixaria tudo esparso — o oposto de "quantidade muito
+  // mais"). O broad-phase em grid (ajuste 5) é o que permite ter MUITO
+  // mais peças sem voltar a pesar no frame rate.
+  // ajuste 8 (medido depois do ajuste 7): com muito mais peça na tela,
+  // sobra muito mais contato simultâneo por frame, e 4 passadas não
+  // bastam mais pra convergir — o topo da pilha ficava balançando de
+  // verdade (~3.6px em média, picos de 24px, medido comparando o
+  // perfil do topo da pilha entre frames). Mais passadas de colisão +
+  // um pingo de atrito vertical (FRICTION_Y, só entra depois que a
+  // peça já pousou — não pode frear a queda livre) resolve sem mexer
+  // de novo em SIZE/N/MIN_GAP, que é exatamente o que foi pedido.
+  const SIZE=8,GRAVITY=.42,FRICTION=.988,FRICTION_Y=.985,NUDGE_RADIUS=140,BOUNCE=.48,MIN_GAP=5,COLLISION_PASSES=7,SLEEP=.045,REST_THRESHOLD=.4,WAKE_IMPULSE=1;
+  let N=46;
   let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
   let particles=[];
   let mx=-9999,my=-9999;
@@ -575,18 +634,29 @@ document.querySelectorAll('.nd').forEach(nd=>{
     canvas.width=w*dpr;canvas.height=h*dpr;
     canvas.style.width=w+'px';canvas.style.height=h+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
+    // ajuste 7 (pedido direto: "a quantidade tem que ser muito mais")
+    // — piso/teto bem mais altos; SIZE menor (ajuste 7 acima) já reduz
+    // o custo por par e o grid espacial (ajuste 5) mantém o total
+    // barato mesmo com muito mais peças na tela.
+    // testado sincronamente (600 steps): N=1400 nunca terminava de
+    // dormir em 8s de simulação e custava ~17ms só de física por
+    // frame (estoura o orçamento de 60fps sozinho); N=700 assenta de
+    // verdade (694/700 dormindo, deriva do topo da pilha ~0.03px) e
+    // sobra folga real de frame. 700 já é +218% sobre os 220 rejeitados.
+    N=Math.max(400,Math.min(700,Math.round((w*h*0.85)/(SIZE*SIZE))));
   }
   function seed(){
     particles=Array.from({length:N},()=>({
       x:Math.random()*w,
-      y:-Math.random()*h*.7-20,
-      vx:0,vy:0,
-      size:SIZE*(.7+Math.random()*.6),
-      color:COLORS[Math.floor(Math.random()*COLORS.length)]
+      y:-Math.random()*h*1.4-20,
+      vx:(Math.random()-.5)*1.5,vy:0,
+      size:SIZE*(.65+Math.random()*.7),
+      color:COLORS[Math.floor(Math.random()*COLORS.length)],
+      asleep:false,restFrames:0
     }));
   }
   resize();seed();
-  window.addEventListener('resize',()=>{resize();});
+  window.addEventListener('resize',()=>{resize();seed();});
 
   if(hoverCapable){
     footer.addEventListener('mousemove',e=>{
@@ -596,37 +666,148 @@ document.querySelectorAll('.nd').forEach(nd=>{
     footer.addEventListener('mouseleave',()=>{mx=-9999;my=-9999;});
   }
 
+  // ajuste 5 (feedback direto: "o efeito ta instavel, fica tremendo")
+  // — medido: com N=700 (teto de partículas em telas largas) a colisão
+  // O(n²) x 4 passadas chegava a ~980 mil pares testados por frame,
+  // segurando o loop em ~33fps com tempo de frame bem irregular
+  // (20-39ms). Física sem dt fixo + frame pacing irregular = a pilha
+  // "parada" parece tremer, mesmo com a física já resolvida. Grid
+  // espacial (broad-phase) troca "testar todo mundo contra todo mundo"
+  // por "testar só quem tá na mesma célula ou vizinha", cortando o
+  // custo de O(n²) pra ~O(n) sem reduzir a densidade de partículas que
+  // já tinha sido pedida antes ("pelo menos o triplo").
+  // CELL tem que ser >= a maior distância de colisão possível
+  // ((maior a.size + maior b.size)/2 + MIN_GAP), senão a vizinhança
+  // 3x3 de células deixa de cobrir pares que ainda deveriam colidir.
+  // maior size = SIZE*1.35 (ver seed()); +2 de folga de segurança.
+  const CELL=Math.ceil(SIZE*1.35+MIN_GAP+2);
+  function buildGrid(){
+    const grid=new Map();
+    for(let i=0;i<particles.length;i++){
+      const p=particles[i];
+      const key=(Math.floor(p.x/CELL))+'_'+(Math.floor(p.y/CELL));
+      let arr=grid.get(key);
+      if(!arr){arr=[];grid.set(key,arr);}
+      arr.push(i);
+    }
+    return grid;
+  }
   function step(){
+    // ajuste 9 (medido: mais passadas/atrito não bastaram — o topo da
+    // pilha continuava balançando ~2.7-3.7px mesmo depois de assentada
+    // por 12s+). Causa real: esse solver não tem "contato de repouso"
+    // persistente — GRAVITY soma em TODA partícula TODO frame, mesmo
+    // numa camada funda de uma pilha já parada, e só colisão resolve
+    // isso; com muito mais peça (pedido: "quantidade tem que ser muito
+    // mais") a pilha ficou mais funda em camadas, e propagar a correção
+    // por todas elas num frame só nunca converge de verdade — sempre
+    // sobra um resíduo, não importa quantas passadas. Sleep/wake é o
+    // jeito padrão de resolver isso: uma peça parada de verdade por
+    // tempo suficiente congela (pula a física inteira, inclusive
+    // GRAVITY) até algo realmente bater nela — sem sleep, é impossível
+    // eliminar o tremor residual numa pilha funda.
     particles.forEach(p=>{
+      if(p.asleep){
+        const wdx=p.x-mx,wdy=p.y-my,wdist=Math.hypot(wdx,wdy);
+        if(wdist<NUDGE_RADIUS&&wdist>.01){p.asleep=false;p.restFrames=0;}
+        else return;
+      }
       p.vy+=GRAVITY;
       p.x+=p.vx;p.y+=p.vy;
       p.vx*=FRICTION;
-      if(p.y+p.size/2>h){p.y=h-p.size/2;p.vy*=-.28;if(Math.abs(p.vy)<.6)p.vy=0;}
-      if(p.x-p.size/2<0){p.x=p.size/2;p.vx*=-.4;}
-      if(p.x+p.size/2>w){p.x=w-p.size/2;p.vx*=-.4;}
+      p.vy*=FRICTION_Y;
+      if(Math.abs(p.vx)<SLEEP)p.vx=0;
+      if(Math.abs(p.vy)<SLEEP)p.vy=0;
+      if(p.y+p.size/2>h){p.y=h-p.size/2;p.vy*=-.32;if(Math.abs(p.vy)<.6)p.vy=0;}
+      if(p.x-p.size/2<0){p.x=p.size/2;p.vx*=-.5;}
+      if(p.x+p.size/2>w){p.x=w-p.size/2;p.vx*=-.5;}
       const dx=p.x-mx,dy=p.y-my,dist=Math.hypot(dx,dy);
       if(dist<NUDGE_RADIUS&&dist>.01){
-        const force=(1-dist/NUDGE_RADIUS)*2.2;
+        const force=(1-dist/NUDGE_RADIUS)*7;
         p.vx+=(dx/dist)*force;
-        p.vy+=(dy/dist)*force-force*.4;
+        p.vy+=(dy/dist)*force-force*.5;
       }
     });
-    for(let i=0;i<particles.length;i++){
-      for(let j=i+1;j<particles.length;j++){
-        const a=particles[i],b=particles[j];
-        const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
-        const minDist=(a.size+b.size)/2*.9;
-        if(dist<minDist&&dist>.001){
-          const overlap=(minDist-dist)/2,nx=dx/dist,ny=dy/dist;
-          a.x-=nx*overlap;a.y-=ny*overlap;
-          b.x+=nx*overlap;b.y+=ny*overlap;
+    // várias passadas por frame: com muita peça empilhada, resolver
+    // A-B pode reabrir sobreposição com C que já tinha sido corrigida
+    // nesse mesmo frame — repetir converge pra uma pilha estável em
+    // vez de tremer/afundar uma na outra.
+    const grid=buildGrid();
+    for(let pass=0;pass<COLLISION_PASSES;pass++){
+      for(let i=0;i<particles.length;i++){
+        const a=particles[i];
+        const cx=Math.floor(a.x/CELL),cy=Math.floor(a.y/CELL);
+        for(let ox=-1;ox<=1;ox++){
+        for(let oy=-1;oy<=1;oy++){
+        const bucket=grid.get((cx+ox)+'_'+(cy+oy));
+        if(!bucket)continue;
+        for(const j of bucket){
+          if(j<=i)continue;
+          const b=particles[j];
+          if(a.asleep&&b.asleep)continue;
+          const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
+          // MIN_GAP positivo garante espaço real entre peças (pedido
+          // direto) — antes um fator .92 deixava elas se sobreporem.
+          const minDist=(a.size+b.size)/2+MIN_GAP;
+          if(dist<minDist&&dist>.001){
+            const nx=dx/dist,ny=dy/dist;
+            const overlap=(minDist-dist)/2;
+            a.x-=nx*overlap;a.y-=ny*overlap;
+            b.x+=nx*overlap;b.y+=ny*overlap;
+            {
+              // ajuste 4: troca de velocidade em TODAS as passadas, não só
+              // na 1ª. Numa pilha de várias camadas, cada partícula ganha
+              // GRAVITY de novo a cada frame; só uma passada de impulso não
+              // é suficiente pra propagar a correção por uma pilha funda
+              // (tipo resolver Gauss-Seidel com 1 iteração só), sobrando
+              // velocidade vertical não cancelada que só a posição prendia
+              // — no frame seguinte ela "solta" de novo, gerando o tremor.
+              // Repetir o cancelamento em cada passada converge de verdade.
+              const rvx=b.vx-a.vx,rvy=b.vy-a.vy;
+              const velAlongNormal=rvx*nx+rvy*ny;
+              if(velAlongNormal<0){
+                const impulse=-velAlongNormal*BOUNCE;
+                a.vx-=nx*impulse;a.vy-=ny*impulse;
+                b.vx+=nx*impulse;b.vy+=ny*impulse;
+                if(Math.abs(a.vx)<SLEEP)a.vx=0;if(Math.abs(a.vy)<SLEEP)a.vy=0;
+                if(Math.abs(b.vx)<SLEEP)b.vx=0;if(Math.abs(b.vy)<SLEEP)b.vy=0;
+                // ajuste 10: limiar de "acordar" bem mais alto — só um
+                // impacto de verdade (peça nova caindo, mouse) acorda
+                // quem tava dormindo; a "respiração" residual normal de
+                // uma pilha densa não deve mais disparar isso em cadeia.
+                if(Math.abs(impulse)>WAKE_IMPULSE){a.asleep=false;a.restFrames=0;b.asleep=false;b.restFrames=0;}
+              }
+            }
+          }
+        }
+        }
         }
       }
     }
+    // ajuste 11 (bug real, achado com window.__footerDebug: 0/700
+    // partículas conseguiam dormir mesmo depois de 12s). A checagem de
+    // repouso rodava dentro do forEach de física, LOGO depois de
+    // "p.vy+=GRAVITY" — ou seja, media a velocidade ANTES da colisão
+    // ter chance de cancelar essa gravidade do frame. Como GRAVITY=.42
+    // é maior que REST_THRESHOLD=.4, toda partícula que não está
+    // encostada no chão de verdade falhava o teste TODO frame, não
+    // importa quão estável ela realmente estivesse. Mover pra depois
+    // das passadas de colisão (estado final do frame, com a gravidade
+    // já compensada pelo contato) é o que faz o teste medir a coisa
+    // certa.
+    particles.forEach(p=>{
+      if(p.asleep)return;
+      if(Math.abs(p.vx)<REST_THRESHOLD&&Math.abs(p.vy)<REST_THRESHOLD){
+        p.restFrames=(p.restFrames||0)+1;
+        if(p.restFrames>10){p.asleep=true;p.vx=0;p.vy=0;}
+      } else {
+        p.restFrames=0;
+      }
+    });
   }
   function draw(){
     ctx.clearRect(0,0,w,h);
-    ctx.globalAlpha=.85;
+    ctx.globalAlpha=.88;
     particles.forEach(p=>{ctx.fillStyle=p.color;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);});
     ctx.globalAlpha=1;
   }
