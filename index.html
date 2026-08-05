@@ -178,14 +178,11 @@ h1 .split-char{will-change:transform,opacity}
 .cle-head{text-align:center;position:sticky;top:80px;z-index:2;padding-top:1rem;padding-bottom:1.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,var(--black) 85%,rgba(0,0,0,0) 100%)}
 .cle-head .st2{justify-content:center}
 .cle-head h2{margin-bottom:0}
-/* ajuste direto ("os primeiros e os últimos nomes ficam meio cortados,
-   aparecendo sob a próxima seção") — a lista não tinha respiro nenhum
-   antes da primeira linha nem depois da última; a primeira ficava
-   escondida atrás do header sticky quase assim que a seção começava, e
-   a última não tinha espaço pra "chegar" no centro (roleta) antes da
-   seção acabar e A Forja começar. Padding generoso em vh dá a mesma
-   folga de scroll pros dois extremos, independente do tamanho da tela. */
-.cle-list{max-width:640px;margin:0 auto;padding:35vh 0;position:relative;z-index:1}
+/* ajuste revertido (feedback direto: "vc mexeu no lugar errado... esse
+   espaço vazio da lista ficou horrível") — o padding:35vh 0 da rodada
+   anterior tentou resolver o problema errado (achei que era a LISTA que
+   cortava; era o LOGO). Volta a não ter respiro extra nenhum aqui. */
+.cle-list{max-width:640px;margin:0 auto;position:relative;z-index:1}
 /* 14.7 (ajuste 3) — só o escopo (tags) fica alinhado à linha do nome
    agora (o logo virou elemento fixo à esquerda, independente). Trocado
    align-items de baseline pra center: baseline alinhava o TEXTO mas
