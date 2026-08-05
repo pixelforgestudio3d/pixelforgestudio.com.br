@@ -1370,6 +1370,15 @@ document.querySelectorAll('.nd').forEach(nd=>{
   const idleCanvas=document.createElement('canvas');
   const tmpCanvas=document.createElement('canvas');
   let cw=0,ch=0,dpr=Math.min(window.devicePixelRatio||1,1.5);
+  // pedido direto ("deixe a palavra SERVIÇOS alinhada ao centro do
+  // quadro, precisa descer um pouquinho") — o canvas cobre a SEÇÃO
+  // inteira (centralizado no meio dela), mas o "quadro" visível de
+  // verdade é .svc-glass-wrap, que fica mais abaixo (empurrado pelo
+  // eyebrow "Serviços" acima dele dentro do fluxo normal de .svc-inner).
+  // textCY recalcula, a cada layout, o centro vertical REAL do quadro
+  // em coordenadas do canvas, em vez de assumir que é o centro do canvas.
+  const glassWrapEl=document.getElementById('svcGlassWrap');
+  let textCY=0;
   let mx=-9999,my=-9999,driftX=0,driftY=0,vx=0,vy=0,hasMoved=false;
   let lastMX=null,lastMY=null,lastT=null;
   const hoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
@@ -1438,20 +1447,36 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // está GIGANTE, precisa ser suave") — ganho e teto de alpha reduzidos
   // (a grade em si já propaga bastante sozinha; o exagero estava na
   // conversão altura->cor, não na simulação).
-  // ajuste 6 (feedback direto: "quase perfeito, pode forçar um
-  // pouquinho mais") — empurrão pequeno pra cima (não voltar ao "muito
-  // forte" de antes, só um reforço leve).
+  // ajuste 7 (feedback direto: "as cores tem que aparecer mais, mais
+  // forte, azul e rosa se misturando tipo neon... colocar dispersão pra
+  // dar um efeito cromático") — reescrito: em vez de um corte duro
+  // azul (crista) / rosa (vale), cada canal de cor é amostrado a partir
+  // de uma posição da grade LEVEMENTE deslocada pro lado oposto — o
+  // mesmo princípio óptico da dispersão cromática (cada cor "vaza" um
+  // pouco pra fora do lugar exato da onda), o que também faz azul e
+  // rosa se sobreporem/misturarem nas bordas em vez de um corte seco
+  // entre as duas cores. Alpha bem mais forte (até 255).
+  function heightToBlueAmt(h){return Math.max(0,Math.min(1,(h*2.4+1)/2));}
   function drawWaveField(){
     const data=waveImg.data;
-    for(let i=0;i<WAVE_COLS*WAVE_ROWS;i++){
-      const h=Math.max(-1,Math.min(1,waveCur[i]*2.1));
-      const j=i*4;
-      if(h>=0){
-        // crista: azul da marca
-        data[j]=61;data[j+1]=139;data[j+2]=255;data[j+3]=Math.round(h*165);
-      }else{
-        // vale: rosa da marca
-        data[j]=244;data[j+1]=51;data[j+2]=187;data[j+3]=Math.round(-h*165);
+    const SHIFT=2;
+    for(let y=0;y<WAVE_ROWS;y++){
+      for(let x=0;x<WAVE_COLS;x++){
+        const i=waveIdx(x,y);
+        const xL=x>SHIFT?x-SHIFT:0;
+        const xR=x<WAVE_COLS-1-SHIFT?x+SHIFT:WAVE_COLS-1;
+        const hCenter=waveCur[i];
+        const hLeft=waveCur[waveIdx(xL,y)];
+        const hRight=waveCur[waveIdx(xR,y)];
+        const blueAmt=heightToBlueAmt(hLeft);
+        const pinkAmt=1-heightToBlueAmt(hRight);
+        const r=Math.min(255,Math.round(61*blueAmt+244*pinkAmt));
+        const g=Math.min(255,Math.round(139*blueAmt+51*pinkAmt));
+        const b=Math.min(255,Math.round(255*blueAmt+187*pinkAmt));
+        const mag=Math.max(Math.abs(hCenter),Math.abs(hLeft),Math.abs(hRight));
+        const alpha=Math.min(255,Math.round(Math.min(1,mag*2.4)*230));
+        const j=i*4;
+        data[j]=r;data[j+1]=g;data[j+2]=b;data[j+3]=alpha;
       }
     }
     waveCtx.putImageData(waveImg,0,0);
@@ -1485,6 +1510,11 @@ document.querySelectorAll('.nd').forEach(nd=>{
       c.width=cw*dpr;c.height=ch*dpr;
       c.style.width=cw+'px';c.style.height=ch+'px';
     });
+    textCY=ch/2;
+    if(glassWrapEl){
+      const gr=glassWrapEl.getBoundingClientRect();
+      if(gr.height>0)textCY=(gr.top+gr.height/2)-r.top;
+    }
     const fontSize=fitFontSize();
     const font=`800 ${fontSize}px 'Space Grotesk',sans-serif`;
     const ls='-1px';
@@ -1505,17 +1535,17 @@ document.querySelectorAll('.nd').forEach(nd=>{
       fctx.font=font;fctx.textAlign='center';fctx.textBaseline='middle';
       try{fctx.letterSpacing=ls;}catch(e){}
       fctx.fillStyle=fillStyle;
-      fctx.fillText(TEXT,cw/2,ch/2);
+      fctx.fillText(TEXT,cw/2,textCY);
 
       const inset=document.createElement('canvas');
       inset.width=full.width;inset.height=full.height;
       const ictx=inset.getContext('2d');
       ictx.setTransform(dpr,0,0,dpr,0,0);
-      ictx.translate(cw/2,ch/2);ictx.scale(insetScale,insetScale);ictx.translate(-cw/2,-ch/2);
+      ictx.translate(cw/2,textCY);ictx.scale(insetScale,insetScale);ictx.translate(-cw/2,-textCY);
       ictx.font=font;ictx.textAlign='center';ictx.textBaseline='middle';
       try{ictx.letterSpacing=ls;}catch(e){}
       ictx.fillStyle='#fff';
-      ictx.fillText(TEXT,cw/2,ch/2);
+      ictx.fillText(TEXT,cw/2,textCY);
 
       fctx.setTransform(1,0,0,1,0,0);
       fctx.globalCompositeOperation='destination-out';
@@ -1537,7 +1567,7 @@ document.querySelectorAll('.nd').forEach(nd=>{
     mctx.font=font;mctx.textAlign='center';mctx.textBaseline='middle';
     try{mctx.letterSpacing=ls;}catch(e){}
     mctx.fillStyle='#fff';
-    mctx.fillText(TEXT,cw/2,ch/2);
+    mctx.fillText(TEXT,cw/2,textCY);
 
     // BUG real (feedback direto: "as letras ainda não são somente o
     // stroke de 1pt... parece um 3D com uma letra por cima da outra") —
@@ -1624,13 +1654,12 @@ document.querySelectorAll('.nd').forEach(nd=>{
       lctx.imageSmoothingEnabled=true;
       lctx.drawImage(waveCanvas,0,0,WAVE_COLS,WAVE_ROWS,0,0,liquidCanvas.width,liquidCanvas.height);
 
-      // ajuste 4 (feedback direto: "muito forte... precisa ser suave") —
-      // alphas de composição reduzidos, mesmo efeito, presença mais sutil.
-      // ajuste 6 — empurrão pequeno de novo, junto com o ganho acima.
+      // ajuste 7 (feedback direto: "as cores tem que aparecer mais...
+      // bem forte") — presença bem mais forte que antes.
       // interior: versão mais escura/opaca (13.15)
-      drawMasked(liquidCanvas,fillMask,.26);
+      drawMasked(liquidCanvas,fillMask,.4);
       // borda: cor mais viva/saturada, concentrada no contorno (13.15)
-      drawMasked(liquidCanvas,edgeMask,.72);
+      drawMasked(liquidCanvas,edgeMask,.95);
     }
 
     // 14.5 — NOVO: camada de brilho ambiente/idle, independente do mouse
@@ -1643,6 +1672,15 @@ document.querySelectorAll('.nd').forEach(nd=>{
     requestAnimationFrame(draw);
   }
 
+  // ajuste 8 (feedback direto: "no efeito que passa na borda, pode
+  // colocar um gradiente mais irregular, dar uma distorcida e também
+  // colocar dispersão pra dar um efeito cromático") — a banda reta e
+  // perfeitamente vertical virou várias faixas horizontais, cada uma
+  // com seu próprio deslocamento (onda senoidal por faixa+tempo, banda
+  // "torta" em vez de reta = irregular/distorcida), e azul/rosa cada um
+  // amostrado com um pequeno deslocamento horizontal um do outro — a
+  // mesma ideia óptica de luz se separando em cores ao passar por um
+  // prisma, em vez de nascerem no mesmo eixo.
   function drawIdleSweep(now){
     const ictx=idleCanvas.getContext('2d');
     ictx.setTransform(dpr,0,0,dpr,0,0);
@@ -1651,14 +1689,30 @@ document.querySelectorAll('.nd').forEach(nd=>{
     const t=(now%period)/period;
     const sweepX=-0.25*cw+t*1.5*cw;
     const bandHalf=cw*0.16;
-    // ajuste 2 — trocado de branco pra azul/rosa da marca (pedido direto)
-    const grad=ictx.createLinearGradient(sweepX-bandHalf,0,sweepX+bandHalf,0);
-    grad.addColorStop(0,'rgba(61,139,255,0)');
-    grad.addColorStop(.45,hexToRgba(CHANNELS[0],.85));
-    grad.addColorStop(.55,hexToRgba(CHANNELS[1],.85));
-    grad.addColorStop(1,'rgba(244,51,187,0)');
-    ictx.fillStyle=grad;
-    ictx.fillRect(0,0,cw,ch);
+    const STRIPS=22;
+    const stripH=ch/STRIPS;
+    const chromaShift=bandHalf*0.14;
+    ictx.globalCompositeOperation='lighter';
+    for(let s=0;s<STRIPS;s++){
+      const y=s*stripH;
+      const wobble=Math.sin(s*0.75+now*0.0011)*bandHalf*0.4;
+      const localX=sweepX+wobble;
+
+      const gradBlue=ictx.createLinearGradient(localX-chromaShift-bandHalf,0,localX-chromaShift+bandHalf,0);
+      gradBlue.addColorStop(0,'rgba(61,139,255,0)');
+      gradBlue.addColorStop(.5,hexToRgba(CHANNELS[0],.85));
+      gradBlue.addColorStop(1,'rgba(61,139,255,0)');
+      ictx.fillStyle=gradBlue;
+      ictx.fillRect(0,y,cw,stripH+1);
+
+      const gradPink=ictx.createLinearGradient(localX+chromaShift-bandHalf,0,localX+chromaShift+bandHalf,0);
+      gradPink.addColorStop(0,'rgba(244,51,187,0)');
+      gradPink.addColorStop(.5,hexToRgba(CHANNELS[1],.85));
+      gradPink.addColorStop(1,'rgba(244,51,187,0)');
+      ictx.fillStyle=gradPink;
+      ictx.fillRect(0,y,cw,stripH+1);
+    }
+    ictx.globalCompositeOperation='source-over';
     // ajuste 3 (pedido direto: "o efeito fixo passa somente no
     // stroke") — removida a passada em fillMask (preenchia o interior
     // da letra); o brilho ambiente agora só percorre o contorno.
