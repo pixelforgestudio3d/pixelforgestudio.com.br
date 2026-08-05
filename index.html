@@ -148,25 +148,22 @@ h1 .split-char{will-change:transform,opacity}
 
 /* CLIENTES / ESCOPO — mecânica Valkiria exata (11.4), refinada 14.7 */
 .cle{padding:7rem 2.5rem 8rem;position:relative}
-/* BUG real (feedback direto: "logo tá saindo fora do lugar, tem nome
-   vazando no lugar errado") — .cle-list é centralizado no VIEWPORT
-   inteiro (max-width:640px;margin:0 auto), sem relação nenhuma com a
-   coluna fixa do logo (left:0;width:min(26vw,340px)). Em qualquer tela
-   com menos de ~1172px de largura (a maioria dos notebooks, tablets,
-   janela não-maximizada), a borda esquerda da lista centralizada cai
-   POR BAIXO do logo fixo — o logo grande acaba sobrepondo o nome da
-   marca. Reserva o espaço da coluna do logo no padding da seção inteira
-   pra lista nunca ficar por baixo dele.
-   */
-@media(min-width:769px){
-  .cle{padding-left:calc(min(26vw,340px) + 3rem)}
-}
-/* 14.7 (ajuste 3, feedback direto) — o gradiente anterior segurava
-   sólido até 55% e só desvanecia depois — como o título inteiro cabia
-   dentro desse trecho sólido, na prática parecia que não tinha fade
-   nenhum (ficava idêntico a um fundo preto liso). Agora é contínuo: 100%
-   no topo do título até 0% exatamente na base dele, sem plateau. */
-.cle-head{text-align:center;position:sticky;top:90px;z-index:2;padding-bottom:1.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,rgba(0,0,0,0) 100%)}
+/* ajuste (feedback direto: "está toda desalinhada... preciso ajustar
+   tudo isso") — o padding-left reservado pra coluna do logo fixo só
+   fazia sentido no modelo antigo (logo sempre visível, trocando sozinho
+   por scroll). Removido junto com a volta pro modelo 100% hover: sem
+   isso, o título e a lista voltam a centralizar na seção inteira, como
+   o resto do site. */
+/* BUG real (feedback direto: "o fade no topo da seção também está
+   errado, bem errado") — o gradiente ia de 100% opaco no TOPO do header
+   até 0% (transparente) exatamente na sua BASE — mas o título em si
+   ocupa quase a altura inteira do header (só sobra o padding-bottom
+   depois dele). Resultado: o fundo já estava ficando transparente
+   ATRÁS do próprio texto do título, deixando os nomes da lista rolando
+   por trás vazarem/aparecerem "fantasmas" através das letras. Segura
+   sólido até bem depois de onde o texto termina (85%) e só desvanece
+   no restante — a mesma ideia de antes, mas sem cortar o próprio texto. */
+.cle-head{text-align:center;position:sticky;top:90px;z-index:2;padding-bottom:1.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,var(--black) 85%,rgba(0,0,0,0) 100%)}
 .cle-head .st2{justify-content:center}
 .cle-head h2{margin-bottom:0}
 .cle-list{max-width:640px;margin:0 auto;position:relative;z-index:1}
@@ -181,23 +178,17 @@ h1 .split-char{will-change:transform,opacity}
 .cli-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;opacity:0;transition:opacity .3s}
 .cli-row:hover .cli-tags,.cli-row.on .cli-tags{opacity:1}
 .clt{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);border:.5px solid var(--borderh);padding:5px 12px;white-space:nowrap}
-/* 14.7 (ajuste 3, feedback direto) — não é mais por hover: "como a
-   seção está fixa o logo pode sempre estar aparecendo fixo ali". Um
-   logo grande, fixo, centralizado horizontalmente no espaço vazio da
-   ESQUERDA (não no meio da tela), trocando (crossfade) conforme a
-   marca mais próxima do centro vertical da tela (mesma lógica de
-   distância já usada na "roleta" de opacidade) — não precisa mais de
-   hover pra aparecer. */
-/* BUG (feedback direto) — sem gate de seção, o wrap position:fixed
-   continuava ativo em QUALQUER scroll depois de passar por Clientes
-   (a função de "linha mais próxima" sempre acha alguma linha, por mais
-   longe que esteja da tela, então o crossfade nunca desligava). Opacity
-   do WRAP inteiro agora depende de #clientes estar realmente visível
-   (IntersectionObserver), independente do crossfade entre marcas. */
-.cle-logo-wrap{position:fixed;top:0;left:0;width:min(26vw,340px);height:100vh;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0;transition:opacity .3s ease}
-.cle-logo-wrap.in-view{opacity:1}
-.cle-logo-display{max-width:82%;max-height:220px;object-fit:contain;opacity:0;transition:opacity .4s ease;filter:drop-shadow(0 20px 50px rgba(0,0,0,.6))}
-.cle-logo-display.show{opacity:1}
+/* ajuste (feedback direto: "o logo continua aparecendo onde não devia
+   e aparecendo até sem hover, sendo que ele só deve aparecer quando
+   tiver hover do mouse sob o nome da marca e apenas isso") — volta pro
+   modelo simples: um logo fixo à esquerda que só aparece enquanto o
+   mouse está em cima da linha (ou, no mobile sem hover, enquanto o tap
+   está "ativo" na linha). Sem crossfade automático por posição de
+   scroll, sem gate de IntersectionObserver — só show/hide direto no
+   mouseenter/mouseleave de cada linha. */
+.cle-logo-wrap{position:fixed;top:0;left:0;width:min(26vw,340px);height:100vh;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0;transition:opacity .25s ease}
+.cle-logo-wrap.show{opacity:1}
+.cle-logo-display{max-width:82%;max-height:220px;object-fit:contain;filter:drop-shadow(0 20px 50px rgba(0,0,0,.6))}
 /* 14.7 — fade de baixo pra cima mais forte: 100% opaco na base até 0%
    em ~30vh, moldura escura por trás de onde os nomes emergem ao rolar.
    position:fixed + gate por IntersectionObserver (visível só durante
@@ -2254,44 +2245,32 @@ const cliRows=CLIENTS.map(c=>{
   return row;
 });
 
-// 14.7 (ajuste 3) — logo fixo à esquerda não depende mais de hover:
-// mostra sempre a marca mais próxima do centro vertical da tela,
-// reaproveitando a mesma distância já calculada pra "roleta" de
-// opacidade (11.4), com crossfade suave a cada troca.
+// pedido direto ("o logo continua aparecendo onde não devia e
+// aparecendo até sem hover, sendo que ele só deve aparecer quando tiver
+// hover do mouse sob o nome da marca e apenas isso") — volta ao modelo
+// simples: um único logo fixo à esquerda, mostrado/escondido só por
+// hover (ou tap no mobile) em cada linha. Sem crossfade automático por
+// posição de scroll, sem IntersectionObserver de seção — a visibilidade
+// do wrap é 1:1 com o mouse estar em cima da linha.
 const cleLogoDisplay=document.getElementById('cleLogoDisplay');
-let cleActiveLogo=null;
-
-// BUG (feedback direto): sem isso, o wrap position:fixed continuava
-// "ligado" em qualquer parte do site depois de passar por Clientes —
-// a função de linha mais próxima sempre encontra alguma linha, não
-// importa a distância, então o crossfade nunca desligava sozinho.
-// ajuste (feedback direto: "na metade do caminho já mostra o logo da
-// Heineken") — threshold:0 dispara assim que só 1px da seção aparece
-// vindo de baixo; numa tela alta isso acontece bem antes do usuário
-// sentir que "chegou" em Clientes de verdade (ainda vendo majoritariamente
-// Projetos). Encolhe a margem de BAIXO da raiz de interseção (não a de
-// cima — é por baixo que a seção entra rolando pra baixo) em 12% da
-// altura da tela, atrasando o disparo até a seção já estar bem mais
-// visível.
-let cleSectionNear=false;
 const cleLogoWrapEl=document.getElementById('cleLogoWrap');
-if(cleLogoWrapEl){
-  new IntersectionObserver(entries=>{
-    entries.forEach(en=>{
-      cleSectionNear=en.isIntersecting;
-      cleLogoWrapEl.classList.toggle('in-view',en.isIntersecting);
-    });
-  },{threshold:0,rootMargin:'0px 0px -12% 0px'}).observe(document.getElementById('clientes'));
+function showClienteLogo(row){
+  cleLogoDisplay.src=row.dataset.logo;
+  cleLogoDisplay.alt=row.dataset.name;
+  cleLogoWrapEl.classList.add('show');
+}
+function hideClienteLogo(){
+  cleLogoWrapEl.classList.remove('show');
 }
 
-// opacidade por posição na tela — efeito "roleta" (11.4)
+// opacidade por posição na tela — efeito "roleta" (11.4), continua
+// independente do logo (isso nunca foi o problema relatado).
 let cleTicking=false;
 function updateClienteOpacity(){
   const vh=window.innerHeight;
   const center=vh/2;
   const band=vh*0.15;
   const fadeRange=vh*0.55;
-  let closestRow=null,closestDist=Infinity;
   cliRows.forEach(row=>{
     const nameEl=row.querySelector('.cli-name');
     const r=row.getBoundingClientRect();
@@ -2300,31 +2279,7 @@ function updateClienteOpacity(){
     let t;
     if(dist<=band)t=1;else t=Math.max(0,1-(dist-band)/(fadeRange-band));
     nameEl.style.opacity=(0.2+t*0.8).toFixed(2);
-    if(dist<closestDist){closestDist=dist;closestRow=row;}
   });
-  // BUG real (feedback direto: "na metade do caminho já mostra o logo
-  // da Heineken, que deveria estar só na próxima seção") — esta função
-  // roda em TODO scroll do site inteiro, sem gate nenhum. Enquanto o
-  // usuário ainda está em Projetos (bem antes de Clientes existir na
-  // tela), "linha mais próxima" já resolve pra alguma marca (a primeira
-  // da lista, Heineken) e escreve isso de verdade no <img src> — só a
-  // OPACIDADE do wrap escondia visualmente, mas o crossfade real ficava
-  // pronto de antemão. Bem na hora que o wrap começa a aparecer, dava
-  // pra pegar esse valor "pré-calculado de longe" antes do primeiro
-  // recalculo já perto da seção — lido como o logo errado "vazando"
-  // cedo demais. Agora só atualiza o logo (src real) quando a seção
-  // realmente está perto/visível; a "roleta" de opacidade dos NOMES
-  // continua rodando sempre (isso não tem nada a ver com o bug).
-  if(cleSectionNear&&closestRow&&closestRow.dataset.logo!==cleActiveLogo){
-    cleActiveLogo=closestRow.dataset.logo;
-    cleLogoDisplay.classList.remove('show');
-    clearTimeout(cleLogoDisplay._t);
-    cleLogoDisplay._t=setTimeout(()=>{
-      cleLogoDisplay.src=cleActiveLogo;
-      cleLogoDisplay.alt=closestRow.dataset.name;
-      cleLogoDisplay.classList.add('show');
-    },180);
-  }
 }
 
 // 14.7 (ajuste 3) — "equilibrar o tamanho dos logos, tem alguns muito
@@ -2364,12 +2319,18 @@ updateClienteOpacity();
 
 // hover (ou tap no mobile) — logo aparece à esquerda, tags à direita, na mesma linha
 const cleHoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-if(!cleHoverCapable){
+if(cleHoverCapable){
+  cliRows.forEach(row=>{
+    row.addEventListener('mouseenter',()=>showClienteLogo(row));
+    row.addEventListener('mouseleave',hideClienteLogo);
+  });
+}else{
   cliRows.forEach(row=>{
     row.addEventListener('click',()=>{
       const wasOn=row.classList.contains('on');
       cliRows.forEach(r=>r.classList.remove('on'));
-      if(!wasOn)row.classList.add('on');
+      if(!wasOn){row.classList.add('on');showClienteLogo(row);}
+      else{hideClienteLogo();}
     });
   });
 }
