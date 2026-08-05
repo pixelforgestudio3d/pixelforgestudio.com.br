@@ -2371,20 +2371,17 @@ const foohVideoEls=foohCards.map(c=>c.querySelector('video'));
   const slots=Array.from(media.querySelectorAll('.iai'));
   if(slots.length<4)return;
 
-  // ajuste (reorganização de pastas): AMBIENTADA/CLOSE/HERO/HUMANIZADA
-  // MANSCAPED e os STYLE FRAME AFPM saíram do banco — o usuário moveu
-  // esses arquivos pra assets/forja/ (não pertencem mais ao showcase
-  // de CGI+AI). Explodido 2 MANSCAPED.png ainda não foi movido pra
-  // nenhuma das duas pastas novas, então continua apontando pro local
-  // antigo até ser organizado.
+  // pedido direto: "na sessao de cgi e ai tem que ter somente as
+  // imagens da pasta cgi e ai" — banco 100% assets/cgi-ai/, nada de
+  // NOVAS IMAGENS nem forja/. "Explodido 2 MANSCAPED.png" (que nunca
+  // foi movido pra cgi-ai/) saiu do banco por isso, não por engano.
   const BANK=[
     'assets/cgi-ai/FRESH SKIN 01.png','assets/cgi-ai/FRESH SKIN 02.png',
     'assets/cgi-ai/FRESH SKIN HUMANIZADA 01 AJUSTADA.png','assets/cgi-ai/LUXY 01 HUMANIZADA v2.png',
     'assets/cgi-ai/LUXY 02.png','assets/cgi-ai/PROVOKE 01 HUMANIZADA.png',
     'assets/cgi-ai/PROVOKE 02.png','assets/cgi-ai/SWEET CRUSH 01.png',
     'assets/cgi-ai/SWEET CRUSH 01 v2.png',
-    'assets/cgi-ai/AMBIENTADA 2 MANSCAPED AI + CGI.jpg','assets/cgi-ai/AMBIENTADA 3 MANSCAPED AI + CGI.jpg',
-    'assets/NOVAS IMAGENS/Explodido 2 MANSCAPED.png'
+    'assets/cgi-ai/AMBIENTADA 2 MANSCAPED AI + CGI.jpg','assets/cgi-ai/AMBIENTADA 3 MANSCAPED AI + CGI.jpg'
   ];
   let bankIdx=4;
 
