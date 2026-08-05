@@ -816,8 +816,8 @@ footer>div{position:relative;z-index:1}
 <script type="importmap">
 {
   "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
   }
 }
 </script>
@@ -871,9 +871,15 @@ import * as THREE from 'three';
   scene.environment=pmrem.fromEquirectangular(envTex).texture;
   envTex.dispose();
 
-  scene.add(new THREE.AmbientLight(0xffffff,.6));
-  const key=new THREE.DirectionalLight(0xffffff,1.3);key.position.set(3,5,6);scene.add(key);
-  const rim=new THREE.DirectionalLight(0xda2c80,1.1);rim.position.set(-4,-2,-3);scene.add(rim);
+  // ajuste 5 (feedback direto: "efeito de luz que passa tem que ser mais
+  // orgânico, está muito duro") — 2 luzes direcionais fortes numa caixa
+  // com clearcoat quase espelhado (clearcoatRoughness .08) criavam
+  // contraste duro de luz/sombra nas quinas do painel, lido como "sombra"
+  // em cima do texto. Mais luz ambiente (difusa, sem direção definida)
+  // + direcionais mais fracas suaviza a transição.
+  scene.add(new THREE.AmbientLight(0xffffff,.9));
+  const key=new THREE.DirectionalLight(0xffffff,.75);key.position.set(3,5,6);scene.add(key);
+  const rim=new THREE.DirectionalLight(0xda2c80,.6);rim.position.set(-4,-2,-3);scene.add(rim);
 
   // ajuste 3 — com o ambiente colorido acima alimentando reflexo de
   // verdade, o plano de fundo pintado (usado nos ajustes 1/2) virou
@@ -914,10 +920,21 @@ import * as THREE from 'three';
   // "dispersion". Box fica só a peça física passiva que refrata as
   // letras atrás — sem nenhum movimento próprio (rotação por mouse
   // removida a pedido: "na box não precisa ter movimento nenhum").
+  //
+  // BUG real (achado ao investigar "tem que ter dispersão... está muito
+  // duro"): "dispersion" só existe em MeshPhysicalMaterial a partir do
+  // three.js r164 — o site estava travado em r160 (import map), então a
+  // propriedade era silenciosamente ignorada (warning no console:
+  // "'dispersion' is not a property of THREE.MeshPhysicalMaterial") e o
+  // vidro nunca teve dispersão nenhuma, só reflexo/refração "dura". Bump
+  // pra r170 no import map corrige de vez. dispersion:5 também nunca
+  // tinha sido testado de verdade (era ignorado) — reduzido pra 1, valor
+  // mais realista agora que a propriedade passa a funcionar mesmo
+  // (5 nessa escala fica quebrado/exagerado, não "orgânico").
   const glassMat=new THREE.MeshPhysicalMaterial({
-    color:0xffffff,metalness:0,roughness:.06,transmission:1,
-    thickness:.7,ior:1.45,clearcoat:1,clearcoatRoughness:.08,
-    envMapIntensity:1.1,dispersion:5,
+    color:0xffffff,metalness:0,roughness:.09,transmission:1,
+    thickness:.7,ior:1.45,clearcoat:1,clearcoatRoughness:.22,
+    envMapIntensity:1.1,dispersion:1,
     emissive:0xb066ff,emissiveMap:causticTex,emissiveIntensity:.4
   });
   const glass=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),glassMat);
