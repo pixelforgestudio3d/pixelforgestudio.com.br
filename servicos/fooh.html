@@ -150,6 +150,10 @@ footer>div{position:relative;z-index:1}
    nome+vídeo tocando, card inteiro clicável). Não é um componente novo. */
 .pi{position:relative;overflow:hidden;background:var(--black);display:block;color:inherit;text-decoration:none}
 .pi video.pt{width:100%;height:100%;object-fit:cover;aspect-ratio:16/9;transition:transform .6s,filter .4s}
+/* conteúdo de FOOH é vertical de verdade (formato real de veiculação,
+   ver 12.18) — sobrescreve o 16:9 padrão só nos cards desta página,
+   senão o object-fit:cover corta a peça inteira dos dois lados. */
+.svp-examples-grid .pi video.pt{aspect-ratio:9/16}
 .pi:hover video.pt{transform:scale(1.05);filter:brightness(.65)}
 .pov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,transparent 45%);opacity:0;transition:opacity .35s}
 .pi:hover .pov{opacity:1}
@@ -277,15 +281,37 @@ footer>div{position:relative;z-index:1}
       <li>Entrega em formato de conteúdo pra redes sociais</li>
     </ol>
   </div>
-  <!-- "Mais exemplos" pulado por enquanto (03/08/2026): os 12 vídeos
-       do coverflow de FOOH na Home (assets/fooh/) não têm página de
-       projeto individual pra linkar (projects/[cliente]/[projeto].html
-       exigido pela mecânica do card), e o único case com página própria
-       que chega perto (Heineken Sam's Club 0.0) tem escopo cadastrado
-       como "DOOH", não "FOOH" — são conceitos diferentes (DOOH =
-       telas digitais reais; FOOH = instalação CGI falsa composta numa
-       rua real), a própria página do case não descreve composição em
-       locação pra confirmar o encaixe. Não inventei o encaixe. -->
+
+</section>
+<!-- ajuste (pedido direto): 4 vídeos do coverflow de FOOH da Home
+     (assets/fooh/) passados pelo usuário. Nenhum tem
+     projects/[cliente]/*.html (mesma situação já resolvida no 3D
+     Film/Packshot) — cards sem link (div, não a). Sem nome de marca
+     catalogado pra cada vídeo específico, então uso só o número de
+     origem do arquivo como identificador em vez de inventar cliente.
+     Seção própria, fora de .svp-body (bug já corrigido no 3D Film —
+     aninhado, o max-width do .svp-examples nunca vence o teto de
+     640px do body). -->
+<section class="svp-examples">
+  <div class="svp-cross-label">Mais exemplos</div>
+  <div class="svp-examples-grid">
+    <div class="pi rv">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/fooh/FOOH 3 VF.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">FOOH · 2025</div><div class="pn">Instalação 03</div></div>
+    </div>
+    <div class="pi rv d1">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/fooh/FOOH 9 VF.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">FOOH · 2025</div><div class="pn">Instalação 09</div></div>
+    </div>
+    <div class="pi rv d2">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/fooh/FOOH 11 VF.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">FOOH · 2025</div><div class="pn">Instalação 11</div></div>
+    </div>
+    <div class="pi rv d3">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/fooh/FOOH 12 VF.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">FOOH · 2025</div><div class="pn">Instalação 12</div></div>
+    </div>
+  </div>
 </section>
 <section class="svp-cross">
   <div class="svp-cross-label">Outros serviços</div>
