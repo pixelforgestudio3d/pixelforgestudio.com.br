@@ -133,7 +133,12 @@ footer>div{position:relative;z-index:1}
    texto vazar pros lados/cima/baixo dela, já que o wrap não corta
    overflow (só a section .svp-hero corta, nas bordas dela). */
 .svp-media-wrap{position:relative;margin:3rem auto 0;max-width:1100px}
-.svp-wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(6rem,30vw,27rem);font-weight:500;letter-spacing:-.02em;text-transform:uppercase;color:var(--white);opacity:.07;white-space:nowrap;pointer-events:none;z-index:0;line-height:1}
+/* feedback direto: "a palavra pós produção ta maior do q a tela" —
+   "Pós-produção" é a mais longa das 6, e o clamp padrão (27rem, pensado
+   pra nomes curtos como "FOOH" não ficarem 100% cobertos pelo vídeo)
+   fazia ela vazar mais de 1000px pra cada lado, além da própria
+   viewport. Reduzido só nesta página. */
+.svp-wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(4rem,18vw,15rem);font-weight:500;letter-spacing:-.02em;text-transform:uppercase;color:var(--white);opacity:.07;white-space:nowrap;pointer-events:none;z-index:0;line-height:1}
 .svp-media{position:relative;z-index:1;aspect-ratio:16/8;overflow:hidden}
 .svp-media img,.svp-media video{width:100%;height:100%;object-fit:cover}
 .svp-body{max-width:640px;margin:0 auto;padding:4rem 2.5rem 0}
@@ -143,8 +148,11 @@ footer>div{position:relative;z-index:1}
 .svp-block ul,.svp-block ol{padding-left:1.2rem;color:var(--muted2);font-size:15px;line-height:1.85}
 .svp-block li{margin-bottom:.55rem}
 .svp-block li::marker{color:var(--pink)}
-.svp-examples{max-width:1100px;margin:0 auto;padding:5rem 2.5rem 6rem}
-.svp-examples-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px;background:rgba(255,255,255,.04)}
+/* só 2 exemplos aqui (mesmo caso do 3D Film) — max-width maior +
+   grid fixo em 2 colunas em vez do auto-fit padrão, pros cards
+   crescerem de propósito e ficarem sempre 50/50. */
+.svp-examples{max-width:1300px;margin:0 auto;padding:5rem 2.5rem 6rem}
+.svp-examples-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;background:rgba(255,255,255,.04)}
 /* card reaproveitado exatamente do grid de projetos da Home (5.1/5.7) —
    mesma classe .pi, mesmo comportamento (thumb sem texto, hover revela
    nome+vídeo tocando, card inteiro clicável). Não é um componente novo. */
@@ -164,7 +172,7 @@ footer>div{position:relative;z-index:1}
 .svp-cross-list a{font-size:13px;letter-spacing:.05em;color:var(--muted2);text-decoration:none;border:.5px solid var(--borderh);padding:10px 20px;transition:all .2s}
 .svp-cross-list a:hover{border-color:var(--pink);color:var(--white)}
 @media(max-width:768px){
-  .svp-wm{font-size:clamp(4rem,32vw,12rem)}
+  .svp-wm{font-size:clamp(3rem,20vw,7rem)}
 }
 </style>
 </head>
@@ -255,7 +263,7 @@ footer>div{position:relative;z-index:1}
   <h1 class="ch rv d1" style="font-size:clamp(2.6rem,5.5vw,5.5rem)">Pós-produção</h1>
   <div class="svp-media-wrap rv d2">
     <div class="svp-wm" aria-hidden="true">Pós-produção</div>
-    <div class="svp-media"><video autoplay muted loop playsinline><source src="../assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video></div>
+    <div class="svp-media"><video autoplay muted loop playsinline><source src="../assets/NOVAS IMAGENS/post-maisa-jul-23-2025.mp4" type="video/mp4"></video></div>
   </div>
 </section>
 <section class="svp-body">
@@ -278,11 +286,26 @@ footer>div{position:relative;z-index:1}
       <li>Finalização de cor e entrega</li>
     </ol>
   </div>
-  <!-- "Mais exemplos" pulado por enquanto (03/08/2026): na tabela de
-       escopo da seção 4, só a Natura tem a tag "Pós-produção" — mas
-       não existe projects/natura/*.html (nenhuma página individual
-       catalogada pra esse cliente ainda). Sem página pra linkar, o
-       card não cumpre a mecânica exigida. Não inventei um case. -->
+
+</section>
+<!-- ajuste (pedido direto): vídeo principal trocado pra
+     post-maisa-jul-23-2025.mp4; "Mais exemplos" recebe os 2 vídeos
+     passados (Melody, Corello) — nenhum tem projects/[cliente]/*.html
+     ainda, mesmo tratamento já combinado nas outras páginas (<div
+     class="pi"> sem link). Seção própria, fora de .svp-body (mesma
+     lição do bug do 3D Film). -->
+<section class="svp-examples">
+  <div class="svp-cross-label">Mais exemplos</div>
+  <div class="svp-examples-grid">
+    <div class="pi rv">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/NOVAS IMAGENS/THUMB QUAD MELODY V2.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">Melody · 2025</div><div class="pn">Melody</div></div>
+    </div>
+    <div class="pi rv d1">
+      <video class="pt" autoplay muted loop playsinline preload="metadata"><source src="../assets/NOVAS IMAGENS/POST CORELLO.mp4" type="video/mp4"></video>
+      <div class="pov"><div class="pc">Corello · 2025</div><div class="pn">Corello</div></div>
+    </div>
+  </div>
 </section>
 <section class="svp-cross">
   <div class="svp-cross-label">Outros serviços</div>
