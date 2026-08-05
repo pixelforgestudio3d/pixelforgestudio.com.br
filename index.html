@@ -346,14 +346,28 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
    max-width:1100px;margin:0 auto pra centralizar; esta faltava, então
    em telas largas o grid esticava borda a borda e texto/coverflow
    ficavam grudados nas pontas em vez de perto do centro. */
-.fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;max-width:1300px;margin:0 auto}
+/* ajuste direto ("coloque o texto mais pra esquerda, um pouco mais...
+   afaste um pouco do centro tanto o texto pra esquerda quanto os
+   previews pra direita") — o texto já fica encostado na borda esquerda
+   do próprio container (coluna 1fr, sem centralização própria) e o
+   coverflow já centraliza dentro da coluna dele — então um único
+   max-width maior, ainda centralizado na seção, empurra as duas pontas
+   pra fora do centro ao mesmo tempo, sem precisar mexer em mais nada. */
+/* BUG achado ao medir: .fooh-sec é display:flex;flex-direction:column,
+   então .fooh-split é item de flex — sem width explícito, a coluna
+   .fooh-coverflow (cujo único filho, .fc-card, é position:absolute e
+   não conta pro tamanho intrínseco do pai) fazia o grid inteiro
+   encolher pro tamanho de conteúdo de .fooh-text (480px), ignorando o
+   max-width. width:100% força ocupar o espaço disponível de verdade. */
+.fooh-split{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center;width:100%;max-width:1520px;margin:0 auto}
 .fooh-text{max-width:480px}
 /* preview do coverflow tem que ocupar pelo menos 80% da tela (pedido
    direto) — de uma faixa de 340-540px pra quase a altura toda do
    viewport, e o card acompanha via % da altura do container (não mais
-   largura fixa em px). */
-.fooh-coverflow{position:relative;height:clamp(560px,80vh,920px);perspective:1400px}
-.fc-card{position:absolute;top:50%;left:50%;height:88%;width:auto;aspect-ratio:9/16;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);background:var(--card)}
+   largura fixa em px). ajuste direto ("aumente um pouco as preview") —
+   teto um pouco maior. */
+.fooh-coverflow{position:relative;height:clamp(600px,84vh,960px);perspective:1400px}
+.fc-card{position:absolute;top:50%;left:50%;height:92%;width:auto;aspect-ratio:9/16;border-radius:8px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);background:var(--card)}
 .fc-card video{width:100%;height:100%;object-fit:cover;display:block}
 @media(max-width:900px){
   .fooh-split{grid-template-columns:1fr;gap:2rem;min-height:auto}
