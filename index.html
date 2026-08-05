@@ -147,7 +147,9 @@ h1 .split-char{will-change:transform,opacity}
 @keyframes mq{to{transform:translateX(-50%)}}
 
 /* CLIENTES / ESCOPO — mecânica Valkiria exata (11.4), refinada 14.7 */
-.cle{padding:7rem 2.5rem 8rem;position:relative}
+/* ajuste direto ("suba um pouco o nome clientes") — menos respiro antes
+   do título aparecer ao entrar na seção. */
+.cle{padding:5rem 2.5rem 8rem;position:relative}
 /* ajuste (feedback direto: "está toda desalinhada... preciso ajustar
    tudo isso") — o padding-left reservado pra coluna do logo fixo só
    fazia sentido no modelo antigo (logo sempre visível, trocando sozinho
@@ -166,8 +168,14 @@ h1 .split-char{will-change:transform,opacity}
 /* BUG real (print marcado: nomes vazando bem no topo, entre o nav e o
    header) — nav tem height:80px, mas o header ficava sticky a top:90px
    — sobravam 10px sem fundo opaco nenhum entre os dois, onde a lista
-   rolando por trás vazava numa tira fina. top:80px fecha o gap exato. */
-.cle-head{text-align:center;position:sticky;top:80px;z-index:2;padding-bottom:1.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,var(--black) 85%,rgba(0,0,0,0) 100%)}
+   rolando por trás vazava numa tira fina. top:80px fecha o gap exato
+   (continua grudado ali — só o respiro visual abaixo mudou, não a
+   trava). ajuste direto ("a trava fixa da sessão pode ser um pouco mais
+   alta, pra ter uma distância mínima do nav") — padding-top no PRÓPRIO
+   header (ainda coberto pelo fundo opaco dele, então não reabre o gap
+   do bug acima) empurra o título pra baixo só visualmente, dando um
+   respiro mínimo antes dele encostar no nav quando gruda. */
+.cle-head{text-align:center;position:sticky;top:80px;z-index:2;padding-top:1rem;padding-bottom:1.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,var(--black) 85%,rgba(0,0,0,0) 100%)}
 .cle-head .st2{justify-content:center}
 .cle-head h2{margin-bottom:0}
 .cle-list{max-width:640px;margin:0 auto;position:relative;z-index:1}
@@ -2351,20 +2359,45 @@ cleLogoDisplay.addEventListener('load',()=>{
   cleLogoDisplay.style.width=w+'px';
   cleLogoDisplay.style.height=h+'px';
 });
+// pedido direto ("quando eu deixo o mouse parado e uso apenas o
+// scroll, o efeito de hover não funciona... gostaria que mesmo o mouse
+// parado tenha efeito de hover ao estar em cima do nome da marca") —
+// :hover e mouseenter/mouseleave só disparam quando o CURSOR se move；
+// rolar a página com o mouse parado não gera evento de mouse nenhum,
+// então a linha ficava "grudada" hovered mesmo com outro nome por
+// baixo do cursor agora. cleSyncHover guarda a última posição real do
+// mouse e usa elementFromPoint pra achar a linha que está DE VERDADE
+// sob o cursor — chamada tanto no mousemove quanto no scroll (mesmo
+// tick já usado pra roleta de opacidade), então re-sincroniza mesmo
+// com o mouse parado.
+const cleHoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+let cleHoveredRow=null;
+let cleMouseX=-9999,cleMouseY=-9999;
+function cleSyncHover(){
+  if(cleMouseX===-9999)return;
+  const el=document.elementFromPoint(cleMouseX,cleMouseY);
+  const row=el?el.closest('.cli-row'):null;
+  if(row===cleHoveredRow)return;
+  if(cleHoveredRow)cleHoveredRow.classList.remove('on');
+  cleHoveredRow=row;
+  if(row){row.classList.add('on');showClienteLogo(row);}
+  else hideClienteLogo();
+}
+if(cleHoverCapable){
+  document.addEventListener('mousemove',e=>{
+    cleMouseX=e.clientX;cleMouseY=e.clientY;
+    cleSyncHover();
+  });
+}
+
 window.addEventListener('scroll',()=>{
-  if(!cleTicking){cleTicking=true;requestAnimationFrame(()=>{updateClienteOpacity();cleTicking=false;});}
+  if(!cleTicking){cleTicking=true;requestAnimationFrame(()=>{updateClienteOpacity();if(cleHoverCapable)cleSyncHover();cleTicking=false;});}
 },{passive:true});
 window.addEventListener('resize',updateClienteOpacity);
 updateClienteOpacity();
 
-// hover (ou tap no mobile) — logo aparece à esquerda, tags à direita, na mesma linha
-const cleHoverCapable=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
-if(cleHoverCapable){
-  cliRows.forEach(row=>{
-    row.addEventListener('mouseenter',()=>showClienteLogo(row));
-    row.addEventListener('mouseleave',hideClienteLogo);
-  });
-}else{
+// tap no mobile (sem hover de verdade) — comportamento por clique, como antes.
+if(!cleHoverCapable){
   cliRows.forEach(row=>{
     row.addEventListener('click',()=>{
       const wasOn=row.classList.contains('on');
