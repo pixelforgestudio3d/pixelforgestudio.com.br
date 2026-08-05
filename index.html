@@ -178,16 +178,30 @@ h1 .split-char{will-change:transform,opacity}
 .cle-head{text-align:center;position:sticky;top:80px;z-index:2;padding-top:1rem;padding-bottom:1.5rem;margin-bottom:1rem;background:linear-gradient(to bottom,var(--black) 0%,var(--black) 85%,rgba(0,0,0,0) 100%)}
 .cle-head .st2{justify-content:center}
 .cle-head h2{margin-bottom:0}
-.cle-list{max-width:640px;margin:0 auto;position:relative;z-index:1}
+/* ajuste direto ("os primeiros e os últimos nomes ficam meio cortados,
+   aparecendo sob a próxima seção") — a lista não tinha respiro nenhum
+   antes da primeira linha nem depois da última; a primeira ficava
+   escondida atrás do header sticky quase assim que a seção começava, e
+   a última não tinha espaço pra "chegar" no centro (roleta) antes da
+   seção acabar e A Forja começar. Padding generoso em vh dá a mesma
+   folga de scroll pros dois extremos, independente do tamanho da tela. */
+.cle-list{max-width:640px;margin:0 auto;padding:35vh 0;position:relative;z-index:1}
 /* 14.7 (ajuste 3) — só o escopo (tags) fica alinhado à linha do nome
    agora (o logo virou elemento fixo à esquerda, independente). Trocado
    align-items de baseline pra center: baseline alinhava o TEXTO mas
    deixava as pills de tag (com padding/borda) visualmente descentradas
    em relação ao nome. */
 .cli-row{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:.7rem 0;cursor:pointer}
-.cli-name{display:inline-block;font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;color:var(--white);transition:opacity .2s,transform .35s cubic-bezier(.22,1,.36,1);transform-origin:left center;white-space:nowrap}
+/* ajuste direto ("quando rolo com o mouse parado, o escopo permanece
+   fixo por um curto período") — com hover real (mouse se movendo), a
+   troca de linha já vem com um tempo natural de deslocamento do
+   cursor, então a transição de .3s/.2s passava despercebida. Com o
+   scroll sincronizando o hover (linha muda instantaneamente por baixo
+   de um cursor parado), a mesma duração passa a ler como "travado".
+   Encurtado pra ficar responsivo nos dois casos. */
+.cli-name{display:inline-block;font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;color:var(--white);transition:opacity .12s,transform .18s cubic-bezier(.22,1,.36,1);transform-origin:left center;white-space:nowrap}
 .cli-row:hover .cli-name,.cli-row.on .cli-name{opacity:1!important;transform:scale(1.1)}
-.cli-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;opacity:0;transition:opacity .3s}
+.cli-tags{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;opacity:0;transition:opacity .12s}
 .cli-row:hover .cli-tags,.cli-row.on .cli-tags{opacity:1}
 /* print marcado: "a box com o escopo aumenta" — pills de tag maiores. */
 .clt{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);border:.5px solid var(--borderh);padding:8px 16px;white-space:nowrap}
