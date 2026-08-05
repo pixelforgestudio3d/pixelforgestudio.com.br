@@ -1390,7 +1390,11 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // suaviza ainda mais) — lê como "zoom gigante" em vez de líquido com
   // detalhe. Grade bem mais densa = mais ondas/curvas cabendo ao mesmo
   // tempo dentro da palavra, upscale por célula muito menor -> nítido.
-  const WAVE_COLS=220,WAVE_ROWS=92,WAVE_VISCOSITY=0.988;
+  // ajuste 6 (feedback direto: "quase perfeito, pode forçar um
+  // pouquinho mais, mais nitidez, mais detalhe") — mais uma rodada pra
+  // cima; custo continua desprezível (grade ainda roda em bem menos de
+  // 1ms por frame numa malha desse tamanho).
+  const WAVE_COLS=320,WAVE_ROWS=132,WAVE_VISCOSITY=0.988;
   let waveCur=new Float32Array(WAVE_COLS*WAVE_ROWS);
   let wavePrev=new Float32Array(WAVE_COLS*WAVE_ROWS);
   let waveNext=new Float32Array(WAVE_COLS*WAVE_ROWS);
@@ -1434,17 +1438,20 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // está GIGANTE, precisa ser suave") — ganho e teto de alpha reduzidos
   // (a grade em si já propaga bastante sozinha; o exagero estava na
   // conversão altura->cor, não na simulação).
+  // ajuste 6 (feedback direto: "quase perfeito, pode forçar um
+  // pouquinho mais") — empurrão pequeno pra cima (não voltar ao "muito
+  // forte" de antes, só um reforço leve).
   function drawWaveField(){
     const data=waveImg.data;
     for(let i=0;i<WAVE_COLS*WAVE_ROWS;i++){
-      const h=Math.max(-1,Math.min(1,waveCur[i]*1.8));
+      const h=Math.max(-1,Math.min(1,waveCur[i]*2.1));
       const j=i*4;
       if(h>=0){
         // crista: azul da marca
-        data[j]=61;data[j+1]=139;data[j+2]=255;data[j+3]=Math.round(h*140);
+        data[j]=61;data[j+1]=139;data[j+2]=255;data[j+3]=Math.round(h*165);
       }else{
         // vale: rosa da marca
-        data[j]=244;data[j+1]=51;data[j+2]=187;data[j+3]=Math.round(-h*140);
+        data[j]=244;data[j+1]=51;data[j+2]=187;data[j+3]=Math.round(-h*165);
       }
     }
     waveCtx.putImageData(waveImg,0,0);
@@ -1532,10 +1539,17 @@ document.querySelectorAll('.nd').forEach(nd=>{
     mctx.fillStyle='#fff';
     mctx.fillText(TEXT,cw/2,ch/2);
 
-    // máscara de borda ESTÁTICA — faixa fina ao longo do contorno, onde o
-    // brilho fica mais forte (13.15: "cor mais viva se concentra na borda")
+    // BUG real (feedback direto: "as letras ainda não são somente o
+    // stroke de 1pt... parece um 3D com uma letra por cima da outra") —
+    // 0.965 de inset é uma faixa MUITO mais larga que o stroke base
+    // (0.997), lida como uma fita grossa com gradiente — exatamente o
+    // efeito de bisel/extrusão 3D que não era pra estar ali. edgeMask
+    // alimenta tanto o brilho ambiente (idle sweep) quanto o realce de
+    // borda do líquido reativo ao mouse — os dois ficam finos igual ao
+    // stroke base agora, só um pouco menos (pra ainda ler como "borda
+    // realçada" e não sumir igual ao stroke cinza).
     const ectx=edgeMask.getContext('2d');
-    fillTextRing(ectx,0.965,'#fff');
+    fillTextRing(ectx,0.992,'#fff');
   }
   buildLayers();
   window.addEventListener('resize',buildLayers);
@@ -1612,10 +1626,11 @@ document.querySelectorAll('.nd').forEach(nd=>{
 
       // ajuste 4 (feedback direto: "muito forte... precisa ser suave") —
       // alphas de composição reduzidos, mesmo efeito, presença mais sutil.
+      // ajuste 6 — empurrão pequeno de novo, junto com o ganho acima.
       // interior: versão mais escura/opaca (13.15)
-      drawMasked(liquidCanvas,fillMask,.2);
+      drawMasked(liquidCanvas,fillMask,.26);
       // borda: cor mais viva/saturada, concentrada no contorno (13.15)
-      drawMasked(liquidCanvas,edgeMask,.6);
+      drawMasked(liquidCanvas,edgeMask,.72);
     }
 
     // 14.5 — NOVO: camada de brilho ambiente/idle, independente do mouse
