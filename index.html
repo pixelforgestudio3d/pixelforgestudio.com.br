@@ -821,8 +821,8 @@ footer>div{position:relative;z-index:1}
   <div class="iacgi-split">
     <div class="iacgi-media rv">
       <div class="iai"><img src="assets/cgi-ai/FRESH SKIN HUMANIZADA 01 AJUSTADA.png" alt="Composição CGI e IA"></div>
-      <div class="iai"><img src="assets/cgi-ai/LUXY 01 HUMANIZADA v2.png" alt="Composição CGI e IA"></div>
-      <div class="iai"><img src="assets/cgi-ai/PROVOKE 01 HUMANIZADA.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/cgi-ai/LUXY 02.png" alt="Composição CGI e IA"></div>
+      <div class="iai"><img src="assets/cgi-ai/PROVOKE 02.png" alt="Composição CGI e IA"></div>
       <div class="iai"><img src="assets/cgi-ai/SWEET CRUSH 01 v2.png" alt="Composição CGI e IA"></div>
     </div>
     <div class="iacgi-text">
@@ -2375,10 +2375,16 @@ const foohVideoEls=foohCards.map(c=>c.querySelector('video'));
   // imagens da pasta cgi e ai" — banco 100% assets/cgi-ai/, nada de
   // NOVAS IMAGENS nem forja/. "Explodido 2 MANSCAPED.png" (que nunca
   // foi movido pra cgi-ai/) saiu do banco por isso, não por engano.
+  // ajuste (feedback direto: "tinha duas imagens que se repetiam...
+  // apaguei da pasta") — LUXY 01 HUMANIZADA v2.png e PROVOKE 01
+  // HUMANIZADA.png (as versões sem "AJUSTADA") foram removidas do
+  // disco pelo usuário por ficarem repetitivas na rotação; removidas
+  // daqui também, sem substituto (não é pra repor com outra imagem
+  // parecida, é pra sumir mesmo).
   const BANK=[
     'assets/cgi-ai/FRESH SKIN 01.png','assets/cgi-ai/FRESH SKIN 02.png',
-    'assets/cgi-ai/FRESH SKIN HUMANIZADA 01 AJUSTADA.png','assets/cgi-ai/LUXY 01 HUMANIZADA v2.png',
-    'assets/cgi-ai/LUXY 02.png','assets/cgi-ai/PROVOKE 01 HUMANIZADA.png',
+    'assets/cgi-ai/FRESH SKIN HUMANIZADA 01 AJUSTADA.png',
+    'assets/cgi-ai/LUXY 02.png',
     'assets/cgi-ai/PROVOKE 02.png','assets/cgi-ai/SWEET CRUSH 01.png',
     'assets/cgi-ai/SWEET CRUSH 01 v2.png',
     'assets/cgi-ai/AMBIENTADA 2 MANSCAPED AI + CGI.jpg','assets/cgi-ai/AMBIENTADA 3 MANSCAPED AI + CGI.jpg'
