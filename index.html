@@ -216,8 +216,17 @@ h1 .split-char{will-change:transform,opacity}
    direita, ficando centralizado entre a borda e o nome da marca") —
    --cle-logo-x é calculado em JS como o meio do vão entre a borda
    esquerda da tela e onde o nome da marca começa (.cle-list), em vez
-   de ficar grudado em left:0. */
-.cle-logo-wrap{position:fixed;left:var(--cle-logo-x,13vw);top:50%;width:min(30vw,400px);height:auto;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0;transform:translate(-50%,-50%);transition:opacity .25s ease}
+   de ficar grudado em left:0.
+   BUG real (print marcado: logo do Heineken aparecendo ACIMA da seção,
+   ainda em cima de Projetos; logo do Rodonaves aparecendo por cima do
+   banner de A Forja) — "centro vertical" fixo em 50% do VIEWPORT só
+   coincide com o centro de #clientes enquanto a seção preenche a tela
+   inteira. Perto do início/fim da seção (ela ainda só ocupando PARTE
+   da tela, com Projetos ou A Forja tomando o resto), o centro do
+   viewport cai fora de #clientes — o logo "vazava" pra seção vizinha.
+   --cle-logo-y agora é recalculado a cada scroll (clampClienteLogoY),
+   travado dentro dos limites reais da seção na tela. */
+.cle-logo-wrap{position:fixed;left:var(--cle-logo-x,13vw);top:var(--cle-logo-y,50%);width:min(30vw,400px);height:auto;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0;transform:translate(-50%,-50%);transition:opacity .25s ease}
 .cle-logo-wrap.show{opacity:1}
 /* print marcado: "a mudança de um logo pro outro pode ter uma animação
    mais interessante" — além do deslocamento de posição acima, a
@@ -2301,6 +2310,32 @@ function positionClienteLogoX(){
 }
 positionClienteLogoX();
 window.addEventListener('resize',positionClienteLogoX);
+
+// BUG real (print marcado: logo do Heineken aparecendo em cima de
+// Projetos, logo do Rodonaves aparecendo em cima do banner de A Forja)
+// — 50% do viewport só é o centro de #clientes enquanto a seção
+// preenche a tela inteira; perto do início/fim dela (só PARTE da seção
+// na tela, o resto sendo a seção vizinha) o centro do viewport cai fora
+// de #clientes. Trava --cle-logo-y dentro dos limites reais da seção.
+const cleSectionEl=document.getElementById('clientes');
+function clampClienteLogoY(){
+  const r=cleSectionEl.getBoundingClientRect();
+  const margin=170; // ~metade da altura máxima do logo (300px), folga segura
+  const vhCenter=window.innerHeight/2;
+  let y;
+  if(r.height<=margin*2){
+    y=r.top+r.height/2;
+  }else{
+    y=Math.min(r.bottom-margin,Math.max(r.top+margin,vhCenter));
+  }
+  // trava extra contra a borda do PRÓPRIO viewport — perto do fim da
+  // seção, o clamp acima ainda podia deixar a caixa vazar por cima da
+  // janela (não de outra seção, só do topo/base da tela mesmo).
+  y=Math.min(window.innerHeight-margin,Math.max(margin,y));
+  cleLogoWrapEl.style.setProperty('--cle-logo-y',y+'px');
+}
+clampClienteLogoY();
+window.addEventListener('resize',clampClienteLogoY);
 // print marcado: "a mudança de um logo pro outro pode ter uma animação
 // mais interessante" — troca de marca faz um pop de escala+fade na
 // imagem (classe .swap) em vez de cortar seco pro novo src.
@@ -2402,7 +2437,7 @@ if(cleHoverCapable){
 }
 
 window.addEventListener('scroll',()=>{
-  if(!cleTicking){cleTicking=true;requestAnimationFrame(()=>{updateClienteOpacity();if(cleHoverCapable)cleSyncHover();cleTicking=false;});}
+  if(!cleTicking){cleTicking=true;requestAnimationFrame(()=>{updateClienteOpacity();clampClienteLogoY();if(cleHoverCapable)cleSyncHover();cleTicking=false;});}
 },{passive:true});
 window.addEventListener('resize',updateClienteOpacity);
 updateClienteOpacity();
