@@ -1888,7 +1888,14 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // devolver) + SLEEP zera velocidades minúsculas depois do impulso, já
   // que o atrito multiplicativo (FRICTION) nunca chega a zero de verdade
   // sozinho — sem isso o tremor residual nunca desaparecia de vez.
-  const SIZE=15,GRAVITY=.42,FRICTION=.988,NUDGE_RADIUS=140,BOUNCE=.48,MIN_GAP=9,COLLISION_PASSES=4,SLEEP=.045;
+  // ajuste 6 (feedback direto: "ainda tem uma leve instabilidade,
+  // diminua as particulas e aumente a distancia entre elas") — reverte
+  // o *3 do "ajuste 3" (que tinha ido na direção oposta) e sobe MIN_GAP
+  // bem mais. Menos peças coexistindo = menos pares em contato
+  // simultâneo brigando por espaço a cada frame = menos chance de
+  // resíduo de colisão sobrando por aí, e mais respiro entre elas dá
+  // menos ocasião de colisão pra começo de conversa.
+  const SIZE=15,GRAVITY=.42,FRICTION=.988,NUDGE_RADIUS=140,BOUNCE=.48,MIN_GAP=16,COLLISION_PASSES=4,SLEEP=.045;
   let N=46;
   let w=0,h=0,dpr=Math.min(window.devicePixelRatio||1,2);
   let particles=[];
@@ -1901,11 +1908,9 @@ document.querySelectorAll('.nd').forEach(nd=>{
     canvas.width=w*dpr;canvas.height=h*dpr;
     canvas.style.width=w+'px';canvas.style.height=h+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    // ajuste 3 (pedido direto: "pelo menos o triplo") — multiplica o
-    // resultado inteiro por 3. Colisão é O(n²) × várias passadas, então
-    // o teto subiu mas não 3x linear (420->700) pra não pesar demais
-    // em telas muito largas; o piso triplicou de verdade (90->270).
-    N=Math.max(270,Math.min(700,Math.round((w*h*0.85)/(SIZE*SIZE))*3));
+    // ajuste 6 (pedido direto: "diminua as particulas") — volta a
+    // escalar sem o *3 do ajuste 3, e piso/teto bem mais baixos.
+    N=Math.max(90,Math.min(220,Math.round((w*h*0.85)/(SIZE*SIZE))));
   }
   function seed(){
     particles=Array.from({length:N},()=>({
@@ -1937,7 +1942,11 @@ document.querySelectorAll('.nd').forEach(nd=>{
   // por "testar só quem tá na mesma célula ou vizinha", cortando o
   // custo de O(n²) pra ~O(n) sem reduzir a densidade de partículas que
   // já tinha sido pedida antes ("pelo menos o triplo").
-  const CELL=30;
+  // CELL tem que ser >= a maior distância de colisão possível
+  // ((maior a.size + maior b.size)/2 + MIN_GAP), senão a vizinhança
+  // 3x3 de células deixa de cobrir pares que ainda deveriam colidir.
+  // maior size = SIZE*1.35 (ver seed()); +2 de folga de segurança.
+  const CELL=Math.ceil(SIZE*1.35+MIN_GAP+2);
   function buildGrid(){
     const grid=new Map();
     for(let i=0;i<particles.length;i++){
