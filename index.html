@@ -257,6 +257,18 @@ h2 .g{background:var(--gt);-webkit-background-clip:text;-webkit-text-fill-color:
 .pi{position:relative;overflow:hidden;background:var(--black);display:block;color:inherit;text-decoration:none;max-height:70vh}
 .pi.w7{grid-column:span 7}.pi.w5{grid-column:span 5}
 .pi.w6{grid-column:span 6}.pi.w4{grid-column:span 4}
+/* feedback direto: "a animação de entrada de cada box tem que
+   melhorar e elas irem aparecendo acompanhando o scroll" — antes o
+   grid inteiro (.pg) era UM .rv só, revelado de uma vez assim que 10%
+   dele entrava na tela (então todo o grid, mesmo as linhas de baixo
+   ainda fora de quadro, "pipocava" de uma vez só). Agora cada card tem
+   seu próprio .rv — o observer genérico (já existente, reaproveitado)
+   revela cada um individualmente, então eles aparecem ESCALONADOS
+   conforme o scroll realmente alcança cada linha. Curva/duração próprias
+   (mais longa, cubic-bezier) pra ficar mais suave que o fade padrão do
+   site, com uma leve escala junto do slide-up. */
+.pi.rv{opacity:0;transform:translateY(46px) scale(.97);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1)}
+.pi.rv.on{opacity:1;transform:none}
 .pi video.pt{width:100%;height:100%;object-fit:cover;transition:transform .6s,filter .4s}
 .pi.w7 video.pt,.pi.w6 video.pt,.pi.w4 video.pt{aspect-ratio:16/9}
 .pi.w5 video.pt{aspect-ratio:3/4}
@@ -649,35 +661,35 @@ footer>div{position:relative;z-index:1}
 
 <section class="sec" id="projetos">
   <div class="sec-header">
-    <div class="st2 rv">Trabalho Selecionado</div>
+    <div class="st2 rv">Projetos</div>
     <h2 class="rv d1">Projetos que<br>definem <span class="g">padrão.</span></h2>
   </div>
-  <div class="pg rv d2">
-    <a class="pi w7" href="projects/marine-fishing/vara-legacy.html">
+  <div class="pg">
+    <a class="pi w7 rv" href="projects/marine-fishing/vara-legacy.html">
       <video class="pt" autoplay muted loop playsinline preload="metadata" style="view-transition-name:vt-vara-legacy"><source src="assets/portfolio/THUMB LEGACY PORT TOP VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Vara Legacy — Launch Film</div></div>
     </a>
-    <a class="pi w5" href="projects/kopenhagen/chocolate-asmr.html">
+    <a class="pi w5 rv d1" href="projects/kopenhagen/chocolate-asmr.html">
       <video class="pt" autoplay muted loop playsinline preload="metadata" style="view-transition-name:vt-chocolate-asmr"><source src="assets/grid/THUMB VERTICAL KOPENHAGEN V2.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Kopenhagen · CGI</div><div class="pn">Chocolate ASMR</div></div>
     </a>
-    <a class="pi w6" href="projects/everlast/powerlock-og.html">
+    <a class="pi w6 rv" href="projects/everlast/powerlock-og.html">
       <video class="pt" autoplay muted loop playsinline preload="metadata" style="view-transition-name:vt-powerlock-og"><source src="assets/portfolio/THUMB EVERLAST PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Everlast · 2025</div><div class="pn">Powerlock OG</div></div>
     </a>
-    <a class="pi w6" href="projects/smirnoff/gashapon-ice-reveal.html">
+    <a class="pi w6 rv d1" href="projects/smirnoff/gashapon-ice-reveal.html">
       <video class="pt" autoplay muted loop playsinline preload="metadata" style="view-transition-name:vt-gashapon-ice-reveal"><source src="assets/portfolio/THUMB SMIRNOFF PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Smirnoff · 2025</div><div class="pn">Gashapon Ice Reveal</div></div>
     </a>
-    <a class="pi w4" href="projects/heineken/sams-club-00.html">
+    <a class="pi w4 rv" href="projects/heineken/sams-club-00.html">
       <video class="pt" autoplay muted loop playsinline preload="metadata" style="view-transition-name:vt-sams-club-00"><source src="assets/portfolio/THUMB HEINEKEN PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Heineken · DOOH 2025</div><div class="pn">Sam's Club 0.0</div></div>
     </a>
-    <a class="pi w4" href="projects/piccadilly/soft-step.html">
+    <a class="pi w4 rv d1" href="projects/piccadilly/soft-step.html">
       <video class="pt" autoplay muted loop playsinline preload="metadata" style="view-transition-name:vt-soft-step"><source src="assets/portfolio/THUMB PICCADILLY PORT SEC VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Piccadilly · 2025</div><div class="pn">Soft Step Launch</div></div>
     </a>
-    <a class="pi w4" href="projects/marine-fishing/carretilha-avenger.html">
+    <a class="pi w4 rv d2" href="projects/marine-fishing/carretilha-avenger.html">
       <video class="pt" autoplay muted loop playsinline preload="metadata" style="view-transition-name:vt-carretilha-avenger"><source src="assets/portfolio/THUMB AVENGER PORT TOP VF.mp4" type="video/mp4"></video>
       <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Carretilha Avenger</div></div>
     </a>
@@ -2253,11 +2265,23 @@ let cleActiveLogo=null;
 // "ligado" em qualquer parte do site depois de passar por Clientes —
 // a função de linha mais próxima sempre encontra alguma linha, não
 // importa a distância, então o crossfade nunca desligava sozinho.
+// ajuste (feedback direto: "na metade do caminho já mostra o logo da
+// Heineken") — threshold:0 dispara assim que só 1px da seção aparece
+// vindo de baixo; numa tela alta isso acontece bem antes do usuário
+// sentir que "chegou" em Clientes de verdade (ainda vendo majoritariamente
+// Projetos). Encolhe a margem de BAIXO da raiz de interseção (não a de
+// cima — é por baixo que a seção entra rolando pra baixo) em 12% da
+// altura da tela, atrasando o disparo até a seção já estar bem mais
+// visível.
+let cleSectionNear=false;
 const cleLogoWrapEl=document.getElementById('cleLogoWrap');
 if(cleLogoWrapEl){
   new IntersectionObserver(entries=>{
-    entries.forEach(en=>cleLogoWrapEl.classList.toggle('in-view',en.isIntersecting));
-  },{threshold:0}).observe(document.getElementById('clientes'));
+    entries.forEach(en=>{
+      cleSectionNear=en.isIntersecting;
+      cleLogoWrapEl.classList.toggle('in-view',en.isIntersecting);
+    });
+  },{threshold:0,rootMargin:'0px 0px -12% 0px'}).observe(document.getElementById('clientes'));
 }
 
 // opacidade por posição na tela — efeito "roleta" (11.4)
@@ -2278,7 +2302,20 @@ function updateClienteOpacity(){
     nameEl.style.opacity=(0.2+t*0.8).toFixed(2);
     if(dist<closestDist){closestDist=dist;closestRow=row;}
   });
-  if(closestRow&&closestRow.dataset.logo!==cleActiveLogo){
+  // BUG real (feedback direto: "na metade do caminho já mostra o logo
+  // da Heineken, que deveria estar só na próxima seção") — esta função
+  // roda em TODO scroll do site inteiro, sem gate nenhum. Enquanto o
+  // usuário ainda está em Projetos (bem antes de Clientes existir na
+  // tela), "linha mais próxima" já resolve pra alguma marca (a primeira
+  // da lista, Heineken) e escreve isso de verdade no <img src> — só a
+  // OPACIDADE do wrap escondia visualmente, mas o crossfade real ficava
+  // pronto de antemão. Bem na hora que o wrap começa a aparecer, dava
+  // pra pegar esse valor "pré-calculado de longe" antes do primeiro
+  // recalculo já perto da seção — lido como o logo errado "vazando"
+  // cedo demais. Agora só atualiza o logo (src real) quando a seção
+  // realmente está perto/visível; a "roleta" de opacidade dos NOMES
+  // continua rodando sempre (isso não tem nada a ver com o bug).
+  if(cleSectionNear&&closestRow&&closestRow.dataset.logo!==cleActiveLogo){
     cleActiveLogo=closestRow.dataset.logo;
     cleLogoDisplay.classList.remove('show');
     clearTimeout(cleLogoDisplay._t);
