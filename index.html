@@ -186,17 +186,19 @@ h1 .split-char{will-change:transform,opacity}
 /* ajuste (feedback direto: "o logo continua aparecendo onde não devia
    e aparecendo até sem hover, sendo que ele só deve aparecer quando
    tiver hover do mouse sob o nome da marca e apenas isso") — volta pro
-   modelo simples: um logo fixo à esquerda que só aparece enquanto o
-   mouse está em cima da linha (ou, no mobile sem hover, enquanto o tap
-   está "ativo" na linha). Sem crossfade automático por posição de
-   scroll, sem gate de IntersectionObserver — só show/hide direto no
-   mouseenter/mouseleave de cada linha.
-   print marcado: "o logo vai pra onde sinalizei e tem que ser maior" —
-   trocado de "sempre centralizado no meio vertical da tela" (fixo,
-   desconectado da linha de verdade sendo apontada) pra acompanhar a
-   altura exata da linha em hover (JS calcula e seta --cle-logo-y a cada
-   troca; transition no top anima o deslocamento). Wrap e logo maiores. */
-.cle-logo-wrap{position:fixed;left:0;top:var(--cle-logo-y,50%);width:min(30vw,400px);height:auto;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0;transform:translateY(-50%);transition:opacity .25s ease,top .45s cubic-bezier(.22,1,.36,1)}
+   modelo simples: um logo fixo que só aparece enquanto o mouse está em
+   cima da linha (ou, no mobile sem hover, enquanto o tap está "ativo"
+   na linha). Sem crossfade automático por posição de scroll, sem gate
+   de IntersectionObserver — só show/hide direto no mouseenter/
+   mouseleave de cada linha.
+   ajuste direto ("tem que ficar fixo no meio da sessão e não acompanhar
+   a altura do nome") — volta a ser fixo no centro vertical (não segue
+   mais a linha em hover). Horizontal ("o logo pode ir um pouco mais a
+   direita, ficando centralizado entre a borda e o nome da marca") —
+   --cle-logo-x é calculado em JS como o meio do vão entre a borda
+   esquerda da tela e onde o nome da marca começa (.cle-list), em vez
+   de ficar grudado em left:0. */
+.cle-logo-wrap{position:fixed;left:var(--cle-logo-x,13vw);top:50%;width:min(30vw,400px);height:auto;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;opacity:0;transform:translate(-50%,-50%);transition:opacity .25s ease}
 .cle-logo-wrap.show{opacity:1}
 /* print marcado: "a mudança de um logo pro outro pode ter uma animação
    mais interessante" — além do deslocamento de posição acima, a
@@ -706,7 +708,7 @@ footer>div{position:relative;z-index:1}
 
 <section class="cle" id="clientes">
   <div class="cle-head">
-    <div class="st2 rv">— Clientes &amp; Escopo</div>
+    <div class="st2 rv">Clientes</div>
     <h2 class="rv d1">Marcas que já confiaram <span class="g">na Forja.</span></h2>
   </div>
   <div class="cle-logo-wrap" id="cleLogoWrap"><img class="cle-logo-display" id="cleLogoDisplay" alt=""></div>
@@ -2270,17 +2272,20 @@ const cliRows=CLIENTS.map(c=>{
 const cleLogoDisplay=document.getElementById('cleLogoDisplay');
 const cleLogoWrapEl=document.getElementById('cleLogoWrap');
 let cleActiveRow=null;
-// print marcado: "o logo vai pra onde sinalizei" — acompanha a altura
-// exata da linha em hover (não mais fixo no centro vertical da tela).
-function positionClienteLogo(row){
-  const r=row.getBoundingClientRect();
-  cleLogoWrapEl.style.setProperty('--cle-logo-y',(r.top+r.height/2)+'px');
+// ajuste direto ("o logo pode ir um pouco mais a direita, ficando
+// centralizado entre a borda e o nome da marca") — meio do vão entre a
+// borda esquerda da tela e onde o nome de fato começa (borda esquerda
+// de .cle-list, já que todo .cli-row começa exatamente ali).
+function positionClienteLogoX(){
+  const listLeft=cleListEl.getBoundingClientRect().left;
+  cleLogoWrapEl.style.setProperty('--cle-logo-x',(listLeft/2)+'px');
 }
+positionClienteLogoX();
+window.addEventListener('resize',positionClienteLogoX);
 // print marcado: "a mudança de um logo pro outro pode ter uma animação
 // mais interessante" — troca de marca faz um pop de escala+fade na
 // imagem (classe .swap) em vez de cortar seco pro novo src.
 function showClienteLogo(row){
-  positionClienteLogo(row);
   cleLogoWrapEl.classList.add('show');
   if(cleActiveRow===row)return;
   cleActiveRow=row;
