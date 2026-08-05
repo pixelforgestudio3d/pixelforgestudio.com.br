@@ -119,16 +119,47 @@ footer>div{position:relative;z-index:1}
   .fso{justify-content:center}
 }
 
-.svp-hero{padding:11rem 2.5rem 0}
-.svp-media{max-width:1100px;aspect-ratio:16/8;margin:3rem auto 0;overflow:hidden}
+.svp-hero{padding:11rem 2.5rem 0;position:relative;overflow:hidden}
+/* 14.13 — título gigante em baixa opacidade atrás do vídeo de exemplo,
+   mesmo princípio estético do watermark de Serviços (13.1) e do ticker
+   do FOOH (13.11), aqui simplificado pra puro texto (sem canvas/shader
+   — não precisa da mesma maquinaria, só o efeito visual). */
+.svp-wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(4rem,16vw,13rem);font-weight:500;letter-spacing:-.02em;text-transform:uppercase;color:var(--white);opacity:.07;white-space:nowrap;pointer-events:none;z-index:0;line-height:1}
+.svp-media{position:relative;z-index:1;max-width:1100px;aspect-ratio:16/8;margin:3rem auto 0;overflow:hidden}
 .svp-media img,.svp-media video{width:100%;height:100%;object-fit:cover}
-.svp-body{max-width:640px;margin:0 auto;padding:4rem 2.5rem 6rem}
+.svp-body{max-width:640px;margin:0 auto;padding:4rem 2.5rem 0}
 .svp-body p{font-size:17px;color:var(--muted2);line-height:1.95}
+.svp-block{margin-top:3rem}
+.svp-block-label{font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:1.1rem}
+.svp-block ul,.svp-block ol{padding-left:1.2rem;color:var(--muted2);font-size:15px;line-height:1.85}
+.svp-block li{margin-bottom:.55rem}
+.svp-block li::marker{color:var(--pink)}
+.svp-examples{max-width:1100px;margin:0 auto;padding:5rem 2.5rem 6rem}
+.svp-examples-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px;background:rgba(255,255,255,.04)}
+/* card reaproveitado exatamente do grid de projetos da Home (5.1/5.7) —
+   mesma classe .pi, mesmo comportamento (thumb sem texto, hover revela
+   nome+vídeo tocando, card inteiro clicável). Não é um componente novo. */
+.pi{position:relative;overflow:hidden;background:var(--black);display:block;color:inherit;text-decoration:none}
+/* Packshot é still, não vídeo — os 2 exemplos catalogados (Alicate,
+   Garateia Sanken 3x) são imagem, então o card aqui precisa suportar
+   img.pt além de video.pt (mesma classe .pt, mesmo comportamento). */
+.pi video.pt,.pi img.pt{width:100%;height:100%;object-fit:cover;aspect-ratio:16/9;transition:transform .6s,filter .4s}
+.pi:hover video.pt,.pi:hover img.pt{transform:scale(1.05);filter:brightness(.65)}
+.pov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem;background:linear-gradient(to top,rgba(0,0,0,.55) 0%,transparent 45%);opacity:0;transition:opacity .35s}
+.pi:hover .pov{opacity:1}
+.pc{font-size:11px;letter-spacing:.2em;color:var(--pink);text-transform:uppercase;margin-bottom:.4rem}
+.pn{font-size:1.15rem;font-weight:500;transform:translateY(6px);transition:transform .35s}
+.pi:hover .pn{transform:none}
+.pi.rv{opacity:0;transform:translateY(46px) scale(.97);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1)}
+.pi.rv.on{opacity:1;transform:none}
 .svp-cross{padding:5rem 2.5rem;border-top:.5px solid var(--border)}
 .svp-cross-label{font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:1.5rem;text-align:center}
 .svp-cross-list{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem}
 .svp-cross-list a{font-size:13px;letter-spacing:.05em;color:var(--muted2);text-decoration:none;border:.5px solid var(--borderh);padding:10px 20px;transition:all .2s}
 .svp-cross-list a:hover{border-color:var(--pink);color:var(--white)}
+@media(max-width:768px){
+  .svp-wm{font-size:clamp(3rem,20vw,7rem)}
+}
 </style>
 </head>
 <body>
@@ -216,11 +247,44 @@ footer>div{position:relative;z-index:1}
 <section class="svp-hero">
   <div class="st2 rv" style="justify-content:center">Serviços</div>
   <h1 class="ch rv d1" style="font-size:clamp(2.6rem,5.5vw,5.5rem)">Packshot</h1>
+  <div class="svp-wm" aria-hidden="true">Packshot</div>
   <div class="svp-media rv d2"><img src="../assets/grid/THUMB QUAD STILL VF.png" alt="Packshot"></div>
 </section>
 <section class="svp-body">
-  <!-- TODO: corpo completo do serviço ainda não escrito (mega-instrucao seção 5.6) -->
-  <p class="rv">Still de produto renderizado em CGI: luz, ângulo e material sob controle total, com variações ilimitadas a partir de um único modelo 3D.</p>
+  <p class="rv">Still de produto renderizado em CGI: luz, ângulo e material sob controle total, com variações ilimitadas a partir de um único modelo 3D. Uma sessão de fotos inteira sai de um asset só, sem precisar remontar cenário pra cada variação.</p>
+  <div class="svp-block rv d1">
+    <div class="svp-block-label">O que entra</div>
+    <ul>
+      <li>Stills em alta resolução, quantos ângulos a campanha precisar</li>
+      <li>Variações de cor e material do mesmo produto</li>
+      <li>Fundos e composições sob medida pra cada uso (e-commerce, mídia paga, PDV)</li>
+    </ul>
+  </div>
+  <div class="svp-block rv d2">
+    <div class="svp-block-label">Como funciona</div>
+    <ol>
+      <li>Modelagem 3D do produto (ou uso de asset já existente)</li>
+      <li>Definição de luz, ângulo e material de referência</li>
+      <li>Render e variações</li>
+      <li>Entrega em lote, pronta pra cada canal</li>
+    </ol>
+  </div>
+</section>
+<section class="svp-examples">
+  <div class="svp-cross-label">Mais exemplos</div>
+  <!-- só 2 candidatos catalogados (ambos Marine Fishing) — abaixo do
+       ideal de 3-4, mas dentro do mínimo de 2 aceito pra essa rodada
+       (03/08/2026). Não inventei um terceiro/quarto pra completar. -->
+  <div class="svp-examples-grid">
+    <a class="pi rv" href="../projects/marine-fishing/alicate.html">
+      <img class="pt" src="../assets/forja/CAPA BEHANCE V3 ALICATE.jpg" alt="">
+      <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Alicate — Big Game Pliers</div></div>
+    </a>
+    <a class="pi rv d1" href="../projects/marine-fishing/garateia-sanken-3x.html">
+      <img class="pt" src="../assets/NOVAS IMAGENS/CAPA BEHANCE GARATEIAS.jpg" alt="">
+      <div class="pov"><div class="pc">Marine Fishing · 2025</div><div class="pn">Garateia Sanken 3x</div></div>
+    </a>
+  </div>
 </section>
 <section class="svp-cross">
   <div class="svp-cross-label">Outros serviços</div>
@@ -258,7 +322,6 @@ footer>div{position:relative;z-index:1}
     <div class="fso">
       <a href="https://www.instagram.com/borbasmith/" target="_blank"><img src="../assets/instagram.png" alt="Instagram"></a>
       <a href="https://www.linkedin.com/company/pixelforgestudio/" target="_blank"><img src="../assets/linkedin.png" alt="LinkedIn"></a>
-      <!-- TODO (12.15): trocar pro Behance PESSOAL do Ericson, não o da marca — aguardando ele reenviar o link -->
       <a href="https://www.behance.net/ericsonborba2" target="_blank"><img src="../assets/behance.png" alt="Behance"></a>
     </div>
     <div class="fc2">© 2026 PixelForge Studio.<br>Todos os direitos reservados.</div>
