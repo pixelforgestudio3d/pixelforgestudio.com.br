@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Galeria — PixelForge Studio</title>
+<title>Forge Lab — PixelForge Studio</title>
 <script>if('scrollRestoration' in history){history.scrollRestoration='manual';}window.scrollTo(0,0);</script>
 <link rel="icon" href="assets/logo isotipo.png" type="image/png">
-<meta property="og:title" content="Galeria — PixelForge Studio">
-<meta property="og:description" content="Estudos e explorações pessoais de CGI e composição com IA da PixelForge Studio.">
+<meta property="og:title" content="Forge Lab — PixelForge Studio">
+<meta property="og:description" content="Estudos técnicos e explorações pessoais de CGI e composição com IA da PixelForge Studio.">
 <meta property="og:image" content="https://pixelforgestudio.com.br/assets/thumb-site.jpg">
 <meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -122,13 +122,47 @@ footer>div{position:relative;z-index:1}
 .gal-hero{padding:11rem 2.5rem 3rem;text-align:center}
 .gal-note{max-width:560px;margin:0 auto;font-size:13px;color:var(--muted);line-height:1.8}
 .gal-group{padding:3rem 2.5rem}
-.gal-group-head{max-width:1300px;margin:0 auto 1.5rem;display:flex;align-items:baseline;gap:1rem}
+.gal-group-head{max-width:1300px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .gal-group-head h2{font-size:clamp(1.6rem,3vw,2.4rem);font-weight:500}
 .gal-tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:.5px solid var(--borderh);padding:4px 12px;border-radius:999px}
 .gal-grid{max-width:1300px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2px}
 .gal-item{position:relative;overflow:hidden;aspect-ratio:4/3;background:var(--card)}
 .gal-item img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .gal-item:hover img{transform:scale(1.05)}
+.gal-grid.cols4{grid-template-columns:repeat(4,1fr)}
+.gal-grid.cols3{grid-template-columns:repeat(3,1fr)}
+.gal-grid.single{max-width:640px}
+.gal-grid.vertical .gal-item{aspect-ratio:9/16}
+.gal-exp{display:block;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem}
+
+/* HERO — FORGE LAB (referência: lusion.co/projects/lusion_labs) */
+.lab-hero{padding:11rem 2.5rem 5rem;display:grid;grid-template-columns:1fr 1fr;gap:4.5rem;align-items:center;max-width:1500px;margin:0 auto}
+.lab-title{font-size:clamp(3rem,6vw,5.2rem);font-weight:500;line-height:.98;letter-spacing:-.01em;margin:1rem 0 2rem}
+.lab-p{font-size:15px;color:var(--muted2);line-height:1.9;margin-bottom:1.2rem;max-width:480px}
+.lab-meta{display:flex;gap:3.5rem;margin-top:2.2rem}
+.lab-meta-label{font-size:10px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:.8rem}
+.lab-meta-item{font-size:13px;color:var(--muted2);line-height:1.85}
+.lab-cta{margin-top:2.5rem;display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border:.5px solid var(--borderh);border-radius:999px;color:var(--white);text-decoration:none;font-size:12px;letter-spacing:.1em;text-transform:uppercase;transition:all .25s}
+.lab-cta:hover{border-color:var(--pink);background:rgba(244,51,187,.08);gap:14px}
+.lab-cta svg{width:14px;height:14px;flex-shrink:0}
+.lab-visual{position:relative;aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:#050505;border:.5px solid var(--border)}
+.lab-visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;animation:labFade 24s infinite}
+.lab-visual img:nth-child(1){animation-delay:0s}
+.lab-visual img:nth-child(2){animation-delay:4s}
+.lab-visual img:nth-child(3){animation-delay:8s}
+.lab-visual img:nth-child(4){animation-delay:12s}
+.lab-visual img:nth-child(5){animation-delay:16s}
+.lab-visual img:nth-child(6){animation-delay:20s}
+@keyframes labFade{0%{opacity:0}3%{opacity:1}14%{opacity:1}17%{opacity:0}100%{opacity:0}}
+.lab-scroll-wrap{max-width:1500px;margin:0 auto;padding:0 2.5rem 4rem;display:flex;justify-content:flex-end}
+.lab-scroll{font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+
+@media(max-width:900px){
+  .lab-hero{grid-template-columns:1fr;padding-top:9rem;gap:2.5rem}
+  .lab-visual{order:-1;aspect-ratio:16/10}
+  .gal-grid.cols4,.gal-grid.cols3{grid-template-columns:1fr}
+  .gal-grid.vertical{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
@@ -172,7 +206,7 @@ footer>div{position:relative;z-index:1}
       </button>
       <div class="nd-menu">
         <a href="projetos.html">Ver Projetos</a>
-        <a href="galeria.html">Galeria</a>
+        <a href="galeria.html">Forge Lab</a>
       </div>
     </div>
     <a href="contato.html" class="nc">Contato</a>
@@ -207,47 +241,196 @@ footer>div{position:relative;z-index:1}
     <div class="mm-label">Projetos</div>
     <div class="mm-links">
       <a href="projetos.html">Ver Projetos</a>
-      <a href="galeria.html">Galeria</a>
+      <a href="galeria.html">Forge Lab</a>
     </div>
   </div>
   <a href="contato.html" class="mm-cta">Contato</a>
 </div>
 
-<section class="gal-hero">
-  <div class="st2 rv" style="justify-content:center">Galeria</div>
-  <h1 class="ch rv d1" style="font-size:clamp(2.6rem,5.5vw,5.5rem);margin-bottom:1rem">Estudos e<br><span class="g">explorações.</span></h1>
-  <p class="gal-note rv d2">Testes técnicos e explorações pessoais — não são cases comerciais fechados de cliente, mas fazem parte do processo de pesquisa por trás do trabalho publicado.</p>
+<section class="lab-hero">
+  <div class="lab-hero-text">
+    <div class="st2 rv">Espaço de estudos</div>
+    <h1 class="lab-title rv d1">Forge <span class="g">Lab</span></h1>
+    <p class="lab-p rv d2">Um espaço dedicado a testes técnicos, provas de conceito e composições exploratórias — o processo de pesquisa que sustenta o trabalho publicado nos projetos.</p>
+    <p class="lab-p rv d2">Nem tudo aqui nasceu de um contrato fechado: alguns estudos vêm de processos seletivos, propostas em análise ou simples exercícios de pipeline, tratados com o mesmo rigor técnico do trabalho comercial.</p>
+    <div class="lab-meta rv d3">
+      <div class="lab-meta-col">
+        <div class="lab-meta-label">Áreas</div>
+        <div class="lab-meta-item">CGI</div>
+        <div class="lab-meta-item">IA + CGI</div>
+        <div class="lab-meta-item">Still Life</div>
+        <div class="lab-meta-item">Lookdev</div>
+      </div>
+      <div class="lab-meta-col">
+        <div class="lab-meta-label">Status</div>
+        <div class="lab-meta-item">Atualização contínua</div>
+      </div>
+    </div>
+    <a href="projetos.html" class="lab-cta rv d3">
+      Ver projetos completos
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </div>
+  <div class="lab-visual rv d2">
+    <img src="assets/galeria/marreta-still-1.jpg" alt="Forge Lab — estudos">
+    <img src="assets/galeria/dalcotone-sweet-crush-1.jpg" alt="Forge Lab — estudos">
+    <img src="assets/galeria/dg-still-1.jpg" alt="Forge Lab — estudos">
+    <img src="assets/galeria/juvia-still-1.jpg" alt="Forge Lab — estudos">
+    <img src="assets/galeria/olera-still-1.jpg" alt="Forge Lab — estudos">
+    <img src="assets/galeria/manscaped-hero-2.jpg" alt="Forge Lab — estudos">
+  </div>
 </section>
+<div class="lab-scroll-wrap rv d3"><span class="lab-scroll">↘ Role para explorar</span></div>
 
 <section class="gal-group">
   <div class="gal-group-head">
-    <h2 class="rv">Manscaped</h2>
-    <span class="gal-tag rv">Estudo</span>
+    <div>
+      <span class="gal-exp rv">EST. 001</span>
+      <h2 class="rv">Manscaped</h2>
+    </div>
+    <span class="gal-tag rv">CGI + IA</span>
   </div>
   <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo pessoal, sem vínculo comercial — teste enviado como parte de um processo seletivo, não um trabalho contratado pela marca.</p>
-  <div class="gal-grid">
-    <div class="gal-item rv d1"><img src="assets/forja/HERO 1 MANSCAPED.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv d2"><img src="assets/forja/HERO 2 MANSCAPED.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv"><img src="assets/forja/HERO 3 MANSCAPED.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv d1"><img src="assets/forja/CLOSE 2 MANSCAPED.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv d2"><img src="assets/forja/CLOSE 3 v2 MANSCAPED.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv"><img src="assets/cgi-ai/AMBIENTADA 2 MANSCAPED AI + CGI.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv d1"><img src="assets/cgi-ai/AMBIENTADA 3 MANSCAPED AI + CGI.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv d2"><img src="assets/forja/HUMANIZADA 3 MANSCAPED CGI + AI.jpg" alt="Manscaped — Estudo"></div>
-    <div class="gal-item rv"><img src="assets/NOVAS IMAGENS/Explodido 2 MANSCAPED.png" alt="Manscaped — Estudo"></div>
+  <div class="gal-grid cols4">
+    <div class="gal-item rv d1"><img src="assets/galeria/manscaped-hero-1.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/manscaped-hero-2.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv"><img src="assets/galeria/manscaped-hero-3.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv d1"><img src="assets/galeria/manscaped-close-1.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/manscaped-close-2.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv"><img src="assets/galeria/manscaped-close-3.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv d1"><img src="assets/galeria/manscaped-ambientada-1.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/manscaped-ambientada-2.jpg" alt="Manscaped — Estudo"></div>
+  </div>
+  <div class="gal-grid cols3" style="margin-top:2px">
+    <div class="gal-item rv"><img src="assets/galeria/manscaped-ambientada-3.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv d1"><img src="assets/galeria/manscaped-humanizada-3.jpg" alt="Manscaped — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/manscaped-explodido-2.jpg" alt="Manscaped — Estudo"></div>
   </div>
 </section>
 
 <section class="gal-group">
   <div class="gal-group-head">
-    <h2 class="rv">AFPM</h2>
+    <div>
+      <span class="gal-exp rv">EST. 002</span>
+      <h2 class="rv">Dal Cotone</h2>
+    </div>
+    <span class="gal-tag rv">CGI</span>
+  </div>
+  <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo técnico pessoal de still life para uma linha de fragrâncias — vidro, líquido e luz em composições distintas.</p>
+  <div class="gal-grid cols3">
+    <div class="gal-item rv d1"><img src="assets/galeria/dalcotone-fresh-skin-1.jpg" alt="Dal Cotone — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/dalcotone-fresh-skin-2.jpg" alt="Dal Cotone — Estudo"></div>
+    <div class="gal-item rv"><img src="assets/galeria/dalcotone-luxy-2.jpg" alt="Dal Cotone — Estudo"></div>
+    <div class="gal-item rv d1"><img src="assets/galeria/dalcotone-sweet-crush-1.jpg" alt="Dal Cotone — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/dalcotone-sweet-crush-1-v2.jpg" alt="Dal Cotone — Estudo"></div>
+    <div class="gal-item rv"><img src="assets/galeria/dalcotone-teste-1.jpg" alt="Dal Cotone — Estudo"></div>
+  </div>
+</section>
+
+<section class="gal-group">
+  <div class="gal-group-head">
+    <div>
+      <span class="gal-exp rv">EST. 003</span>
+      <h2 class="rv">Juvia</h2>
+    </div>
+    <span class="gal-tag rv">CGI</span>
+  </div>
+  <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo de still life vertical para redes sociais — textura, movimento e luz de estúdio.</p>
+  <div class="gal-grid vertical">
+    <div class="gal-item rv d1"><img src="assets/galeria/juvia-still-1.jpg" alt="Juvia — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/juvia-still-2.jpg" alt="Juvia — Estudo"></div>
+    <div class="gal-item rv"><img src="assets/galeria/juvia-still-3.jpg" alt="Juvia — Estudo"></div>
+    <div class="gal-item rv d1"><img src="assets/galeria/juvia-still-4.jpg" alt="Juvia — Estudo"></div>
+  </div>
+</section>
+
+<section class="gal-group">
+  <div class="gal-group-head">
+    <div>
+      <span class="gal-exp rv">EST. 004</span>
+      <h2 class="rv">Olera</h2>
+    </div>
+    <span class="gal-tag rv">CGI</span>
+  </div>
+  <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo de still life para skincare — vidro, gel e reflexo em ambiente controlado.</p>
+  <div class="gal-grid single">
+    <div class="gal-item rv d1"><img src="assets/galeria/olera-still-1.jpg" alt="Olera — Estudo"></div>
+  </div>
+</section>
+
+<section class="gal-group">
+  <div class="gal-group-head">
+    <div>
+      <span class="gal-exp rv">EST. 005</span>
+      <h2 class="rv">Dolce &amp; Gabbana</h2>
+    </div>
+    <span class="gal-tag rv">CGI</span>
+  </div>
+  <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo pessoal de still life de perfumaria — vidro, líquido e elementos orgânicos.</p>
+  <div class="gal-grid">
+    <div class="gal-item rv d1"><img src="assets/galeria/dg-still-1.jpg" alt="Dolce & Gabbana — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/dg-still-2.jpg" alt="Dolce & Gabbana — Estudo"></div>
+  </div>
+</section>
+
+<section class="gal-group">
+  <div class="gal-group-head">
+    <div>
+      <span class="gal-exp rv">EST. 006</span>
+      <h2 class="rv">Cacau Show</h2>
+    </div>
+    <span class="gal-tag rv">CGI</span>
+  </div>
+  <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo de still life para embalagem sazonal — composição, cor e luz de cena.</p>
+  <div class="gal-grid single">
+    <div class="gal-item rv d1"><img src="assets/galeria/cacau-show-still-1.jpg" alt="Cacau Show — Estudo"></div>
+  </div>
+</section>
+
+<section class="gal-group">
+  <div class="gal-group-head">
+    <div>
+      <span class="gal-exp rv">EST. 007</span>
+      <h2 class="rv">Marreta</h2>
+    </div>
+    <span class="gal-tag rv">CGI + Lookdev</span>
+  </div>
+  <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo pessoal de lookdev e iluminação — material metálico e emissivo em alta fidelidade.</p>
+  <div class="gal-grid">
+    <div class="gal-item rv d1"><img src="assets/galeria/marreta-still-1.jpg" alt="Marreta — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/marreta-still-2.jpg" alt="Marreta — Estudo"></div>
+  </div>
+</section>
+
+<section class="gal-group">
+  <div class="gal-group-head">
+    <div>
+      <span class="gal-exp rv">EST. 008</span>
+      <h2 class="rv">Estudos avulsos</h2>
+    </div>
+    <span class="gal-tag rv">CGI</span>
+  </div>
+  <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Frames avulsos de estudos técnicos — retrato, produto e still life em briefs distintos.</p>
+  <div class="gal-grid">
+    <div class="gal-item rv d1"><img src="assets/galeria/avulso-cabelinho.jpg" alt="Estudo avulso — retrato"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/avulso-fila.jpg" alt="Estudo avulso — produto"></div>
+    <div class="gal-item rv"><img src="assets/galeria/avulso-vf.jpg" alt="Estudo avulso — still life"></div>
+  </div>
+</section>
+
+<section class="gal-group">
+  <div class="gal-group-head">
+    <div>
+      <span class="gal-exp rv">EST. 009</span>
+      <h2 class="rv">AFPM</h2>
+    </div>
     <span class="gal-tag rv">Estudo</span>
   </div>
   <p class="gal-note rv d1" style="margin:0 auto 1.5rem;max-width:1300px">Estudo/exploração pessoal — projeto com pendência de pagamento com o cliente, entra como exercício técnico, não como case fechado de portfólio.</p>
   <div class="gal-grid">
-    <div class="gal-item rv d1"><img src="assets/NOVAS IMAGENS/STYLE FRAME 1 V1 AFPM.png" alt="AFPM — Estudo"></div>
-    <div class="gal-item rv d2"><img src="assets/forja/STYLE FRAME 2 V2 AFPM.png" alt="AFPM — Estudo"></div>
-    <div class="gal-item rv"><img src="assets/forja/STYLE FRAME 3 V2 AFPM.png" alt="AFPM — Estudo"></div>
+    <div class="gal-item rv d1"><img src="assets/galeria/afpm-style-frame-1.jpg" alt="AFPM — Estudo"></div>
+    <div class="gal-item rv d2"><img src="assets/galeria/afpm-style-frame-2.jpg" alt="AFPM — Estudo"></div>
+    <div class="gal-item rv"><img src="assets/galeria/afpm-style-frame-3.jpg" alt="AFPM — Estudo"></div>
   </div>
 </section>
 
